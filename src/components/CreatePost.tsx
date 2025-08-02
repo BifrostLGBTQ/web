@@ -41,6 +41,12 @@ const CreatePost: React.FC = () => {
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState('recent');
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
+  const [addedEvent, setAddedEvent] = useState<null | { title: string; description: string; date: string; location: string }>(null);
   const { theme } = useTheme();
   const maxChars = 500;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -171,14 +177,15 @@ const CreatePost: React.FC = () => {
   ];
 
   const emojiCategories = {
-    recent: ['😊', '😂', '❤️', '🔥', '👍', '🎉', '✨', '💪', '😍', '🤔', '😎', '🥳', '💯', '🚀', '💖', '😌', '🤗', '😇', '🤩', '😋', '🥰', '😘', '🤗', '😊'],
+    recent: ['😊', '😂', '❤️', '🔥', '👍', '🎉', '✨', '💪', '😍', '🤔', '😎', '🥳', '💯', '🚀', '💖', '😌', '🤗', '😇', '🤩', '😋', '🥰', '😘', '🤗', '😊', '🥺', '😭', '😤', '😡', '🤬', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕'],
     smileys: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕'],
     nature: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🐣', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦋', '🐛', '🐌', '🐞', '🐜', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦫', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔'],
     food: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '🫖', '☕', '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍷', '🥂', '🥃', '🍸', '🍹', '🧉', '🍾', '🥄', '🍴', '🍽️', '🥣', '🥡', '🥢', '🧂'],
     activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️‍♀️', '🏋️', '🤼‍♀️', '🤼', '🤸‍♀️', '🤸', '⛹️‍♀️', '⛹️', '🤺', '🤾‍♀️', '🤾', '🏌️‍♀️', '🏌️', '🏇', '🧘‍♀️', '🧘', '🏄‍♀️', '🏄', '🏊‍♀️', '🏊', '🤽‍♀️', '🤽', '🚣‍♀️', '🚣', '🏊‍♀️', '🏊', '🚴‍♀️', '🚴', '🚵‍♀️', '🚵', '🎯', '🎮', '🎲', '🧩', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '🎪', '🎟️', '🎫', '🎗️', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉', '⚜️', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠'],
     travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🛵', '🛺', '🚲', '🛞', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '🚧', '⛽', '🚏', '🚦', '🚥', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺'],
     objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🎮', '🎰', '🎲', '🧩', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '📺', '📻', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🪛', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🪚', '🔩', '⚙️', '🪤', '🧱', '⛓️', '🧲', '🔫', '💣', '🪃', '🏹', '🛡️', '🪄', '🔮', '🧿', '🪬', '📿', '🧸', '🪆', '🖼️', '🪞', '🪟', '🛍️', '🛒', '🎁', '🎈', '🎉', '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎀', '🪄', '🎗️', '🎟️', '🎫', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉', '⚜️', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠'],
-    symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '👁️‍🗨️', '🔚', '🔙', '🔛', '🔝', '🔜', '〰️', '➰', '➿', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧']
+    symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '👁️‍🗨️', '🔚', '🔙', '🔛', '🔝', '🔜', '〰️', '➰', '➿', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '🩹', '🩺', '🩻', '🩼', '🩽', '🩾', '🩿', '🪿', '🫁', '🫂', '🫃', '🫄', '🫅', '🫆', '🫇', '🫈', '🫉', '🫊', '🫋', '🫌', '🫍', '🫎', '🫏'],
+    flags: ['🇹🇷', '🇺🇸', '🇬🇧', '🇩🇪', '🇫🇷', '🇮🇹', '🇪🇸', '🇵🇹', '🇳🇱', '🇧🇪', '🇨🇭', '🇦🇹', '🇸🇪', '🇳🇴', '🇩🇰', '🇫🇮', '🇵🇱', '🇨🇿', '🇭🇺', '🇷🇴', '🇧🇬', '🇭🇷', '🇸🇰', '🇸🇮', '🇪🇪', '🇱🇻', '🇱🇹', '🇷🇺', '🇺🇦', '🇧🇾', '🇲🇩', '🇬🇪', '🇦🇲', '🇦🇿', '🇰🇿', '🇺🇿', '🇰🇬', '🇹🇲', '🇹🇯', '🇦🇫', '🇵🇰', '🇮🇳', '🇧🇩', '🇱🇰', '🇳🇵', '🇧🇹', '🇲🇲', '🇹🇭', '🇻🇳', '🇰🇭', '🇱🇦', '🇲🇳', '🇰🇵', '🇰🇷', '🇯🇵', '🇨🇳', '🇹🇼', '🇭🇰', '🇲🇴', '🇵🇭', '🇲🇾', '🇸🇬', '🇮🇩', '🇧🇳', '🇹🇱', '🇵🇬', '🇫🇯', '🇳🇿', '🇦🇺', '🇵🇫', '🇳🇨', '🇻🇺', '🇸🇧', '🇰🇮', '🇹🇻', '🇫🇲', '🇵🇼', '🇲🇭', '🇳🇷', '🇵🇳', '🇹🇰', '🇼🇸', '🇦🇸', '🇬🇺', '🇲🇵', '🇨🇰', '🇳🇺', '🇹🇴', '🇳🇫', '🏳️‍🌈', '🏳️‍⚧️', '🏴‍☠️', '🏴', '🏁', '🚩', '🎌', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁷󠁬󠁳󠁿', '🏴󠁵󠁳󠁴󠁸󠁿', '🏴󠁵󠁳󠁣󠁡󠁿', '🏴󠁵󠁳󠁴󠁸󠁿', '🏴󠁵󠁳󠁦󠁬󠁿', '🏴󠁵󠁳󠁧󠁡󠁿', '🏴󠁵󠁳󠁨󠁩󠁿', '🏴󠁵󠁳󠁭󠁤󠁿', '🏴󠁵󠁳󠁭󠁡󠁿', '🏴󠁵󠁳󠁭󠁩󠁿', '🏴󠁵󠁳󠁭󠁯󠁿', '🏴󠁵󠁳󠁮󠁨󠁿', '🏴󠁵󠁳󠁮󠁪󠁿', '🏴󠁵󠁳󠁮󠁭󠁿', '🏴󠁵󠁳󠁮󠁹󠁿', '🏴󠁵󠁳󠁯󠁨󠁿', '🏴󠁵󠁳󠁯󠁫󠁿', '🏴󠁵󠁳󠁯󠁲󠁿', '🏴󠁵󠁳󠁰󠁡󠁿', '🏴󠁵󠁳󠁲󠁩󠁿', '🏴󠁵󠁳󠁳󠁣󠁿', '🏴󠁵󠁳󠁳󠁤󠁿', '🏴󠁵󠁳󠁴󠁮󠁿', '🏴󠁵󠁳󠁴󠁸󠁿', '🏴󠁵󠁳󠁵󠁴󠁿', '🏴󠁵󠁳󠁷󠁡󠁿', '🏴󠁵󠁳󠁷󠁶󠁿', '🏴󠁵󠁳󠁷󠁹󠁿']
   };
 
   return (
@@ -254,9 +261,9 @@ const CreatePost: React.FC = () => {
               initial={{ opacity: 0, height: 0, scale: 0.95 }}
               animate={{ opacity: 1, height: 'auto', scale: 1 }}
               exit={{ opacity: 0, height: 0, scale: 0.95 }}
-              className="mt-3 relative group"
+              className="mt-4 relative group"
             >
-              <div className={`border rounded-2xl shadow-sm overflow-hidden ${
+              <div className={`border rounded-2xl shadow-lg overflow-hidden ${
                 theme === 'dark'
                   ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700'
                   : 'bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-gray-200/60'
@@ -728,10 +735,7 @@ const CreatePost: React.FC = () => {
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  // Event functionality can be added here
-                  console.log('Event button clicked');
-                }}
+                onClick={() => setIsEventModalOpen(true)}
                 type="button"
               >
                 <Calendar className="w-5 h-5" />
@@ -781,7 +785,7 @@ const CreatePost: React.FC = () => {
         className="hidden"
       />
 
-      {/* Emoji Picker Modal */}
+                    {/* Ultra-Compact Emoji Picker Modal */}
       <AnimatePresence>
         {isEmojiPickerOpen && (
           <motion.div
@@ -792,54 +796,52 @@ const CreatePost: React.FC = () => {
             onClick={() => setIsEmojiPickerOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={`rounded-2xl w-full max-w-lg shadow-2xl border ${
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className={`rounded-2xl w-full max-w-lg shadow-2xl border overflow-hidden ${
                 theme === 'dark' 
                   ? 'bg-gray-900 border-gray-700' 
                   : 'bg-white border-gray-200'
               }`}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${
-                    theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
-                  }`}>
-                    <Smile className={`w-5 h-5 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`} />
-                  </div>
-                  <h3 className={`text-lg font-semibold ${
+              {/* Compact Header */}
+              <div className={`flex items-center justify-between p-4 ${
+                theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50/50'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <Smile className={`w-4 h-4 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`} />
+                  <h3 className={`text-sm font-semibold ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>Choose Mood</h3>
+                  }`}>Emojis</h3>
                 </div>
                 <button
                   onClick={() => setIsEmojiPickerOpen(false)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-1.5 rounded-lg transition-all ${
                     theme === 'dark' 
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-700' 
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Search Bar */}
-              <div className="p-6 pb-4">
+              {/* Compact Search Bar */}
+              <div className="p-4 pb-3">
                 <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-400'
                   }`} />
                   <input
                     type="text"
-                    placeholder="Search emojis..."
+                    placeholder="Search..."
                     value={emojiSearchQuery}
                     onChange={(e) => setEmojiSearchQuery(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                    className={`w-full pl-9 pr-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/10 focus:border-gray-400 transition-all text-sm ${
                       theme === 'dark' 
                         ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
                         : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
@@ -848,48 +850,44 @@ const CreatePost: React.FC = () => {
                 </div>
               </div>
 
-              {/* Category Tabs */}
-              <div className="px-6 pb-4">
-                <div className="grid grid-cols-4 gap-2">
+              {/* Compact Category Tabs */}
+              <div className="px-4 pb-3">
+                <div className="grid grid-cols-5 gap-1">
                   {Object.keys(emojiCategories).map((category) => (
                     <motion.button
                       key={category}
                       onClick={() => setSelectedEmojiCategory(category)}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      className={`flex items-center justify-center px-2 py-2 rounded-lg text-xs font-medium transition-all ${
                         selectedEmojiCategory === category
                           ? theme === 'dark'
-                            ? 'bg-gray-700 text-white shadow-lg'
-                            : 'bg-gray-200 text-gray-800 shadow-lg'
+                            ? 'bg-gray-700 text-white shadow-sm'
+                            : 'bg-gray-200 text-gray-800 shadow-sm'
                           : theme === 'dark'
                             ? 'text-gray-400 hover:text-white hover:bg-gray-800'
                             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                       }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <div className="flex items-center justify-center space-x-2">
-                        <span className="text-lg">
-                          {category === 'recent' && '🕒'}
-                          {category === 'smileys' && '😊'}
-                          {category === 'nature' && '🌿'}
-                          {category === 'food' && '🍕'}
-                          {category === 'activities' && '⚽'}
-                          {category === 'travel' && '✈️'}
-                          {category === 'objects' && '💻'}
-                          {category === 'symbols' && '❤️'}
-                        </span>
-                        <span className="hidden sm:block">
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </span>
-                      </div>
+                      <span className="text-sm">
+                        {category === 'recent' && '🕒'}
+                        {category === 'smileys' && '😊'}
+                        {category === 'nature' && '🌿'}
+                        {category === 'food' && '🍕'}
+                        {category === 'activities' && '⚽'}
+                        {category === 'travel' && '✈️'}
+                        {category === 'objects' && '💻'}
+                        {category === 'symbols' && '❤️'}
+                        {category === 'flags' && '🏁'}
+                      </span>
                     </motion.button>
                   ))}
                 </div>
               </div>
 
-              {/* Emoji Grid */}
-              <div className="px-6 pb-6">
-                <div className={`grid grid-cols-8 gap-3 rounded-xl p-4 ${
+              {/* Ultra-Compact Emoji Grid */}
+              <div className="px-4 pb-4">
+                <div className={`grid grid-cols-8 gap-1 rounded-xl p-3 ${
                   theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'
                 }`}>
                   {emojiCategories[selectedEmojiCategory as keyof typeof emojiCategories]
@@ -897,7 +895,7 @@ const CreatePost: React.FC = () => {
                       emojiSearchQuery === '' || 
                       emoji.includes(emojiSearchQuery)
                     )
-                    .slice(0, 48) // Limit to 48 emojis (6 rows x 8 columns)
+                    .slice(0, 48) // 6 rows x 8 columns for compact layout
                     .map((emoji, index) => (
                       <motion.button
                         key={index}
@@ -905,10 +903,10 @@ const CreatePost: React.FC = () => {
                           setPostText(prev => prev + emoji);
                           setIsEmojiPickerOpen(false);
                         }}
-                        className={`w-12 h-12 text-2xl rounded-xl transition-all flex items-center justify-center ${
+                        className={`w-8 h-8 text-lg rounded-lg transition-all flex items-center justify-center ${
                           theme === 'dark' 
                             ? 'hover:bg-gray-700 hover:scale-110' 
-                            : 'hover:bg-white hover:scale-110 hover:shadow-md'
+                            : 'hover:bg-white hover:scale-110'
                         }`}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
@@ -917,22 +915,6 @@ const CreatePost: React.FC = () => {
                       </motion.button>
                     ))}
                 </div>
-                
-                {/* Show more indicator if there are more emojis */}
-                {emojiCategories[selectedEmojiCategory as keyof typeof emojiCategories]
-                  .filter(emoji => 
-                    emojiSearchQuery === '' || 
-                    emoji.includes(emojiSearchQuery)
-                  ).length > 48 && (
-                  <div className="text-center mt-4">
-                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      <Search className="w-4 h-4" />
-                      <span className="text-sm font-medium">Type to search for more emojis</span>
-                    </div>
-                  </div>
-                )}
               </div>
             </motion.div>
           </motion.div>
@@ -1170,6 +1152,194 @@ const CreatePost: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Event Modal */}
+      <AnimatePresence>
+        {isEventModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setIsEventModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`rounded-2xl p-0 w-full max-w-md shadow-2xl border ${
+                theme === 'dark'
+                  ? 'bg-gray-900 border-gray-700'
+                  : 'bg-white border-gray-200'
+              }`}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 pt-6 pb-2">
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Add Event</h3>
+                <button
+                  onClick={() => setIsEventModalOpen(false)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    theme === 'dark'
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="max-h-[70vh] overflow-y-auto px-6 pb-4 pt-2">
+                <div className="space-y-5">
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Event Title</label>
+                    <input
+                      type="text"
+                      value={eventTitle}
+                      onChange={e => setEventTitle(e.target.value)}
+                      placeholder="Enter event title"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Description</label>
+                    <textarea
+                      value={eventDescription}
+                      onChange={e => setEventDescription(e.target.value)}
+                      placeholder="Event description"
+                      rows={2}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={eventDate}
+                      onChange={e => setEventDate(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Location</label>
+                    <input
+                      type="text"
+                      value={eventLocation}
+                      onChange={e => setEventLocation(e.target.value)}
+                      placeholder="Event location"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="sticky bottom-0 left-0 right-0 bg-inherit px-6 pb-6 pt-4 z-10">
+                <div className="flex space-x-3">
+                  <motion.button
+                    onClick={() => setIsEventModalOpen(false)}
+                    className={`flex-1 px-4 py-3 border rounded-xl transition-all ${
+                      theme === 'dark'
+                        ? 'text-gray-300 border-gray-600 hover:bg-gray-800'
+                        : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      setAddedEvent({
+                        title: eventTitle,
+                        description: eventDescription,
+                        date: eventDate,
+                        location: eventLocation,
+                      });
+                      setIsEventModalOpen(false);
+                      setEventTitle('');
+                      setEventDescription('');
+                      setEventDate('');
+                      setEventLocation('');
+                    }}
+                    className={`flex-1 px-4 py-3 rounded-xl transition-all shadow-lg font-semibold ${
+                      theme === 'dark'
+                        ? 'bg-gray-800 text-white hover:bg-gray-900'
+                        : 'bg-gray-900 text-white hover:bg-black'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Add Event
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {addedEvent && (
+        <motion.div
+          initial={{ opacity: 0, height: 0, scale: 0.95 }}
+          animate={{ opacity: 1, height: 'auto', scale: 1 }}
+          exit={{ opacity: 0, height: 0, scale: 0.95 }}
+          className="mt-4 relative group"
+        >
+          <div className={`border rounded-2xl shadow-lg overflow-hidden ${
+            theme === 'dark'
+              ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700'
+              : 'bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-gray-200/60'
+          }`}>
+            <div className="flex items-center space-x-3 p-4">
+              <div className="flex-shrink-0">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
+                  theme === 'dark'
+                    ? 'bg-gradient-to-br from-gray-700 to-gray-800'
+                    : 'bg-gradient-to-br from-gray-600 to-gray-700'
+                }`}>
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{addedEvent.title}</div>
+                <div className={`text-xs truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{addedEvent.description}</div>
+                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{addedEvent.date ? new Date(addedEvent.date).toLocaleString() : ''}</div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{addedEvent.location}</div>
+              </div>
+              <motion.button
+                onClick={() => setAddedEvent(null)}
+                className={`flex-shrink-0 p-2 rounded-full transition-all ${
+                  theme === 'dark'
+                    ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                    : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                }`}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </div>
+          <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
+            theme === 'dark'
+              ? 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
+              : 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
+          }`} />
+        </motion.div>
+      )}
       </motion.div>
     </>
   );
