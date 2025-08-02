@@ -254,142 +254,8 @@ const CreatePost: React.FC = () => {
             rows={isExpanded ? 4 : 3}
             style={{ minHeight: isExpanded ? '120px' : '90px' }}
           />
-
-          {/* Location Display */}
-          {location && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, scale: 0.95 }}
-              animate={{ opacity: 1, height: 'auto', scale: 1 }}
-              exit={{ opacity: 0, height: 0, scale: 0.95 }}
-              className="mt-4 relative group"
-            >
-              <div className={`border rounded-2xl shadow-lg overflow-hidden ${
-                theme === 'dark'
-                  ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700'
-                  : 'bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-gray-200/60'
-              }`}>
-                {/* Map Preview */}
-                <div className={`relative h-36 overflow-hidden ${
-                  theme === 'dark'
-                    ? 'bg-gradient-to-br from-gray-800 to-gray-900'
-                    : 'bg-gradient-to-br from-gray-50 to-gray-100'
-                }`}>
-                  {/* Map Background */}
-                  <div className={`absolute inset-0 ${
-                    theme === 'dark'
-                      ? 'bg-gradient-to-br from-gray-700/50 to-gray-800/30'
-                      : 'bg-gradient-to-br from-gray-100/50 to-gray-200/30'
-                  }`} />
-                  
-                  {/* Streets Grid */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="grid grid-cols-6 grid-rows-4 h-full">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <div key={i} className={`border ${
-                          theme === 'dark' ? 'border-gray-500/40' : 'border-gray-400/40'
-                        }`} />
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Main Streets */}
-                  <div className="absolute inset-0">
-                    <div className={`absolute top-1/3 left-0 right-0 h-1 ${
-                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
-                    }`} />
-                    <div className={`absolute left-1/3 top-0 bottom-0 w-1 ${
-                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
-                    }`} />
-                  </div>
-                  
-                  {/* Buildings */}
-                  <div className="absolute inset-0">
-                    <div className={`absolute top-1/4 left-1/6 w-3 h-4 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-600/70' : 'bg-gray-300/70'
-                    }`} />
-                    <div className={`absolute top-1/4 right-1/6 w-4 h-3 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-500/80' : 'bg-gray-400/80'
-                    }`} />
-                    <div className={`absolute bottom-1/4 left-1/3 w-3 h-5 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-600/60' : 'bg-gray-300/60'
-                    }`} />
-                    <div className={`absolute bottom-1/4 right-1/3 w-5 h-3 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-500/70' : 'bg-gray-400/70'
-                    }`} />
-                  </div>
-                  
-                  {/* Location Pin */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="relative">
-                      <div className="w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      </div>
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-red-500" />
-                    </div>
-                  </div>
-                  
-                  {/* Map Attribution */}
-                  <div className="absolute bottom-2 right-2">
-                    <div className={`px-2 py-1 backdrop-blur-sm rounded text-xs font-medium shadow-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-800/90 text-gray-300'
-                        : 'bg-white/90 text-gray-600'
-                    }`}>
-                      <div className="flex items-center space-x-1">
-                        <MapPin className={`w-3 h-3 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                        }`} />
-                        <span>Location</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Location Info */}
-                <div className="flex items-center space-x-3 p-4">
-                  <div className="flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
-                      theme === 'dark'
-                        ? 'bg-gradient-to-br from-gray-700 to-gray-800'
-                        : 'bg-gradient-to-br from-gray-600 to-gray-700'
-                    }`}>
-                      <MapPin className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>Location</div>
-                    <div className={`text-sm truncate ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}>{location}</div>
-                  </div>
-                  <motion.button
-                    onClick={() => setLocation('')}
-                    className={`flex-shrink-0 p-2 rounded-full transition-all ${
-                      theme === 'dark'
-                        ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                        : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <X className="w-4 h-4" />
-                  </motion.button>
-                </div>
-              </div>
-              
-              {/* Hover effect */}
-              <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
-                theme === 'dark'
-                  ? 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
-                  : 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
-              }`} />
-            </motion.div>
-          )}
-
-          {/* Character Count & Progress */}
-          <div className="flex items-center justify-between mt-4">
+      {/* Character Count & Progress */}
+      <div className="flex items-center justify-between mt-4">
             <div className="flex items-center space-x-4 text-sm">
               <span className={`font-medium ${
                 charCount > maxChars * 0.8 
@@ -430,6 +296,123 @@ const CreatePost: React.FC = () => {
             </div>
           </div>
 
+          {/* Location Display */}
+          {location && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              className="mt-6 relative group"
+            >
+              <div className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 border ${
+                theme === 'dark'
+                  ? 'bg-gray-900 border-gray-800'
+                  : 'bg-white border-gray-200'
+              }`}>
+                {/* Map Preview */}
+                <div className={`relative h-36 overflow-hidden ${
+                  theme === 'dark'
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-900'
+                    : 'bg-gradient-to-br from-gray-50 to-gray-100'
+                }`}>
+                  {/* Map Background */}
+                  <div className={`absolute inset-0 ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-br from-gray-700/50 to-gray-800/30'
+                      : 'bg-gradient-to-br from-gray-100/50 to-gray-200/30'
+                  }`} />
+                  {/* Streets Grid */}
+                  <div className="absolute inset-0 opacity-20">
+                    <div className="grid grid-cols-6 grid-rows-4 h-full">
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <div key={i} className={`border ${
+                          theme === 'dark' ? 'border-gray-500/40' : 'border-gray-400/40'
+                        }`} />
+                      ))}
+                    </div>
+                  </div>
+                  {/* Main Streets */}
+                  <div className="absolute inset-0">
+                    <div className={`absolute top-1/3 left-0 right-0 h-1 ${
+                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
+                    }`} />
+                    <div className={`absolute left-1/3 top-0 bottom-0 w-1 ${
+                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
+                    }`} />
+                  </div>
+                  {/* Buildings */}
+                  <div className="absolute inset-0">
+                    <div className={`absolute top-1/4 left-1/6 w-3 h-4 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-600/70' : 'bg-gray-300/70'
+                    }`} />
+                    <div className={`absolute top-1/4 right-1/6 w-4 h-3 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-500/80' : 'bg-gray-400/80'
+                    }`} />
+                    <div className={`absolute bottom-1/4 left-1/3 w-3 h-5 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-600/60' : 'bg-gray-300/60'
+                    }`} />
+                    <div className={`absolute bottom-1/4 right-1/3 w-5 h-3 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-500/70' : 'bg-gray-400/70'
+                    }`} />
+                  </div>
+                  {/* Location Pin */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="relative">
+                      <div className="w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      </div>
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-red-500" />
+                    </div>
+                  </div>
+                  {/* Map Attribution */}
+                  <div className="absolute bottom-2 right-2">
+                    <div className={`px-2 py-1 backdrop-blur-sm rounded text-xs font-medium shadow-sm ${
+                      theme === 'dark'
+                        ? 'bg-gray-800/90 text-gray-300'
+                        : 'bg-white/90 text-gray-600'
+                    }`}>
+                      <div className="flex items-center space-x-1">
+                        <MapPin className={`w-3 h-3 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`} />
+                        <span>Location</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Location Info */}
+                <div className="flex items-center space-x-5 p-6">
+                  <div className="flex-shrink-0">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-sm ${
+                      theme === 'dark'
+                        ? 'bg-gray-800'
+                        : 'bg-gray-200'
+                    }`}>
+                      <MapPin className="w-7 h-7 text-gray-700 dark:text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-lg font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Location</div>
+                    <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{location}</div>
+                  </div>
+                  <motion.button
+                    onClick={() => setLocation('')}
+                    className={`flex-shrink-0 p-2 rounded-full transition-all z-10 ${
+                      theme === 'dark'
+                        ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                        : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                    }`}
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <X className="w-5 h-5" />
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+    
           {/* Selected Images Preview */}
           <AnimatePresence>
             {selectedImages.length > 0 && (
@@ -643,6 +626,62 @@ const CreatePost: React.FC = () => {
               </motion.div>
             )}
           </AnimatePresence>
+
+                {/* Event Display */}
+      {addedEvent && (
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          className="mt-6 relative group"
+        >
+          <div className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 border ${
+            theme === 'dark'
+              ? 'bg-gray-900 border-gray-800'
+              : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center space-x-5 p-6">
+              <div className="flex-shrink-0">
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-sm ${
+                  theme === 'dark'
+                    ? 'bg-gray-800'
+                    : 'bg-gray-200'
+                }`}>
+                  <Calendar className="w-7 h-7 text-gray-700 dark:text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-lg font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{addedEvent.title}</div>
+                <div className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{addedEvent.description}</div>
+                <div className="flex items-center space-x-3 text-xs font-medium">
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{addedEvent.date ? new Date(addedEvent.date).toLocaleString() : ''}</span>
+                  </div>
+                  {addedEvent.location && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{addedEvent.location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <motion.button
+                onClick={() => setAddedEvent(null)}
+                className={`flex-shrink-0 p-2 rounded-full transition-all z-10 ${
+                  theme === 'dark'
+                    ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                    : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                }`}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
           {/* Action Buttons */}
           <div className={`flex items-center justify-between mt-6 pt-6 border-t ${
@@ -1022,7 +1061,7 @@ const CreatePost: React.FC = () => {
                   }`}>
                     Popular locations
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {popularLocations.map((loc) => (
                       <motion.button
                         key={loc}
@@ -1030,15 +1069,16 @@ const CreatePost: React.FC = () => {
                           setLocation(loc);
                           setIsLocationModalOpen(false);
                         }}
-                        className={`p-3 text-sm rounded-lg transition-all text-left ${
+                        className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm transition-all text-left group border ${
                           theme === 'dark'
-                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                            ? 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700'
+                            : 'bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-50'
                         }`}
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        {loc}
+                        <MapPin className="w-5 h-5 text-gray-400" />
+                        <span className="font-medium truncate">{loc}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -1291,55 +1331,7 @@ const CreatePost: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {addedEvent && (
-        <motion.div
-          initial={{ opacity: 0, height: 0, scale: 0.95 }}
-          animate={{ opacity: 1, height: 'auto', scale: 1 }}
-          exit={{ opacity: 0, height: 0, scale: 0.95 }}
-          className="mt-4 relative group"
-        >
-          <div className={`border rounded-2xl shadow-lg overflow-hidden ${
-            theme === 'dark'
-              ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700'
-              : 'bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-gray-200/60'
-          }`}>
-            <div className="flex items-center space-x-3 p-4">
-              <div className="flex-shrink-0">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
-                  theme === 'dark'
-                    ? 'bg-gradient-to-br from-gray-700 to-gray-800'
-                    : 'bg-gradient-to-br from-gray-600 to-gray-700'
-                }`}>
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{addedEvent.title}</div>
-                <div className={`text-xs truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{addedEvent.description}</div>
-                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{addedEvent.date ? new Date(addedEvent.date).toLocaleString() : ''}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{addedEvent.location}</div>
-              </div>
-              <motion.button
-                onClick={() => setAddedEvent(null)}
-                className={`flex-shrink-0 p-2 rounded-full transition-all ${
-                  theme === 'dark'
-                    ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                    : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X className="w-4 h-4" />
-              </motion.button>
-            </div>
-          </div>
-          <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
-            theme === 'dark'
-              ? 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
-              : 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
-          }`} />
-        </motion.div>
-      )}
+
       </motion.div>
     </>
   );
