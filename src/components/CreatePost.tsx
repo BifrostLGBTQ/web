@@ -45,6 +45,8 @@ const CreatePost: React.FC = () => {
   const maxChars = 500;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     setPostText(text);
@@ -61,7 +63,14 @@ const CreatePost: React.FC = () => {
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    // Add a small delay for visual feedback
+    setTimeout(() => {
+      setSelectedImages(prev => {
+        const newImages = [...prev];
+        newImages.splice(index, 1);
+        return newImages;
+      });
+    }, 50);
   };
 
   const addPollOption = () => {
@@ -173,23 +182,26 @@ const CreatePost: React.FC = () => {
   };
 
   return (
-    <motion.div 
-      className={`rounded-2xl shadow-sm border p-4 sm:p-6 mb-6 transition-colors duration-300 ${
-        theme === 'dark' 
-          ? 'bg-gray-900 border-gray-800' 
-          : 'bg-white border-gray-200'
-      }`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <>
+      <motion.div 
+        className={`rounded-2xl shadow-sm border p-4 sm:p-6 mb-6 transition-colors duration-300 ${
+          theme === 'dark' 
+            ? 'bg-gray-900 border-gray-800' 
+            : 'bg-white border-gray-200'
+        }`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
       <div className="flex space-x-3 sm:space-x-4">
         {/* Avatar */}
         <div className="flex-shrink-0">
         <img
           src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2"
           alt="Your avatar"
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-emerald-100"
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 ${
+              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+            }`}
           />
         </div>
 
@@ -200,8 +212,8 @@ const CreatePost: React.FC = () => {
             <motion.button
               className={`flex items-center space-x-2 transition-colors text-sm font-medium ${
                 theme === 'dark' 
-                  ? 'text-red-400 hover:text-red-300' 
-                  : 'text-red-600 hover:text-red-700'
+                  ? 'text-gray-300 hover:text-white' 
+                  : 'text-gray-700 hover:text-gray-900'
               }`}
               onClick={() => setIsExpanded(true)}
               whileHover={{ scale: 1.02 }}
@@ -238,33 +250,59 @@ const CreatePost: React.FC = () => {
               exit={{ opacity: 0, height: 0, scale: 0.95 }}
               className="mt-3 relative group"
             >
-              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/60 rounded-2xl shadow-sm overflow-hidden">
+              <div className={`border rounded-2xl shadow-sm overflow-hidden ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-700'
+                  : 'bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-gray-200/60'
+              }`}>
                 {/* Map Preview */}
-                <div className="relative h-36 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                <div className={`relative h-36 overflow-hidden ${
+                  theme === 'dark'
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-900'
+                    : 'bg-gradient-to-br from-gray-50 to-gray-100'
+                }`}>
                   {/* Map Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100/50 to-gray-200/30" />
+                  <div className={`absolute inset-0 ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-br from-gray-700/50 to-gray-800/30'
+                      : 'bg-gradient-to-br from-gray-100/50 to-gray-200/30'
+                  }`} />
                   
                   {/* Streets Grid */}
-                  <div className="absolute inset-0 opacity-30">
+                  <div className="absolute inset-0 opacity-20">
                     <div className="grid grid-cols-6 grid-rows-4 h-full">
                       {Array.from({ length: 24 }).map((_, i) => (
-                        <div key={i} className="border border-gray-400/40" />
+                        <div key={i} className={`border ${
+                          theme === 'dark' ? 'border-gray-500/40' : 'border-gray-400/40'
+                        }`} />
                       ))}
                     </div>
                   </div>
                   
                   {/* Main Streets */}
                   <div className="absolute inset-0">
-                    <div className="absolute top-1/3 left-0 right-0 h-1 bg-gray-400/60" />
-                    <div className="absolute left-1/3 top-0 bottom-0 w-1 bg-gray-400/60" />
+                    <div className={`absolute top-1/3 left-0 right-0 h-1 ${
+                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
+                    }`} />
+                    <div className={`absolute left-1/3 top-0 bottom-0 w-1 ${
+                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
+                    }`} />
                   </div>
                   
                   {/* Buildings */}
                   <div className="absolute inset-0">
-                    <div className="absolute top-1/4 left-1/6 w-3 h-4 bg-gray-300/70 rounded-sm" />
-                    <div className="absolute top-1/4 right-1/6 w-4 h-3 bg-gray-400/80 rounded-sm" />
-                    <div className="absolute bottom-1/4 left-1/3 w-3 h-5 bg-gray-300/60 rounded-sm" />
-                    <div className="absolute bottom-1/4 right-1/3 w-5 h-3 bg-gray-400/70 rounded-sm" />
+                    <div className={`absolute top-1/4 left-1/6 w-3 h-4 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-600/70' : 'bg-gray-300/70'
+                    }`} />
+                    <div className={`absolute top-1/4 right-1/6 w-4 h-3 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-500/80' : 'bg-gray-400/80'
+                    }`} />
+                    <div className={`absolute bottom-1/4 left-1/3 w-3 h-5 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-600/60' : 'bg-gray-300/60'
+                    }`} />
+                    <div className={`absolute bottom-1/4 right-1/3 w-5 h-3 rounded-sm ${
+                      theme === 'dark' ? 'bg-gray-500/70' : 'bg-gray-400/70'
+                    }`} />
                   </div>
                   
                   {/* Location Pin */}
@@ -279,9 +317,15 @@ const CreatePost: React.FC = () => {
                   
                   {/* Map Attribution */}
                   <div className="absolute bottom-2 right-2">
-                    <div className="px-2 py-1 bg-white/90 backdrop-blur-sm rounded text-xs text-gray-600 font-medium shadow-sm">
+                    <div className={`px-2 py-1 backdrop-blur-sm rounded text-xs font-medium shadow-sm ${
+                      theme === 'dark'
+                        ? 'bg-gray-800/90 text-gray-300'
+                        : 'bg-white/90 text-gray-600'
+                    }`}>
                       <div className="flex items-center space-x-1">
-                        <MapPin className="w-3 h-3 text-emerald-600" />
+                        <MapPin className={`w-3 h-3 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`} />
                         <span>Location</span>
                       </div>
                     </div>
@@ -289,19 +333,31 @@ const CreatePost: React.FC = () => {
                 </div>
                 
                 {/* Location Info */}
-                <div className="flex items-center space-x-3 p-3">
+                <div className="flex items-center space-x-3 p-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-sm">
-                      <MapPin className="w-4 h-4 text-white" />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
+                      theme === 'dark'
+                        ? 'bg-gradient-to-br from-gray-700 to-gray-800'
+                        : 'bg-gradient-to-br from-gray-600 to-gray-700'
+                    }`}>
+                      <MapPin className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-emerald-700">Location</div>
-                    <div className="text-sm text-gray-600 truncate">{location}</div>
+                    <div className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>Location</div>
+                    <div className={`text-sm truncate ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{location}</div>
                   </div>
                   <motion.button
                     onClick={() => setLocation('')}
-                    className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                    className={`flex-shrink-0 p-2 rounded-full transition-all ${
+                      theme === 'dark'
+                        ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                        : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                    }`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -311,7 +367,11 @@ const CreatePost: React.FC = () => {
               </div>
               
               {/* Hover effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
+                  : 'bg-gradient-to-r from-gray-500/5 to-gray-600/5'
+              }`} />
             </motion.div>
           )}
 
@@ -334,11 +394,13 @@ const CreatePost: React.FC = () => {
             </div>
             
             {/* Progress Bar */}
-            <div className="w-20 h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div className={`w-20 h-1 rounded-full overflow-hidden ${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+            }`}>
               <motion.div
                 className={`h-full rounded-full ${
                   charCount > maxChars * 0.9 ? 'bg-red-500' : 
-                  charCount > maxChars * 0.7 ? 'bg-orange-500' : 'bg-emerald-500'
+                  charCount > maxChars * 0.7 ? 'bg-orange-500' : 'bg-gray-600'
                 }`}
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((charCount / maxChars) * 100, 100)}%` }}
@@ -354,44 +416,69 @@ const CreatePost: React.FC = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"
+                className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3"
               >
                 {selectedImages.map((file, index) => (
                   <motion.div
-                    key={index}
+                    key={`${file.name}-${index}`}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
-                    className="relative group"
+                    className="relative group select-none cursor-pointer"
                   >
                     {file.type.startsWith('image/') ? (
                       <img
                         src={URL.createObjectURL(file)}
                         alt={`Selected ${index + 1}`}
-                        className="w-full h-24 sm:h-32 object-cover rounded-xl"
+                        className="w-full h-24 sm:h-32 object-cover rounded-xl pointer-events-none"
+                        draggable={false}
                       />
                     ) : (
-                      <div className="w-full h-24 sm:h-32 bg-gray-200 rounded-xl flex items-center justify-center">
-                        <Video className="w-8 h-8 text-gray-500" />
-                        <span className="ml-2 text-sm text-gray-600">{file.name}</span>
+                      <div className={`w-full h-24 sm:h-32 rounded-xl flex items-center justify-center pointer-events-none ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                      }`}>
+                        <Video className={`w-8 h-8 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`} />
+                        <span className={`ml-2 text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}>{file.name}</span>
                       </div>
                     )}
                     
                     {/* Remove Button */}
-                    <button
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 w-6 h-6 bg-black/50 hover:bg-red-500 text-white rounded-full flex items-center justify-center transition-colors"
+                    <motion.button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeImage(index);
+                      }}
+                      className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+                        theme === 'dark'
+                          ? 'bg-gray-900/90 hover:bg-red-500 text-white'
+                          : 'bg-white/90 hover:bg-red-500 text-gray-700 hover:text-white'
+                      } shadow-lg hover:shadow-xl`}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      <X className="w-3 h-3" />
-                    </button>
+                      <X className="w-4 h-4" />
+                    </motion.button>
                     
                     {/* Image Number Badge */}
-                    <div className="absolute top-2 left-2 w-6 h-6 bg-black/70 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                    <div className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium pointer-events-none ${
+                      theme === 'dark'
+                        ? 'bg-gray-900/90 text-white'
+                        : 'bg-white/90 text-gray-700'
+                    } shadow-lg`}>
                       {index + 1}
                     </div>
                     
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 rounded-xl transition-all duration-200" />
+                    <div className={`absolute inset-0 rounded-xl transition-all duration-200 pointer-events-none ${
+                      theme === 'dark'
+                        ? 'bg-black/0 group-hover:bg-black/30'
+                        : 'bg-black/0 group-hover:bg-black/10'
+                    }`} />
                   </motion.div>
                 ))}
               </motion.div>
@@ -405,16 +492,32 @@ const CreatePost: React.FC = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-4 p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200"
+                className={`mt-4 p-6 rounded-2xl border shadow-sm ${
+                  theme === 'dark'
+                    ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700'
+                    : 'bg-gradient-to-br from-gray-50/80 to-gray-100/80 border-gray-200'
+                }`}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <BarChart3 className="w-5 h-5 text-emerald-600" />
-                    <h3 className="font-semibold text-gray-900">Create Poll</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-xl ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}>
+                      <BarChart3 className={`w-5 h-5 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`} />
+                    </div>
+                    <h3 className={`font-semibold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>Create Poll</h3>
                   </div>
                   <motion.button
                     onClick={() => setIsPollActive(false)}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-xl transition-all"
+                    className={`p-2 rounded-xl transition-all ${
+                      theme === 'dark'
+                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-white/80'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -437,16 +540,26 @@ const CreatePost: React.FC = () => {
                           value={option}
                           onChange={(e) => updatePollOption(index, e.target.value)}
                           placeholder={`Option ${index + 1}`}
-                          className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 bg-white/80 backdrop-blur-sm"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                            theme === 'dark'
+                              ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                              : 'bg-white/90 border-gray-200 text-gray-900 placeholder-gray-500'
+                          }`}
                         />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-400">
+                        <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
                           {index + 1}
                         </div>
                       </div>
                       {pollOptions.length > 2 && (
                         <motion.button
                           onClick={() => removePollOption(index)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                            theme === 'dark'
+                              ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                              : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                          }`}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -459,7 +572,11 @@ const CreatePost: React.FC = () => {
                   {pollOptions.length < 4 && (
                     <motion.button
                       onClick={addPollOption}
-                      className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 text-sm font-medium p-3 hover:bg-emerald-100 rounded-xl transition-all"
+                      className={`flex items-center space-x-2 text-sm font-medium p-3 rounded-xl transition-all ${
+                        theme === 'dark'
+                          ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                          : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                      }`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -468,20 +585,38 @@ const CreatePost: React.FC = () => {
                     </motion.button>
                   )}
                   
-                  <div className="flex items-center space-x-3 p-3 bg-white/50 rounded-xl">
-                    <Clock className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm text-gray-700">Poll duration:</span>
-                    <select
-                      value={pollDuration}
-                      onChange={(e) => setPollDuration(e.target.value)}
-                      className="px-3 py-1 border border-emerald-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white"
-                    >
+                  <div className={`p-4 rounded-xl ${
+                    theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/70'
+                  }`}>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Clock className={`w-4 h-4 ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`} />
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>Poll duration</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
                       {pollDurations.map(duration => (
-                        <option key={duration.value} value={duration.value}>
+                        <motion.button
+                          key={duration.value}
+                          onClick={() => setPollDuration(duration.value)}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                            pollDuration === duration.value
+                              ? theme === 'dark'
+                                ? 'bg-gray-700 text-white shadow-lg'
+                                : 'bg-gray-200 text-gray-800 shadow-sm'
+                              : theme === 'dark'
+                                ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
                           {duration.label}
-                        </option>
+                        </motion.button>
                       ))}
-                    </select>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -489,22 +624,29 @@ const CreatePost: React.FC = () => {
           </AnimatePresence>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div className={`flex items-center justify-between mt-4 pt-4 border-t ${
+            theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
+          }`}>
             <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Image Upload */}
               <motion.button
-                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50"
+                className={`flex items-center space-x-2 text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-xl ${
+                  theme === 'dark' ? 'hover:bg-gray-800 hover:text-gray-200' : 'hover:bg-gray-50'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => fileInputRef.current?.click()}
+                type="button"
               >
                 <Image className="w-5 h-5" />
-                <span className="hidden sm:inline text-sm">Photo</span>
+                <span className="hidden sm:inline text-sm select-none">Photo</span>
               </motion.button>
 
               {/* Video Upload */}
               <motion.button
-                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50"
+                className={`flex items-center space-x-2 text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-xl ${
+                  theme === 'dark' ? 'hover:bg-gray-800 hover:text-gray-200' : 'hover:bg-gray-50'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -516,8 +658,12 @@ const CreatePost: React.FC = () => {
               <motion.button
                 className={`flex items-center space-x-2 transition-colors p-2 rounded-xl ${
                   isPollActive 
-                    ? 'text-emerald-600 bg-emerald-50' 
-                    : 'text-gray-500 hover:text-emerald-500 hover:bg-emerald-50'
+                    ? theme === 'dark'
+                      ? 'text-white bg-gray-700'
+                      : 'text-gray-900 bg-gray-200'
+                    : `text-gray-500 hover:text-gray-700 ${
+                        theme === 'dark' ? 'hover:bg-gray-800 hover:text-gray-200' : 'hover:bg-gray-50'
+                      }`
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -529,7 +675,9 @@ const CreatePost: React.FC = () => {
 
               {/* Emoji */}
               <motion.button
-                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50"
+                className={`flex items-center space-x-2 text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-xl ${
+                  theme === 'dark' ? 'hover:bg-gray-800 hover:text-gray-200' : 'hover:bg-gray-50'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsEmojiPickerOpen(true)}
@@ -542,8 +690,12 @@ const CreatePost: React.FC = () => {
               <motion.button
                 className={`flex items-center space-x-2 transition-colors p-2 rounded-xl ${
                   location 
-                    ? 'text-emerald-600 bg-emerald-50' 
-                    : 'text-gray-500 hover:text-emerald-500 hover:bg-emerald-50'
+                    ? theme === 'dark'
+                      ? 'text-white bg-gray-700'
+                      : 'text-gray-900 bg-gray-200'
+                    : `text-gray-500 hover:text-gray-700 ${
+                        theme === 'dark' ? 'hover:bg-gray-800 hover:text-gray-200' : 'hover:bg-gray-50'
+                      }`
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -555,7 +707,9 @@ const CreatePost: React.FC = () => {
 
               {/* Event */}
               <motion.button
-                className="flex items-center space-x-2 text-gray-500 hover:text-emerald-500 transition-colors p-2 rounded-xl hover:bg-emerald-50"
+                className={`flex items-center space-x-2 text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-xl ${
+                  theme === 'dark' ? 'hover:bg-gray-800 hover:text-gray-200' : 'hover:bg-gray-50'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -564,13 +718,17 @@ const CreatePost: React.FC = () => {
               </motion.button>
             </div>
             
-            {/* Submit Button */}
+                        {/* Submit Button */}
             <motion.button 
               disabled={(!postText.trim() && selectedImages.length === 0) || isSubmitting || charCount > maxChars}
               className={`px-6 py-2.5 rounded-full font-medium transition-all ${
                 postText.trim() || selectedImages.length > 0
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-lg hover:shadow-xl'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  ? theme === 'dark'
+                    ? 'bg-gray-800 text-white hover:bg-gray-900 shadow-lg hover:shadow-xl'
+                    : 'bg-gray-900 text-white hover:bg-black shadow-lg hover:shadow-xl'
+                  : theme === 'dark'
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
               } ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
               whileHover={(!postText.trim() && selectedImages.length === 0) || isSubmitting ? {} : { scale: 1.05 }}
               whileTap={(!postText.trim() && selectedImages.length === 0) || isSubmitting ? {} : { scale: 0.95 }}
@@ -616,56 +774,84 @@ const CreatePost: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-sm"
+              className={`rounded-2xl w-full max-w-md shadow-2xl border ${
+                theme === 'dark' 
+                  ? 'bg-gray-900 border-gray-700' 
+                  : 'bg-white border-gray-200'
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Choose Mood</h3>
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className={`text-lg font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>Choose Mood</h3>
                 <button
                   onClick={() => setIsEmojiPickerOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className={`p-2 rounded-lg transition-colors ${
+                    theme === 'dark' 
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {/* Search Bar */}
+              {/* Search Bar */}
+              <div className="p-6 pb-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-400'
+                  }`} />
                   <input
                     type="text"
                     placeholder="Search emojis..."
                     value={emojiSearchQuery}
                     onChange={(e) => setEmojiSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                      theme === 'dark' 
+                        ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
+                    }`}
                   />
                 </div>
+              </div>
 
-                {/* Category Tabs */}
-                <div className="flex space-x-1 overflow-x-auto pb-2">
+              {/* Category Tabs */}
+              <div className="px-6 pb-4">
+                <div className="flex space-x-1">
                   {Object.keys(emojiCategories).map((category) => (
                     <button
                       key={category}
                       onClick={() => setSelectedEmojiCategory(category)}
-                      className={`px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex-1 ${
                         selectedEmojiCategory === category
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          ? theme === 'dark'
+                            ? 'bg-gray-700 text-white shadow-sm'
+                            : 'bg-gray-200 text-gray-800 shadow-sm'
+                          : theme === 'dark'
+                            ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </button>
                   ))}
                 </div>
+              </div>
 
-                {/* Emoji Grid */}
-                <div className="grid grid-cols-8 gap-2 max-h-64 overflow-y-auto">
+              {/* Emoji Grid */}
+              <div className="px-6 pb-6">
+                <div className={`grid grid-cols-8 gap-2 rounded-xl p-4 ${
+                  theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'
+                }`}>
                   {emojiCategories[selectedEmojiCategory as keyof typeof emojiCategories]
                     .filter(emoji => 
                       emojiSearchQuery === '' || 
                       emoji.includes(emojiSearchQuery)
                     )
+                    .slice(0, 48) // Limit to 48 emojis (6 rows x 8 columns)
                     .map((emoji, index) => (
                       <motion.button
                         key={index}
@@ -673,7 +859,11 @@ const CreatePost: React.FC = () => {
                           setPostText(prev => prev + emoji);
                           setIsEmojiPickerOpen(false);
                         }}
-                        className="w-10 h-10 text-xl hover:bg-gray-100 rounded-lg transition-all flex items-center justify-center"
+                        className={`w-10 h-10 text-xl rounded-lg transition-all flex items-center justify-center ${
+                          theme === 'dark' 
+                            ? 'hover:bg-gray-700 hover:scale-110' 
+                            : 'hover:bg-white hover:scale-110 hover:shadow-sm'
+                        }`}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                       >
@@ -681,6 +871,21 @@ const CreatePost: React.FC = () => {
                       </motion.button>
                     ))}
                 </div>
+                
+                {/* Show more indicator if there are more emojis */}
+                {emojiCategories[selectedEmojiCategory as keyof typeof emojiCategories]
+                  .filter(emoji => 
+                    emojiSearchQuery === '' || 
+                    emoji.includes(emojiSearchQuery)
+                  ).length > 48 && (
+                  <div className="text-center mt-3">
+                    <span className={`text-xs ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                      Type to search for more emojis
+                    </span>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -701,43 +906,71 @@ const CreatePost: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-md"
+              className={`rounded-2xl p-6 w-full max-w-md shadow-2xl border ${
+                theme === 'dark' 
+                  ? 'bg-gray-900 border-gray-700' 
+                  : 'bg-white border-gray-200'
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Add Location</h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className={`text-lg font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>Add Location</h3>
                 <button
                   onClick={() => setIsLocationModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className={`p-2 rounded-lg transition-colors ${
+                    theme === 'dark' 
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800' 
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Current Location Button */}
-                <motion.button
-                  onClick={getCurrentLocation}
-                  disabled={isGettingLocation}
-                  className="w-full flex items-center space-x-3 p-4 border border-emerald-200 rounded-xl hover:bg-emerald-50 transition-all"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <MapPin className="w-5 h-5 text-emerald-600" />
-                  <div className="text-left">
-                    <div className="font-medium text-gray-900">
+                                  <motion.button
+                    onClick={getCurrentLocation}
+                    disabled={isGettingLocation}
+                    className={`w-full flex items-center space-x-3 p-4 border rounded-xl transition-all ${
+                      theme === 'dark'
+                        ? 'border-gray-600 hover:bg-gray-800'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                  <div className={`p-2 rounded-lg ${
+                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                  }`}>
+                    <MapPin className={`w-5 h-5 ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`} />
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className={`font-medium ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
                       {isGettingLocation ? 'Getting location...' : 'Use current location'}
                     </div>
-                    <div className="text-sm text-gray-500">Automatically detect your location</div>
+                    <div className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Automatically detect your location</div>
                   </div>
-                  {isGettingLocation && (
-                    <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin ml-auto" />
-                  )}
+                                      {isGettingLocation && (
+                      <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ml-auto ${
+                        theme === 'dark' ? 'border-gray-400' : 'border-gray-500'
+                      }`} />
+                    )}
                 </motion.button>
 
                 {/* Manual Input */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Or enter location manually
                   </label>
                   <input
@@ -745,13 +978,19 @@ const CreatePost: React.FC = () => {
                     placeholder="Enter city, address, or place..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                      theme === 'dark'
+                        ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
                   />
                 </div>
 
                 {/* Popular Locations */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Popular locations
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -762,7 +1001,11 @@ const CreatePost: React.FC = () => {
                           setLocation(loc);
                           setIsLocationModalOpen(false);
                         }}
-                        className="p-2 text-sm text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all text-left"
+                        className={`p-3 text-sm rounded-lg transition-all text-left ${
+                          theme === 'dark'
+                            ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                        }`}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -776,7 +1019,11 @@ const CreatePost: React.FC = () => {
                 <div className="flex space-x-3 pt-4">
                   <motion.button
                     onClick={() => setIsLocationModalOpen(false)}
-                    className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all"
+                    className={`flex-1 px-4 py-3 border rounded-xl transition-all ${
+                      theme === 'dark'
+                        ? 'text-gray-300 border-gray-600 hover:bg-gray-800'
+                        : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -784,7 +1031,11 @@ const CreatePost: React.FC = () => {
                   </motion.button>
                   <motion.button
                     onClick={() => setIsLocationModalOpen(false)}
-                    className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all"
+                    className={`flex-1 px-4 py-3 rounded-xl transition-all shadow-lg ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 text-white hover:bg-gray-600'
+                        : 'bg-gray-800 text-white hover:bg-gray-900'
+                    }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -811,18 +1062,28 @@ const CreatePost: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-md"
+              className={`rounded-2xl p-6 w-full max-w-md shadow-2xl border ${
+                theme === 'dark' 
+                  ? 'bg-gray-900 border-gray-700' 
+                  : 'bg-white border-gray-200'
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Who can see this post?</h3>
-              <div className="space-y-3">
+              <h3 className={`text-lg font-semibold mb-6 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>Who can see this post?</h3>
+              <div className="space-y-4">
                 {audienceOptions.map((option) => (
                   <motion.button
                     key={option.value}
-                    className={`w-full flex items-center space-x-3 p-3 rounded-xl border transition-all ${
+                    className={`w-full flex items-center space-x-4 p-4 rounded-xl border transition-all ${
                       audience === option.value
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? theme === 'dark'
+                          ? 'border-emerald-500 bg-emerald-600/20'
+                          : 'border-emerald-500 bg-emerald-50'
+                        : theme === 'dark'
+                          ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-800'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                     onClick={() => {
                       setAudience(option.value as any);
@@ -831,15 +1092,29 @@ const CreatePost: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <option.icon className={`w-5 h-5 ${
-                      audience === option.value ? 'text-emerald-600' : 'text-gray-500'
-                    }`} />
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-500">{option.description}</div>
+                                        <div className={`p-2 rounded-lg ${
+                      audience === option.value
+                        ? theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                        : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                    }`}>
+                      <option.icon className={`w-5 h-5 ${
+                        audience === option.value 
+                          ? theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                          : theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`} />
+                    </div>
+                    <div className="text-left flex-1">
+                      <div className={`font-medium ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>{option.label}</div>
+                      <div className={`text-sm ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>{option.description}</div>
                     </div>
                     {audience === option.value && (
-                      <CheckCircle className="w-5 h-5 text-emerald-600 ml-auto" />
+                      <CheckCircle className={`w-5 h-5 ml-auto ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`} />
                     )}
                   </motion.button>
                 ))}
@@ -848,7 +1123,8 @@ const CreatePost: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 

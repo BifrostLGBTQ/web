@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body {
+  @apply bg-white text-gray-900 transition-colors duration-300;
+}
+
+.dark html, .dark body {
+  @apply bg-black text-gray-100 transition-colors duration-300;
+}
+
+::selection {
+  @apply bg-gray-300 text-black;
+}
+.dark ::selection {
+  @apply bg-gray-700 text-white;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded;
+}
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-700;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-60 z-50;
+}
+
+/* Utility for card backgrounds */
+.bg-card {
+  @apply bg-white dark:bg-gray-900 transition-colors duration-300;
+}
+
+/* Utility for border color */
+.border-card {
+  @apply border-gray-200 dark:border-gray-800 transition-colors duration-300;
+}
