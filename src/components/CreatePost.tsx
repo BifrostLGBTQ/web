@@ -183,16 +183,22 @@ const CreatePost: React.FC = () => {
 
   return (
     <>
-      <motion.div 
-        className={`rounded-2xl shadow-sm border p-4 sm:p-6 mb-6 transition-colors duration-300 ${
-          theme === 'dark' 
-            ? 'bg-gray-900 border-gray-800' 
-            : 'bg-white border-gray-200'
-        }`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+          <motion.div 
+      className={`rounded-2xl shadow-lg border p-4 sm:p-6 mb-6 transition-all duration-300 ${
+        theme === 'dark' 
+          ? 'bg-gray-900 border-gray-800 shadow-gray-900/20' 
+          : 'bg-white border-gray-200 shadow-gray-900/10'
+      }`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ 
+        y: -2,
+        boxShadow: theme === 'dark' 
+          ? '0 25px 50px -12px rgba(0, 0, 0, 0.4)' 
+          : '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
+      }}
+    >
       <div className="flex space-x-3 sm:space-x-4">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -233,7 +239,7 @@ const CreatePost: React.FC = () => {
             value={postText}
             onChange={handleTextChange}
             placeholder="What's happening in your professional world? Share your thoughts, achievements, or insights..."
-            className={`w-full resize-none border-none outline-none text-lg leading-relaxed bg-transparent ${
+            className={`w-full resize-none border-none outline-none text-lg leading-relaxed bg-transparent transition-all duration-200 ${
               theme === 'dark' 
                 ? 'text-white placeholder-gray-400' 
                 : 'text-gray-900 placeholder-gray-500'
@@ -376,25 +382,33 @@ const CreatePost: React.FC = () => {
           )}
 
           {/* Character Count & Progress */}
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span className={charCount > maxChars * 0.8 ? 'text-orange-500' : ''}>
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center space-x-4 text-sm">
+              <span className={`font-medium ${
+                charCount > maxChars * 0.8 
+                  ? charCount > maxChars * 0.9 
+                    ? 'text-red-500' 
+                    : 'text-orange-500'
+                  : theme === 'dark' 
+                    ? 'text-gray-400' 
+                    : 'text-gray-500'
+              }`}>
                 {charCount}/{maxChars}
               </span>
               {charCount > maxChars * 0.9 && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="flex items-center space-x-1 text-orange-500"
+                  className="flex items-center space-x-1 text-red-500"
                 >
                   <AlertCircle className="w-4 h-4" />
-                  <span>Character limit approaching</span>
+                  <span className="text-sm font-medium">Character limit approaching</span>
                 </motion.div>
               )}
             </div>
             
             {/* Progress Bar */}
-            <div className={`w-20 h-1 rounded-full overflow-hidden ${
+            <div className={`w-24 h-2 rounded-full overflow-hidden ${
               theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
             }`}>
               <motion.div
@@ -492,7 +506,7 @@ const CreatePost: React.FC = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className={`mt-4 p-6 rounded-2xl border shadow-sm ${
+                className={`mt-6 p-6 rounded-2xl border shadow-lg ${
                   theme === 'dark'
                     ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700'
                     : 'bg-gradient-to-br from-gray-50/80 to-gray-100/80 border-gray-200'
@@ -624,7 +638,7 @@ const CreatePost: React.FC = () => {
           </AnimatePresence>
 
           {/* Action Buttons */}
-          <div className={`flex items-center justify-between mt-4 pt-4 border-t ${
+          <div className={`flex items-center justify-between mt-6 pt-6 border-t ${
             theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
           }`}>
             <div className="flex items-center space-x-1 sm:space-x-2">
@@ -649,9 +663,11 @@ const CreatePost: React.FC = () => {
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
               >
                 <Video className="w-5 h-5" />
-                <span className="hidden sm:inline text-sm">Video</span>
+                <span className="hidden sm:inline text-sm select-none">Video</span>
               </motion.button>
 
               {/* Poll */}
@@ -712,16 +728,21 @@ const CreatePost: React.FC = () => {
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  // Event functionality can be added here
+                  console.log('Event button clicked');
+                }}
+                type="button"
               >
                 <Calendar className="w-5 h-5" />
-                <span className="hidden sm:inline text-sm">Event</span>
+                <span className="hidden sm:inline text-sm select-none">Event</span>
               </motion.button>
             </div>
             
                         {/* Submit Button */}
             <motion.button 
               disabled={(!postText.trim() && selectedImages.length === 0) || isSubmitting || charCount > maxChars}
-              className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+              className={`px-8 py-3 rounded-full font-semibold transition-all ${
                 postText.trim() || selectedImages.length > 0
                   ? theme === 'dark'
                     ? 'bg-gray-800 text-white hover:bg-gray-900 shadow-lg hover:shadow-xl'
@@ -774,7 +795,7 @@ const CreatePost: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`rounded-2xl w-full max-w-md shadow-2xl border ${
+              className={`rounded-2xl w-full max-w-lg shadow-2xl border ${
                 theme === 'dark' 
                   ? 'bg-gray-900 border-gray-700' 
                   : 'bg-white border-gray-200'
@@ -783,9 +804,18 @@ const CreatePost: React.FC = () => {
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 className={`text-lg font-semibold ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>Choose Mood</h3>
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg ${
+                    theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                  }`}>
+                    <Smile className={`w-5 h-5 ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`} />
+                  </div>
+                  <h3 className={`text-lg font-semibold ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>Choose Mood</h3>
+                </div>
                 <button
                   onClick={() => setIsEmojiPickerOpen(false)}
                   className={`p-2 rounded-lg transition-colors ${
@@ -820,30 +850,46 @@ const CreatePost: React.FC = () => {
 
               {/* Category Tabs */}
               <div className="px-6 pb-4">
-                <div className="flex space-x-1">
+                <div className="grid grid-cols-4 gap-2">
                   {Object.keys(emojiCategories).map((category) => (
-                    <button
+                    <motion.button
                       key={category}
                       onClick={() => setSelectedEmojiCategory(category)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex-1 ${
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                         selectedEmojiCategory === category
                           ? theme === 'dark'
-                            ? 'bg-gray-700 text-white shadow-sm'
-                            : 'bg-gray-200 text-gray-800 shadow-sm'
+                            ? 'bg-gray-700 text-white shadow-lg'
+                            : 'bg-gray-200 text-gray-800 shadow-lg'
                           : theme === 'dark'
                             ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                       }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </button>
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-lg">
+                          {category === 'recent' && '🕒'}
+                          {category === 'smileys' && '😊'}
+                          {category === 'nature' && '🌿'}
+                          {category === 'food' && '🍕'}
+                          {category === 'activities' && '⚽'}
+                          {category === 'travel' && '✈️'}
+                          {category === 'objects' && '💻'}
+                          {category === 'symbols' && '❤️'}
+                        </span>
+                        <span className="hidden sm:block">
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </span>
+                      </div>
+                    </motion.button>
                   ))}
                 </div>
               </div>
 
               {/* Emoji Grid */}
               <div className="px-6 pb-6">
-                <div className={`grid grid-cols-8 gap-2 rounded-xl p-4 ${
+                <div className={`grid grid-cols-8 gap-3 rounded-xl p-4 ${
                   theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'
                 }`}>
                   {emojiCategories[selectedEmojiCategory as keyof typeof emojiCategories]
@@ -859,10 +905,10 @@ const CreatePost: React.FC = () => {
                           setPostText(prev => prev + emoji);
                           setIsEmojiPickerOpen(false);
                         }}
-                        className={`w-10 h-10 text-xl rounded-lg transition-all flex items-center justify-center ${
+                        className={`w-12 h-12 text-2xl rounded-xl transition-all flex items-center justify-center ${
                           theme === 'dark' 
                             ? 'hover:bg-gray-700 hover:scale-110' 
-                            : 'hover:bg-white hover:scale-110 hover:shadow-sm'
+                            : 'hover:bg-white hover:scale-110 hover:shadow-md'
                         }`}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
@@ -878,12 +924,13 @@ const CreatePost: React.FC = () => {
                     emojiSearchQuery === '' || 
                     emoji.includes(emojiSearchQuery)
                   ).length > 48 && (
-                  <div className="text-center mt-3">
-                    <span className={`text-xs ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  <div className="text-center mt-4">
+                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                      theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'
                     }`}>
-                      Type to search for more emojis
-                    </span>
+                      <Search className="w-4 h-4" />
+                      <span className="text-sm font-medium">Type to search for more emojis</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1079,8 +1126,8 @@ const CreatePost: React.FC = () => {
                     className={`w-full flex items-center space-x-4 p-4 rounded-xl border transition-all ${
                       audience === option.value
                         ? theme === 'dark'
-                          ? 'border-emerald-500 bg-emerald-600/20'
-                          : 'border-emerald-500 bg-emerald-50'
+                          ? 'border-gray-600 bg-gray-800 shadow-lg'
+                          : 'border-gray-300 bg-gray-50 shadow-lg'
                         : theme === 'dark'
                           ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-800'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
