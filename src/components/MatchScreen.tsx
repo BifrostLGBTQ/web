@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { Heart, X, Star, MapPin, Briefcase, GraduationCap } from 'lucide-react';
+import { Heart, X, Star, MapPin, Briefcase, GraduationCap, MessageCircle } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Profile {
   id: number;
@@ -16,6 +17,7 @@ interface Profile {
 }
 
 const MatchScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [profiles] = useState<Profile[]>([
     {
       id: 1,
@@ -87,7 +89,7 @@ const MatchScreen: React.FC = () => {
   const currentProfile = profiles[currentIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 p-4">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'} p-4`}>
       <motion.div 
         className="max-w-sm mx-auto"
         initial={{ opacity: 0, y: 20 }}
@@ -101,9 +103,14 @@ const MatchScreen: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Find Your <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Match</span>
+          <h1 className={`text-2xl font-bold mb-2 ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
+            Find Your Match
           </h1>
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          }`}>Discover meaningful connections</p>
         </motion.div>
 
         {/* Card Stack */}
@@ -111,7 +118,9 @@ const MatchScreen: React.FC = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentProfile.id}
-              className="absolute inset-0 bg-white rounded-3xl shadow-2xl overflow-hidden"
+              className={`absolute inset-0 rounded-3xl shadow-2xl overflow-hidden ${
+                theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+              }`}
               initial={{ scale: 0.9, opacity: 0, rotateY: 90 }}
               animate={{ scale: 1, opacity: 1, rotateY: 0 }}
               exit={{ scale: 0.9, opacity: 0, rotateY: -90 }}
@@ -135,12 +144,16 @@ const MatchScreen: React.FC = () => {
                 
                 {/* Match Percentage */}
                 <motion.div 
-                  className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1"
+                  className={`absolute top-4 right-4 backdrop-blur-sm rounded-full px-3 py-1 ${
+                    theme === 'dark' ? 'bg-gray-800/90' : 'bg-white/90'
+                  }`}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.5, type: "spring", stiffness: 500, damping: 15 }}
                 >
-                  <span className="text-sm font-bold text-emerald-600">{matchPercentage}%</span>
+                  <span className={`text-sm font-bold ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>{matchPercentage}%</span>
                 </motion.div>
 
                 {/* Basic Info Overlay */}
@@ -172,19 +185,29 @@ const MatchScreen: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <p className="text-gray-700 text-sm leading-relaxed">{currentProfile.bio}</p>
+                <p className={`text-sm leading-relaxed ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>{currentProfile.bio}</p>
                 
                 {/* Additional Info */}
                 <div className="space-y-2">
                   {currentProfile.occupation && (
-                    <div className="flex items-center text-gray-600">
-                      <Briefcase className="w-4 h-4 mr-2 text-emerald-500" />
+                    <div className={`flex items-center ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      <Briefcase className={`w-4 h-4 mr-2 ${
+                        theme === 'dark' ? 'text-gray-500' : 'text-gray-600'
+                      }`} />
                       <span className="text-sm">{currentProfile.occupation}</span>
                     </div>
                   )}
                   {currentProfile.education && (
-                    <div className="flex items-center text-gray-600">
-                      <GraduationCap className="w-4 h-4 mr-2 text-emerald-500" />
+                    <div className={`flex items-center ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      <GraduationCap className={`w-4 h-4 mr-2 ${
+                        theme === 'dark' ? 'text-gray-500' : 'text-gray-600'
+                      }`} />
                       <span className="text-sm">{currentProfile.education}</span>
                     </div>
                   )}
@@ -195,7 +218,11 @@ const MatchScreen: React.FC = () => {
                   {currentProfile.interests.map((interest, index) => (
                     <motion.span
                       key={interest}
-                      className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium"
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 text-gray-300'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.6 + index * 0.1, type: "spring", stiffness: 500, damping: 15 }}
@@ -203,6 +230,18 @@ const MatchScreen: React.FC = () => {
                       {interest}
                     </motion.span>
                   ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-2 pt-2">
+                  <button className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-800 text-white hover:bg-gray-700'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}>
+                    <MessageCircle className="w-3 h-3" />
+                    <span className="text-xs">Message</span>
+                  </button>
                 </div>
               </motion.div>
             </motion.div>
@@ -217,8 +256,12 @@ const MatchScreen: React.FC = () => {
           transition={{ delay: 0.7, duration: 0.5 }}
         >
           <motion.button
-            className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center border-2 border-gray-100"
-            whileHover={{ scale: 1.1, backgroundColor: "#fef2f2" }}
+            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center border-2 ${
+              theme === 'dark'
+                ? 'bg-gray-900 border-gray-700 hover:bg-gray-800'
+                : 'bg-white border-gray-200 hover:bg-gray-50'
+            }`}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleSwipe('left')}
           >
@@ -226,20 +269,28 @@ const MatchScreen: React.FC = () => {
           </motion.button>
 
           <motion.button
-            className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center border-2 border-gray-100"
-            whileHover={{ scale: 1.1, backgroundColor: "#fefce8" }}
+            className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center border-2 ${
+              theme === 'dark'
+                ? 'bg-gray-900 border-gray-700 hover:bg-gray-800'
+                : 'bg-white border-gray-200 hover:bg-gray-50'
+            }`}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <Star className="w-5 h-5 text-yellow-500" />
           </motion.button>
 
           <motion.button
-            className="w-14 h-14 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full shadow-lg flex items-center justify-center"
-            whileHover={{ scale: 1.1, boxShadow: "0 10px 25px rgba(16, 185, 129, 0.3)" }}
+            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center ${
+              theme === 'dark'
+                ? 'bg-gray-900 text-white hover:bg-gray-800'
+                : 'bg-gray-900 text-white hover:bg-gray-800'
+            }`}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleSwipe('right')}
           >
-            <Heart className="w-6 h-6 text-white" fill="currentColor" />
+            <Heart className="w-6 h-6" fill="currentColor" />
           </motion.button>
         </motion.div>
 
@@ -250,7 +301,9 @@ const MatchScreen: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          <p className="text-sm text-gray-500">{currentProfile.distance}</p>
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>{currentProfile.distance}</p>
         </motion.div>
       </motion.div>
     </div>

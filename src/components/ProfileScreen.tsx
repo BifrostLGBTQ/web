@@ -13,8 +13,10 @@ import {
   Shield,
   Star
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ProfileScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState('about');
 
   const profileData = {
@@ -47,9 +49,11 @@ const ProfileScreen: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
       <motion.div 
-        className="max-w-md mx-auto bg-white min-h-screen"
+        className={`max-w-md mx-auto min-h-screen ${
+          theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+        }`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
@@ -131,7 +135,9 @@ const ProfileScreen: React.FC = () => {
 
         {/* Tab Navigation */}
         <motion.div 
-          className="flex bg-white border-b border-gray-100"
+          className={`flex border-b ${
+            theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+          }`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5 }}
@@ -142,7 +148,11 @@ const ProfileScreen: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex items-center justify-center space-x-2 py-4 transition-all duration-300 ${
                 activeTab === tab.id
-                  ? 'text-emerald-600 border-b-2 border-emerald-600'
+                  ? theme === 'dark'
+                    ? 'text-white border-b-2 border-white'
+                    : 'text-gray-900 border-b-2 border-gray-900'
+                  : theme === 'dark'
+                  ? 'text-gray-400 hover:text-white'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -163,32 +173,54 @@ const ProfileScreen: React.FC = () => {
             >
               {/* Bio */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">About Me</h3>
-                <p className="text-gray-700 leading-relaxed">{profileData.bio}</p>
+                <h3 className={`text-lg font-semibold mb-3 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>About Me</h3>
+                <p className={`leading-relaxed ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>{profileData.bio}</p>
               </div>
 
               {/* Details */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Details</h3>
+                <h3 className={`text-lg font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>Details</h3>
                 
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <Briefcase className="w-4 h-4 text-emerald-600" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                    }`}>
+                      <Briefcase className={`w-4 h-4 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                      }`} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{profileData.occupation}</p>
-                      <p className="text-xs text-gray-500">Occupation</p>
+                      <p className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>{profileData.occupation}</p>
+                      <p className={`text-xs ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Occupation</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <GraduationCap className="w-4 h-4 text-emerald-600" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                    }`}>
+                      <GraduationCap className={`w-4 h-4 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                      }`} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{profileData.education}</p>
-                      <p className="text-xs text-gray-500">Education</p>
+                      <p className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>{profileData.education}</p>
+                      <p className={`text-xs ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>Education</p>
                     </div>
                   </div>
                 </div>
@@ -233,7 +265,11 @@ const ProfileScreen: React.FC = () => {
                 {profileData.interests.map((interest, index) => (
                   <motion.span
                     key={interest}
-                    className="px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full text-sm font-medium border border-emerald-200"
+                    className={`px-4 py-2 rounded-full text-sm font-medium border ${
+                      theme === 'dark'
+                        ? 'bg-gray-800 text-gray-300 border-gray-700'
+                        : 'bg-gray-100 text-gray-700 border-gray-200'
+                    }`}
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1, type: "spring", stiffness: 500, damping: 15 }}
@@ -255,7 +291,11 @@ const ProfileScreen: React.FC = () => {
           transition={{ delay: 0.8, duration: 0.5 }}
         >
           <motion.button
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-4 rounded-2xl font-semibold shadow-lg"
+            className={`w-full py-4 rounded-2xl font-semibold shadow-lg transition-colors ${
+              theme === 'dark'
+                ? 'bg-gray-800 text-white hover:bg-gray-700'
+                : 'bg-gray-900 text-white hover:bg-gray-800'
+            }`}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -264,7 +304,11 @@ const ProfileScreen: React.FC = () => {
           
           <div className="flex space-x-3">
             <motion.button
-              className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-2xl font-medium flex items-center justify-center space-x-2"
+              className={`flex-1 py-3 rounded-2xl font-medium flex items-center justify-center space-x-2 transition-colors ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -273,7 +317,11 @@ const ProfileScreen: React.FC = () => {
             </motion.button>
             
             <motion.button
-              className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-2xl font-medium flex items-center justify-center space-x-2"
+              className={`flex-1 py-3 rounded-2xl font-medium flex items-center justify-center space-x-2 transition-colors ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

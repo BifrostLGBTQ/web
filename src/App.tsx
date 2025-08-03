@@ -10,7 +10,10 @@ import MobileNavigation from './components/MobileNavigation';
 import MatchScreen from './components/MatchScreen';
 import NearbyScreen from './components/NearbyScreen';
 import ProfileScreen from './components/ProfileScreen';
+import SearchScreen from './components/SearchScreen';
+import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
+import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2 } from 'lucide-react';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -75,36 +78,60 @@ function App() {
     },
   ];
 
+  const navigationItems = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'search', label: 'Search', icon: Search },
+    { id: 'nearby', label: 'Nearby', icon: MapPin },
+    { id: 'match', label: 'Match', icon: Heart },
+    { id: 'places', label: 'Places', icon: Building2 },
+    { id: 'messages', label: 'Messages', icon: MessageCircle },
+    { id: 'profile', label: 'Profile', icon: User },
+  ];
+
   const renderScreen = () => {
     switch (activeScreen) {
+      case 'search':
+        return <SearchScreen />;
       case 'match':
         return <MatchScreen />;
       case 'nearby':
         return <NearbyScreen />;
       case 'profile':
         return <ProfileScreen />;
-      case 'messages':
+      case 'places':
         return (
           <div className={`min-h-screen flex items-center justify-center ${
             theme === 'dark' 
-              ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-              : 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
+              ? 'bg-black' 
+              : 'bg-gray-50'
           }`}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="text-center p-8"
             >
-              <h2 className={`text-2xl font-bold mb-4 ${
-                theme === 'dark' ? 'text-white' : 'text-gray-800'
-              }`}>Messages</h2>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Coming soon...</p>
+              <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+              }`}>
+                <Building2 className="w-12 h-12 text-gray-500" />
+              </div>
+              <h2 className={`text-3xl font-bold mb-4 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>Places</h2>
+              <p className={`text-lg ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`}>Discover amazing places</p>
+              <p className={`mt-2 ${
+                theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+              }`}>Coming soon...</p>
             </motion.div>
           </div>
         );
+      case 'messages':
+        return <MessagesScreen />;
       default:
         return (
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 pb-4 sm:pt-6 sm:pb-6">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 pb-4 sm:pt-6 sm:pb-6 lg:pb-6">
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
         
               {/* Main Content */}
@@ -154,7 +181,11 @@ function App() {
                               }`}>@{person.username}</p>
                             </div>
                           </div>
-                          <button className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-1 rounded-full text-sm font-medium hover:from-emerald-600 hover:to-teal-700 transition-all">
+                          <button className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
+                            theme === 'dark'
+                              ? 'bg-gray-800 text-white hover:bg-gray-700'
+                              : 'bg-gray-900 text-white hover:bg-gray-800'
+                          }`}>
                             Follow
                           </button>
                         </div>
@@ -173,9 +204,9 @@ function App() {
                     }`}>Upcoming Events</h2>
                     <div className="space-y-4">
                       {[
-                        { title: 'Pride Parade 2025', date: 'Jun 15', time: '10:00 AM', color: 'bg-emerald-500' },
-                        { title: 'Trans Rights Rally', date: 'Mar 31', time: '2:00 PM', color: 'bg-teal-500' },
-                        { title: 'Queer Film Festival', date: 'Apr 12', time: '7:00 PM', color: 'bg-green-500' },
+                        { title: 'Pride Parade 2025', date: 'Jun 15', time: '10:00 AM', color: 'bg-gray-600' },
+                        { title: 'Trans Rights Rally', date: 'Mar 31', time: '2:00 PM', color: 'bg-gray-600' },
+                        { title: 'Queer Film Festival', date: 'Apr 12', time: '7:00 PM', color: 'bg-gray-600' },
                       ].map((event, index) => (
                         <div key={index} className={`flex items-center space-x-3 p-2 rounded-lg transition-colors cursor-pointer ${
                           theme === 'dark' 
@@ -214,24 +245,85 @@ function App() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {activeScreen === 'home' && <Header />}
+      {/* Header - Show on all screens */}
+      <Header />
       
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeScreen}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {renderScreen()}
-        </motion.div>
-      </AnimatePresence>
+      {/* Ultra Professional Navigation - Fixed Sticky */}
+      <div className={`fixed top-0 left-0 right-0 z-40 border-b backdrop-blur-xl ${
+        theme === 'dark' 
+          ? 'border-gray-800 bg-gray-900/95' 
+          : 'border-gray-200 bg-white/95'
+      }`} style={{ top: '80px' }}>
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="flex items-center justify-between lg:justify-start lg:space-x-6 overflow-x-auto scrollbar-hide py-4">
+            {navigationItems.map((item, index) => {
+              const Icon = item.icon;
+              const isActive = activeScreen === item.id;
+              
+              return (
+                <motion.button
+                  key={item.id}
+                  onClick={() => setActiveScreen(item.id)}
+                  className={`flex items-center space-x-2.5 py-2.5 px-4 rounded-xl transition-all duration-300 whitespace-nowrap ${
+                    isActive
+                      ? theme === 'dark'
+                        ? 'text-white bg-gray-800 shadow-lg'
+                        : 'text-white bg-gray-900 shadow-lg'
+                      : theme === 'dark'
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                  whileHover={{ 
+                    scale: 1.02,
+                    y: -1,
+                    transition: { type: "spring", stiffness: 400, damping: 17 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                >
+                  <div className={`relative transition-all duration-300 ${
+                    isActive ? 'scale-110' : 'group-hover:scale-105'
+                  }`}>
+                    <Icon className={`w-4 h-4 transition-all duration-300 ${
+                      isActive 
+                        ? 'text-white' 
+                        : theme === 'dark' 
+                          ? 'text-gray-400 group-hover:text-white' 
+                          : 'text-gray-600 group-hover:text-gray-900'
+                    }`} />
+                  </div>
+                  <span className={`font-semibold text-sm tracking-wide transition-all duration-300 ${
+                    isActive 
+                      ? 'text-white' 
+                      : theme === 'dark' 
+                        ? 'text-gray-400 group-hover:text-white' 
+                        : 'text-gray-600 group-hover:text-gray-900'
+                  }`}>{item.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      
+      {/* Content */}
+      <div className="pt-20">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeScreen}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderScreen()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
       
       <MobileNavigation activeScreen={activeScreen} onScreenChange={setActiveScreen} />
-      
-      {/* Add padding bottom for mobile navigation */}
-      <div className="h-20 lg:hidden"></div>
       
       {/* Footer - Only show on home screen */}
       {activeScreen === 'home' && <Footer />}

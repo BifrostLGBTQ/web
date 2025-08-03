@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Filter, Search, Users } from 'lucide-react';
+import { MapPin, Filter, Search, Users, Heart, MessageCircle } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface NearbyUser {
   id: number;
@@ -13,6 +14,7 @@ interface NearbyUser {
 }
 
 const NearbyScreen: React.FC = () => {
+  const { theme } = useTheme();
   const [nearbyUsers] = useState<NearbyUser[]>([
     {
       id: 1,
@@ -71,7 +73,7 @@ const NearbyScreen: React.FC = () => {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 p-4">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'} p-4`}>
       <motion.div 
         className="max-w-md mx-auto"
         initial={{ opacity: 0, y: 20 }}
@@ -85,10 +87,14 @@ const NearbyScreen: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Nearby</span> People
+          <h1 className={`text-2xl font-bold mb-2 ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
+            Nearby People
           </h1>
-          <p className="text-gray-600 text-sm">Discover LGBTIQ+ community members around you</p>
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          }`}>Discover LGBTIQ+ community members around you</p>
         </motion.div>
 
         {/* Search and Filter */}
@@ -99,42 +105,68 @@ const NearbyScreen: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`} />
             <input
               type="text"
               placeholder="Search nearby..."
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all duration-300 text-sm"
+              className={`w-full pl-10 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all duration-300 text-sm ${
+                theme === 'dark'
+                  ? 'bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:border-gray-600 focus:ring-gray-600'
+                  : 'bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-400 focus:ring-gray-400'
+              }`}
             />
           </div>
           <motion.button
-            className="p-3 bg-white border border-gray-200 rounded-2xl hover:bg-emerald-50 transition-colors duration-200"
+            className={`p-3 rounded-2xl transition-colors duration-200 ${
+              theme === 'dark'
+                ? 'bg-gray-900 border border-gray-700 hover:bg-gray-800'
+                : 'bg-white border border-gray-200 hover:bg-gray-50'
+            }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Filter className="w-5 h-5 text-gray-600" />
+            <Filter className={`w-5 h-5 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`} />
           </motion.button>
         </motion.div>
 
         {/* Stats */}
         <motion.div 
-          className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100"
+          className={`rounded-2xl p-4 mb-6 shadow-sm border ${
+            theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+          }`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center">
-                <Users className="w-4 h-4 text-white" />
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+              }`}>
+                <Users className={`w-4 h-4 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-700'
+                }`} />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">{nearbyUsers.length} people nearby</p>
-                <p className="text-xs text-gray-500">Within 10km radius</p>
+                <p className={`text-sm font-medium ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>{nearbyUsers.length} people nearby</p>
+                <p className={`text-xs ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}>Within 10km radius</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-emerald-600">{nearbyUsers.filter(u => u.isOnline).length} online</p>
-              <p className="text-xs text-gray-500">Active now</p>
+              <p className={`text-sm font-medium ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              }`}>{nearbyUsers.filter(u => u.isOnline).length} online</p>
+              <p className={`text-xs ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`}>Active now</p>
             </div>
           </div>
         </motion.div>
@@ -149,7 +181,11 @@ const NearbyScreen: React.FC = () => {
           {nearbyUsers.map((user, index) => (
             <motion.div
               key={user.id}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300"
+              className={`rounded-2xl p-4 shadow-sm border transition-all duration-300 ${
+                theme === 'dark'
+                  ? 'bg-gray-900 border-gray-800 hover:bg-gray-800'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
@@ -178,16 +214,42 @@ const NearbyScreen: React.FC = () => {
                 </div>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-sm">{user.name}, {user.age}</h3>
+                  <h3 className={`font-semibold text-sm ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>{user.name}, {user.age}</h3>
                   <div className="flex items-center space-x-1 mt-1">
                     {user.interests.slice(0, 2).map((interest, i) => (
-                      <span key={i} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium">
+                      <span key={i} className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 text-gray-300'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
                         {interest}
                       </span>
                     ))}
                   </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-2">
+                  <button className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-800 text-white hover:bg-gray-700'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}>
+                    <Heart className="w-3 h-3" />
+                    <span className="text-xs">Like</span>
+                  </button>
+                  <button className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-800 text-white hover:bg-gray-700'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}>
+                    <MessageCircle className="w-3 h-3" />
+                    <span className="text-xs">Message</span>
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -202,7 +264,11 @@ const NearbyScreen: React.FC = () => {
           transition={{ delay: 1, duration: 0.5 }}
         >
           <motion.button
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+            className={`px-6 py-3 rounded-2xl font-medium shadow-lg transition-all duration-300 ${
+              theme === 'dark'
+                ? 'bg-gray-900 text-white hover:bg-gray-800'
+                : 'bg-gray-900 text-white hover:bg-gray-800'
+            }`}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
           >
