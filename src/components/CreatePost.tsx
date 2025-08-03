@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Image, 
   Smile, 
@@ -24,6 +24,16 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const CreatePost: React.FC = () => {
   const [postText, setPostText] = useState('');
@@ -35,7 +45,7 @@ const CreatePost: React.FC = () => {
   const [pollDuration, setPollDuration] = useState('1 day');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [charCount, setCharCount] = useState(0);
-  const [location, setLocation] = useState<string>('');
+  const [location, setLocation] = useState<{ address: string; lat: number; lng: number } | null>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
@@ -50,8 +60,60 @@ const CreatePost: React.FC = () => {
   const { theme } = useTheme();
   const maxChars = 500;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [manualLocationInput, setManualLocationInput] = useState('');
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
+  // Initialize map when location changes
+  useEffect(() => {
+    if (location && mapRef.current && !mapInstanceRef.current) {
+      // Initialize map
+      const map = L.map(mapRef.current).setView([location.lat, location.lng], 15);
+      
+      // Add tile layer based on theme
+      const tileLayer = L.tileLayer(
+        theme === 'dark' 
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          attribution: '© OpenStreetMap contributors',
+          subdomains: 'abcd',
+          maxZoom: 19
+        }
+      ).addTo(map);
 
+      // Add marker
+      const marker = L.marker([location.lat, location.lng]).addTo(map);
+      
+      mapInstanceRef.current = map;
+      markerRef.current = marker;
+    } else if (location && mapInstanceRef.current) {
+      // Update existing map
+      mapInstanceRef.current.setView([location.lat, location.lng], 15);
+      markerRef.current?.setLatLng([location.lat, location.lng]);
+    }
+
+    // Cleanup function
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, [location, theme]);
+
+  // Cleanup map on unmount
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, []);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -64,12 +126,10 @@ const CreatePost: React.FC = () => {
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
     const videoFiles = files.filter(file => file.type.startsWith('video/'));
     
-    // Sınırsız medya seçimi (resim + video)
     setSelectedImages(prev => [...prev, ...imageFiles, ...videoFiles]);
   };
 
   const removeImage = (index: number) => {
-    // Add a small delay for visual feedback
     setTimeout(() => {
       setSelectedImages(prev => {
         const newImages = [...prev];
@@ -113,20 +173,22 @@ const CreatePost: React.FC = () => {
 
         const { latitude, longitude } = position.coords;
         
-        // Reverse geocoding using a free service
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
         );
         const data = await response.json();
         
         if (data.display_name) {
-          setLocation(data.display_name);
+          setLocation({
+            address: data.display_name,
+            lat: latitude,
+            lng: longitude
+          });
           setIsLocationModalOpen(false);
         }
       }
     } catch (error) {
       console.error('Error getting location:', error);
-      // Fallback to manual input
     } finally {
       setIsGettingLocation(false);
     }
@@ -137,17 +199,15 @@ const CreatePost: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Reset form
     setPostText('');
     setSelectedImages([]);
     setIsExpanded(false);
     setIsPollActive(false);
     setPollOptions(['', '']);
     setCharCount(0);
-    setLocation('');
+    setLocation(null);
     setIsSubmitting(false);
   };
 
@@ -163,18 +223,53 @@ const CreatePost: React.FC = () => {
     { value: '1 day', label: '1 day' },
     { value: '3 days', label: '3 days' },
     { value: '1 week', label: '1 week' },
+    { value: '1 month', label: '1 month' },
   ];
 
   const popularLocations = [
-    'San Francisco, CA',
-    'New York, NY',
-    'Los Angeles, CA',
-    'Chicago, IL',
-    'Miami, FL',
-    'Austin, TX',
-    'Seattle, WA',
-    'Denver, CO'
+    { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 },
+    { name: 'New York, NY', lat: 40.7128, lng: -74.0060 },
+    { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+    { name: 'Chicago, IL', lat: 41.8781, lng: -87.6298 },
+    { name: 'Miami, FL', lat: 25.7617, lng: -80.1918 },
+    { name: 'Austin, TX', lat: 30.2672, lng: -97.7431 },
+    { name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
+    { name: 'Denver, CO', lat: 39.7392, lng: -104.9903 }
   ];
+
+  const handleManualLocationSubmit = async (address: string) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+      );
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        setLocation({
+          address: display_name,
+          lat: parseFloat(lat),
+          lng: parseFloat(lon)
+        });
+        setIsLocationModalOpen(false);
+      } else {
+        setLocation({
+          address: address,
+          lat: 37.7749,
+          lng: -122.4194
+        });
+        setIsLocationModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error geocoding address:', error);
+      setLocation({
+        address: address,
+        lat: 37.7749,
+        lng: -122.4194
+      });
+      setIsLocationModalOpen(false);
+    }
+  };
 
   const emojiCategories = {
     recent: ['😊', '😂', '❤️', '🔥', '👍', '🎉', '✨', '💪', '😍', '🤔', '😎', '🥳', '💯', '🚀', '💖', '😌', '🤗', '😇', '🤩', '😋', '🥰', '😘', '🤗', '😊', '🥺', '😭', '😤', '😡', '🤬', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕'],
@@ -182,452 +277,408 @@ const CreatePost: React.FC = () => {
     nature: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🐣', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦋', '🐛', '🐌', '🐞', '🐜', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦫', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔'],
     food: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '🫖', '☕', '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍷', '🥂', '🥃', '🍸', '🍹', '🧉', '🍾', '🥄', '🍴', '🍽️', '🥣', '🥡', '🥢', '🧂'],
     activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️‍♀️', '🏋️', '🤼‍♀️', '🤼', '🤸‍♀️', '🤸', '⛹️‍♀️', '⛹️', '🤺', '🤾‍♀️', '🤾', '🏌️‍♀️', '🏌️', '🏇', '🧘‍♀️', '🧘', '🏄‍♀️', '🏄', '🏊‍♀️', '🏊', '🤽‍♀️', '🤽', '🚣‍♀️', '🚣', '🏊‍♀️', '🏊', '🚴‍♀️', '🚴', '🚵‍♀️', '🚵', '🎯', '🎮', '🎲', '🧩', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '🎪', '🎟️', '🎫', '🎗️', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉', '⚜️', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠'],
-    travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🛵', '🛺', '🚲', '🛞', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '🚧', '⛽', '🚏', '🚦', '🚥', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺'],
+    travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🛵', '🛺', '🚲', '🛞', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '🚧', '⛽', '🚏', '🚦', '🚥', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '��️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺', '🏔️', '🗻', '⛰️', '🌋', '🗾', '🏕️', '⛺'],
     objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🎮', '🎰', '🎲', '🧩', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '📺', '📻', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🪛', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🪚', '🔩', '⚙️', '🪤', '🧱', '⛓️', '🧲', '🔫', '💣', '🪃', '🏹', '🛡️', '🪄', '🔮', '🧿', '🪬', '📿', '🧸', '🪆', '🖼️', '🪞', '🪟', '🛍️', '🛒', '🎁', '🎈', '🎉', '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎀', '🪄', '🎗️', '🎟️', '🎫', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉', '⚜️', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠', '🔰', '🔱', '⭕', '❌', '🚫', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '💢', '💯', '💢', '♨️', '💠'],
-    symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '👁️‍🗨️', '🔚', '🔙', '🔛', '🔝', '🔜', '〰️', '➰', '➿', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '🩹', '🩺', '🩻', '🩼', '🩽', '🩾', '🩿', '🪿', '🫁', '🫂', '🫃', '🫄', '🫅', '🫆', '🫇', '🫈', '🫉', '🫊', '🫋', '🫌', '🫍', '🫎', '🫏'],
-    flags: ['🇹🇷', '🇺🇸', '🇬🇧', '🇩🇪', '🇫🇷', '🇮🇹', '🇪🇸', '🇵🇹', '🇳🇱', '🇧🇪', '🇨🇭', '🇦🇹', '🇸🇪', '🇳🇴', '🇩🇰', '🇫🇮', '🇵🇱', '🇨🇿', '🇭🇺', '🇷🇴', '🇧🇬', '🇭🇷', '🇸🇰', '🇸🇮', '🇪🇪', '🇱🇻', '🇱🇹', '🇷🇺', '🇺🇦', '🇧🇾', '🇲🇩', '🇬🇪', '🇦🇲', '🇦🇿', '🇰🇿', '🇺🇿', '🇰🇬', '🇹🇲', '🇹🇯', '🇦🇫', '🇵🇰', '🇮🇳', '🇧🇩', '🇱🇰', '🇳🇵', '🇧🇹', '🇲🇲', '🇹🇭', '🇻🇳', '🇰🇭', '🇱🇦', '🇲🇳', '🇰🇵', '🇰🇷', '🇯🇵', '🇨🇳', '🇹🇼', '🇭🇰', '🇲🇴', '🇵🇭', '🇲🇾', '🇸🇬', '🇮🇩', '🇧🇳', '🇹🇱', '🇵🇬', '🇫🇯', '🇳🇿', '🇦🇺', '🇵🇫', '🇳🇨', '🇻🇺', '🇸🇧', '🇰🇮', '🇹🇻', '🇫🇲', '🇵🇼', '🇲🇭', '🇳🇷', '🇵🇳', '🇹🇰', '🇼🇸', '🇦🇸', '🇬🇺', '🇲🇵', '🇨🇰', '🇳🇺', '🇹🇴', '🇳🇫', '🏳️‍🌈', '🏳️‍⚧️', '🏴‍☠️', '🏴', '🏁', '🚩', '🎌', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁷󠁬󠁳󠁿', '🏴󠁵󠁳󠁴󠁸󠁿', '🏴󠁵󠁳󠁣󠁡󠁿', '🏴󠁵󠁳󠁴󠁸󠁿', '🏴󠁵󠁳󠁦󠁬󠁿', '🏴󠁵󠁳󠁧󠁡󠁿', '🏴󠁵󠁳󠁨󠁩󠁿', '🏴󠁵󠁳󠁭󠁤󠁿', '🏴󠁵󠁳󠁭󠁡󠁿', '🏴󠁵󠁳󠁭󠁩󠁿', '🏴󠁵󠁳󠁭󠁯󠁿', '🏴󠁵󠁳󠁮󠁨󠁿', '🏴󠁵󠁳󠁮󠁪󠁿', '🏴󠁵󠁳󠁮󠁭󠁿', '🏴󠁵󠁳󠁮󠁹󠁿', '🏴󠁵󠁳󠁯󠁨󠁿', '🏴󠁵󠁳󠁯󠁫󠁿', '🏴󠁵󠁳󠁯󠁲󠁿', '🏴󠁵󠁳󠁰󠁡󠁿', '🏴󠁵󠁳󠁲󠁩󠁿', '🏴󠁵󠁳󠁳󠁣󠁿', '🏴󠁵󠁳󠁳󠁤󠁿', '🏴󠁵󠁳󠁴󠁮󠁿', '🏴󠁵󠁳󠁴󠁸󠁿', '🏴󠁵󠁳󠁵󠁴󠁿', '🏴󠁵󠁳󠁷󠁡󠁿', '🏴󠁵󠁳󠁷󠁶󠁿', '🏴󠁵󠁳󠁷󠁹󠁿']
+    symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '👁️‍🗨️', '🔚', '🔙', '🔛', '🔝', '🔜', '〰️', '➰', '➿', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '🩹', '🩺', '🩻', '🩼', '🩽', '🩾', '🩿', '🪿', '🫁', '🫂', '🫃', '🫄', '🫅', '🫆', '🫇', '🫈', '🫉', '🫊', '🫋', '🫌', '🫍', '🫎', '🫏']
   };
 
   return (
     <>
-          <motion.div 
-      className={`rounded-2xl shadow-lg border p-4 sm:p-6 mb-6 transition-all duration-300 ${
-        theme === 'dark' 
-          ? 'bg-gray-900 border-gray-800 shadow-gray-900/20' 
-          : 'bg-white border-gray-200 shadow-gray-900/10'
-      }`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ 
-        y: -2,
-        boxShadow: theme === 'dark' 
-          ? '0 25px 50px -12px rgba(0, 0, 0, 0.4)' 
-          : '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
-      }}
-    >
-      <div className="flex space-x-3 sm:space-x-4">
-        {/* Avatar */}
-        <div className="flex-shrink-0">
-        <img
-          src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2"
-          alt="Your avatar"
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 ${
-              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-            }`}
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Audience Selector */}
-          <div className="mb-3">
-            <motion.button
-              className={`flex items-center space-x-2 transition-colors text-sm font-medium ${
-                theme === 'dark' 
-                  ? 'text-gray-300 hover:text-white' 
-                  : 'text-gray-700 hover:text-gray-900'
+      <motion.div 
+        className={`rounded-2xl shadow-lg border p-4 sm:p-6 mb-6 transition-all duration-300 ${
+          theme === 'dark' 
+            ? 'bg-gray-900 border-gray-800 shadow-gray-900/20' 
+            : 'bg-white border-gray-200 shadow-gray-900/10'
+        }`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        whileHover={{ 
+          y: -2,
+          boxShadow: theme === 'dark' 
+            ? '0 25px 50px -12px rgba(0, 0, 0, 0.4)' 
+            : '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
+        }}
+      >
+        <div className="flex space-x-3 sm:space-x-4">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+          <img
+            src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2"
+            alt="Your avatar"
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 ${
+                theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
               }`}
-              onClick={() => setIsExpanded(true)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {audienceOptions.find(opt => opt.value === audience)?.icon && 
-                React.createElement(audienceOptions.find(opt => opt.value === audience)!.icon, { className: "w-4 h-4" })
-              }
-              <span>{audienceOptions.find(opt => opt.value === audience)?.label}</span>
-              <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>•</span>
-              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>Anyone can reply</span>
-            </motion.button>
+            />
           </div>
 
-          {/* Text Area */}
-          <textarea
-            value={postText}
-            onChange={handleTextChange}
-            placeholder="What's happening in your professional world? Share your thoughts, achievements, or insights..."
-            className={`w-full resize-none border-none outline-none text-lg leading-relaxed bg-transparent transition-all duration-200 ${
-              theme === 'dark' 
-                ? 'text-white placeholder-gray-400' 
-                : 'text-gray-900 placeholder-gray-500'
-            }`}
-            rows={isExpanded ? 4 : 3}
-            style={{ minHeight: isExpanded ? '120px' : '90px' }}
-          />
-      {/* Character Count & Progress */}
-      <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center space-x-4 text-sm">
-              <span className={`font-medium ${
-                charCount > maxChars * 0.8 
-                  ? charCount > maxChars * 0.9 
-                    ? 'text-red-500' 
-                    : 'text-orange-500'
-                  : theme === 'dark' 
-                    ? 'text-gray-400' 
-                    : 'text-gray-500'
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Audience Selector */}
+            <div className="mb-3">
+              <motion.button
+                className={`flex items-center space-x-2 transition-colors text-sm font-medium ${
+                  theme === 'dark' 
+                    ? 'text-gray-300 hover:text-white' 
+                    : 'text-gray-700 hover:text-gray-900'
+                }`}
+                onClick={() => setIsExpanded(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {audienceOptions.find(opt => opt.value === audience)?.icon && 
+                  React.createElement(audienceOptions.find(opt => opt.value === audience)!.icon, { className: "w-4 h-4" })
+                }
+                <span>{audienceOptions.find(opt => opt.value === audience)?.label}</span>
+                <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>•</span>
+                <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>Anyone can reply</span>
+              </motion.button>
+            </div>
+
+            {/* Text Area */}
+            <textarea
+              value={postText}
+              onChange={handleTextChange}
+              placeholder="What's happening in your professional world? Share your thoughts, achievements, or insights..."
+              className={`w-full resize-none border-none outline-none text-lg leading-relaxed bg-transparent transition-all duration-200 ${
+                theme === 'dark' 
+                  ? 'text-white placeholder-gray-400' 
+                  : 'text-gray-900 placeholder-gray-500'
+              }`}
+              rows={isExpanded ? 4 : 3}
+              style={{ minHeight: isExpanded ? '120px' : '90px' }}
+            />
+        {/* Character Count & Progress */}
+        <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center space-x-4 text-sm">
+                <span className={`font-medium ${
+                  charCount > maxChars * 0.8 
+                    ? charCount > maxChars * 0.9 
+                      ? 'text-red-500' 
+                      : 'text-orange-500'
+                    : theme === 'dark' 
+                      ? 'text-gray-400' 
+                      : 'text-gray-500'
+                }`}>
+                  {charCount}/{maxChars}
+                </span>
+                {charCount > maxChars * 0.9 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="flex items-center space-x-1 text-red-500"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">Character limit approaching</span>
+                  </motion.div>
+                )}
+              </div>
+              
+              {/* Progress Bar */}
+              <div className={`w-24 h-2 rounded-full overflow-hidden ${
+                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
               }`}>
-                {charCount}/{maxChars}
-              </span>
-              {charCount > maxChars * 0.9 && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="flex items-center space-x-1 text-red-500"
+                  className={`h-full rounded-full ${
+                    charCount > maxChars * 0.9 ? 'bg-red-500' : 
+                    charCount > maxChars * 0.7 ? 'bg-orange-500' : 'bg-gray-600'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((charCount / maxChars) * 100, 100)}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
+
+            {/* Location Display with Leaflet Map */}
+            {location && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                className="mt-6 relative group"
+              >
+                <div className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 border ${
+                  theme === 'dark'
+                    ? 'bg-gray-900 border-gray-800'
+                    : 'bg-white border-gray-200'
+                }`}>
+                  {/* Leaflet Map Container */}
+                  <div className={`relative h-36 overflow-hidden ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-br from-gray-800 to-gray-900'
+                      : 'bg-gradient-to-br from-gray-50 to-gray-100'
+                  }`}>
+                    <div 
+                      ref={mapRef} 
+                      className="w-full h-full"
+                      style={{ zIndex: 1 }}
+                    />
+                    
+                    {/* Map Attribution */}
+                    <div className="absolute bottom-2 right-2 z-10">
+                      <div className={`px-2 py-1 backdrop-blur-sm rounded text-xs font-medium shadow-sm ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/90 text-gray-300'
+                          : 'bg-white/90 text-gray-600'
+                      }`}>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className={`w-3 h-3 ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                          }`} />
+                          <span>Leaflet Map</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Location Info */}
+                  <div className="flex items-center space-x-5 p-6">
+                    <div className="flex-shrink-0">
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-sm ${
+                        theme === 'dark'
+                          ? 'bg-gray-800'
+                          : 'bg-gray-200'
+                      }`}>
+                        <MapPin className="w-7 h-7 text-gray-700 dark:text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-lg font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Location</div>
+                      <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{location.address}</div>
+                    </div>
+                    <motion.button
+                      onClick={() => setLocation(null)}
+                      className={`flex-shrink-0 p-2 rounded-full transition-all z-10 ${
+                        theme === 'dark'
+                          ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                          : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                      }`}
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <X className="w-5 h-5" />
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Selected Images Preview */}
+            <AnimatePresence>
+              {selectedImages.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3"
                 >
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm font-medium">Character limit approaching</span>
+                  {selectedImages.map((file, index) => (
+                    <motion.div
+                      key={`${file.name}-${index}`}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      className="relative group select-none cursor-pointer"
+                    >
+                      {file.type.startsWith('image/') ? (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Selected ${index + 1}`}
+                          className="w-full h-24 sm:h-32 object-cover rounded-xl pointer-events-none"
+                          draggable={false}
+                        />
+                      ) : (
+                        <div className={`w-full h-24 sm:h-32 rounded-xl flex items-center justify-center pointer-events-none ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                        }`}>
+                          <Video className={`w-8 h-8 ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                          <span className={`ml-2 text-sm ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                          }`}>{file.name}</span>
+                        </div>
+                      )}
+                      
+                      {/* Remove Button */}
+                      <motion.button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeImage(index);
+                        }}
+                        className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+                          theme === 'dark'
+                            ? 'bg-gray-900/90 hover:bg-red-500 text-white'
+                            : 'bg-white/90 hover:bg-red-500 text-gray-700 hover:text-white'
+                        } shadow-lg hover:shadow-xl`}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <X className="w-4 h-4" />
+                      </motion.button>
+                      
+                      {/* Image Number Badge */}
+                      <div className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium pointer-events-none ${
+                        theme === 'dark'
+                          ? 'bg-gray-900/90 text-white'
+                          : 'bg-white/90 text-gray-700'
+                      } shadow-lg`}>
+                        {index + 1}
+                      </div>
+                      
+                      {/* Hover Overlay */}
+                      <div className={`absolute inset-0 rounded-xl transition-all duration-200 pointer-events-none ${
+                        theme === 'dark'
+                          ? 'bg-black/0 group-hover:bg-black/30'
+                          : 'bg-black/0 group-hover:bg-black/10'
+                      }`} />
+                    </motion.div>
+                  ))}
                 </motion.div>
               )}
-            </div>
-            
-            {/* Progress Bar */}
-            <div className={`w-24 h-2 rounded-full overflow-hidden ${
-              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
-            }`}>
-              <motion.div
-                className={`h-full rounded-full ${
-                  charCount > maxChars * 0.9 ? 'bg-red-500' : 
-                  charCount > maxChars * 0.7 ? 'bg-orange-500' : 'bg-gray-600'
-                }`}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min((charCount / maxChars) * 100, 100)}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </div>
-          </div>
+            </AnimatePresence>
 
-          {/* Location Display */}
-          {location && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="mt-6 relative group"
-            >
-              <div className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 border ${
-                theme === 'dark'
-                  ? 'bg-gray-900 border-gray-800'
-                  : 'bg-white border-gray-200'
-              }`}>
-                {/* Map Preview */}
-                <div className={`relative h-36 overflow-hidden ${
-                  theme === 'dark'
-                    ? 'bg-gradient-to-br from-gray-800 to-gray-900'
-                    : 'bg-gradient-to-br from-gray-50 to-gray-100'
-                }`}>
-                  {/* Map Background */}
-                  <div className={`absolute inset-0 ${
+            {/* Poll Section */}
+            <AnimatePresence>
+              {isPollActive && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className={`mt-6 p-6 rounded-2xl border shadow-lg ${
                     theme === 'dark'
-                      ? 'bg-gradient-to-br from-gray-700/50 to-gray-800/30'
-                      : 'bg-gradient-to-br from-gray-100/50 to-gray-200/30'
-                  }`} />
-                  {/* Streets Grid */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="grid grid-cols-6 grid-rows-4 h-full">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <div key={i} className={`border ${
-                          theme === 'dark' ? 'border-gray-500/40' : 'border-gray-400/40'
-                        }`} />
-                      ))}
-                    </div>
-                  </div>
-                  {/* Main Streets */}
-                  <div className="absolute inset-0">
-                    <div className={`absolute top-1/3 left-0 right-0 h-1 ${
-                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
-                    }`} />
-                    <div className={`absolute left-1/3 top-0 bottom-0 w-1 ${
-                      theme === 'dark' ? 'bg-gray-500/60' : 'bg-gray-400/60'
-                    }`} />
-                  </div>
-                  {/* Buildings */}
-                  <div className="absolute inset-0">
-                    <div className={`absolute top-1/4 left-1/6 w-3 h-4 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-600/70' : 'bg-gray-300/70'
-                    }`} />
-                    <div className={`absolute top-1/4 right-1/6 w-4 h-3 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-500/80' : 'bg-gray-400/80'
-                    }`} />
-                    <div className={`absolute bottom-1/4 left-1/3 w-3 h-5 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-600/60' : 'bg-gray-300/60'
-                    }`} />
-                    <div className={`absolute bottom-1/4 right-1/3 w-5 h-3 rounded-sm ${
-                      theme === 'dark' ? 'bg-gray-500/70' : 'bg-gray-400/70'
-                    }`} />
-                  </div>
-                  {/* Location Pin */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="relative">
-                      <div className="w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      </div>
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-red-500" />
-                    </div>
-                  </div>
-                  {/* Map Attribution */}
-                  <div className="absolute bottom-2 right-2">
-                    <div className={`px-2 py-1 backdrop-blur-sm rounded text-xs font-medium shadow-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-800/90 text-gray-300'
-                        : 'bg-white/90 text-gray-600'
-                    }`}>
-                      <div className="flex items-center space-x-1">
-                        <MapPin className={`w-3 h-3 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                        }`} />
-                        <span>Location</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Location Info */}
-                <div className="flex items-center space-x-5 p-6">
-                  <div className="flex-shrink-0">
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-800'
-                        : 'bg-gray-200'
-                    }`}>
-                      <MapPin className="w-7 h-7 text-gray-700 dark:text-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-lg font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Location</div>
-                    <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{location}</div>
-                  </div>
-                  <motion.button
-                    onClick={() => setLocation('')}
-                    className={`flex-shrink-0 p-2 rounded-full transition-all z-10 ${
-                      theme === 'dark'
-                        ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                        : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                    }`}
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <X className="w-5 h-5" />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-    
-          {/* Selected Images Preview */}
-          <AnimatePresence>
-            {selectedImages.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3"
-              >
-                {selectedImages.map((file, index) => (
-                  <motion.div
-                    key={`${file.name}-${index}`}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    className="relative group select-none cursor-pointer"
-                  >
-                    {file.type.startsWith('image/') ? (
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Selected ${index + 1}`}
-                        className="w-full h-24 sm:h-32 object-cover rounded-xl pointer-events-none"
-                        draggable={false}
-                      />
-                    ) : (
-                      <div className={`w-full h-24 sm:h-32 rounded-xl flex items-center justify-center pointer-events-none ${
-                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                      ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700'
+                      : 'bg-gradient-to-br from-gray-50/80 to-gray-100/80 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-xl ${
+                        theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
                       }`}>
-                        <Video className={`w-8 h-8 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        <BarChart3 className={`w-5 h-5 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                         }`} />
-                        <span className={`ml-2 text-sm ${
-                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                        }`}>{file.name}</span>
                       </div>
-                    )}
-                    
-                    {/* Remove Button */}
+                      <h3 className={`font-semibold ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>Create Poll</h3>
+                    </div>
                     <motion.button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        removeImage(index);
-                      }}
-                      className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+                      onClick={() => setIsPollActive(false)}
+                      className={`p-2 rounded-xl transition-all ${
                         theme === 'dark'
-                          ? 'bg-gray-900/90 hover:bg-red-500 text-white'
-                          : 'bg-white/90 hover:bg-red-500 text-gray-700 hover:text-white'
-                      } shadow-lg hover:shadow-xl`}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                          ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-white/80'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <X className="w-4 h-4" />
                     </motion.button>
-                    
-                    {/* Image Number Badge */}
-                    <div className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium pointer-events-none ${
-                      theme === 'dark'
-                        ? 'bg-gray-900/90 text-white'
-                        : 'bg-white/90 text-gray-700'
-                    } shadow-lg`}>
-                      {index + 1}
-                    </div>
-                    
-                    {/* Hover Overlay */}
-                    <div className={`absolute inset-0 rounded-xl transition-all duration-200 pointer-events-none ${
-                      theme === 'dark'
-                        ? 'bg-black/0 group-hover:bg-black/30'
-                        : 'bg-black/0 group-hover:bg-black/10'
-                    }`} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Poll Section */}
-          <AnimatePresence>
-            {isPollActive && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className={`mt-6 p-6 rounded-2xl border shadow-lg ${
-                  theme === 'dark'
-                    ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700'
-                    : 'bg-gradient-to-br from-gray-50/80 to-gray-100/80 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-xl ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
-                    }`}>
-                      <BarChart3 className={`w-5 h-5 ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`} />
-                    </div>
-                    <h3 className={`font-semibold ${
-                      theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}>Create Poll</h3>
                   </div>
-                  <motion.button
-                    onClick={() => setIsPollActive(false)}
-                    className={`p-2 rounded-xl transition-all ${
-                      theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-white/80'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <X className="w-4 h-4" />
-                  </motion.button>
-                </div>
-                
-                <div className="space-y-4">
-                  {pollOptions.map((option, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="flex items-center space-x-3"
-                    >
-                      <div className="flex-1 relative">
-                        <input
-                          type="text"
-                          value={option}
-                          onChange={(e) => updatePollOption(index, e.target.value)}
-                          placeholder={`Option ${index + 1}`}
-                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
-                            theme === 'dark'
-                              ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                              : 'bg-white/90 border-gray-200 text-gray-900 placeholder-gray-500'
-                          }`}
-                        />
-                        <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
-                          {index + 1}
+                  
+                  <div className="space-y-4">
+                    {pollOptions.map((option, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="flex items-center space-x-3"
+                      >
+                        <div className="flex-1 relative">
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => updatePollOption(index, e.target.value)}
+                            placeholder={`Option ${index + 1}`}
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                              theme === 'dark'
+                                ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                                : 'bg-white/90 border-gray-200 text-gray-900 placeholder-gray-500'
+                            }`}
+                          />
+                          <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            {index + 1}
+                          </div>
                         </div>
+                        {pollOptions.length > 2 && (
+                          <motion.button
+                            onClick={() => removePollOption(index)}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                              theme === 'dark'
+                                ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                                : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <X className="w-4 h-4" />
+                          </motion.button>
+                        )}
+                      </motion.div>
+                    ))}
+                    
+                    {pollOptions.length < 4 && (
+                      <motion.button
+                        onClick={addPollOption}
+                        className={`flex items-center space-x-2 text-sm font-medium p-3 rounded-xl transition-all ${
+                          theme === 'dark'
+                            ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add option</span>
+                      </motion.button>
+                    )}
+                    
+                    <div className={`p-4 rounded-xl ${
+                      theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/70'
+                    }`}>
+                      <div className="flex items-center space-x-3 mb-3">
+                        <Clock className={`w-4 h-4 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`} />
+                        <span className={`text-sm font-medium ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>Poll duration</span>
                       </div>
-                      {pollOptions.length > 2 && (
-                        <motion.button
-                          onClick={() => removePollOption(index)}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                            theme === 'dark'
-                              ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                              : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                          }`}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <X className="w-4 h-4" />
-                        </motion.button>
-                      )}
-                    </motion.div>
-                  ))}
-                  
-                  {pollOptions.length < 4 && (
-                    <motion.button
-                      onClick={addPollOption}
-                      className={`flex items-center space-x-2 text-sm font-medium p-3 rounded-xl transition-all ${
-                        theme === 'dark'
-                          ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                          : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                      }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add option</span>
-                    </motion.button>
-                  )}
-                  
-                  <div className={`p-4 rounded-xl ${
-                    theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/70'
-                  }`}>
-                    <div className="flex items-center space-x-3 mb-3">
-                      <Clock className={`w-4 h-4 ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                      }`} />
-                      <span className={`text-sm font-medium ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}>Poll duration</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {pollDurations.map(duration => (
-                        <motion.button
-                          key={duration.value}
-                          onClick={() => setPollDuration(duration.value)}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                            pollDuration === duration.value
-                              ? theme === 'dark'
-                                ? 'bg-gray-700 text-white shadow-lg'
-                                : 'bg-gray-200 text-gray-800 shadow-sm'
-                              : theme === 'dark'
-                                ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                          }`}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          {duration.label}
-                        </motion.button>
-                      ))}
+                      <div className="grid grid-cols-3 gap-2">
+                        {pollDurations.map(duration => (
+                          <motion.button
+                            key={duration.value}
+                            onClick={() => setPollDuration(duration.value)}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                              pollDuration === duration.value
+                                ? theme === 'dark'
+                                  ? 'bg-gray-700 text-white shadow-lg'
+                                  : 'bg-gray-200 text-gray-800 shadow-sm'
+                                : theme === 'dark'
+                                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                            }`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {duration.label}
+                          </motion.button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* Event Display */}
+                    {/* Event Display */}
       {addedEvent && (
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -1041,17 +1092,36 @@ const CreatePost: React.FC = () => {
                   }`}>
                     Or enter location manually
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Enter city, address, or place..."
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
-                      theme === 'dark'
-                        ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                    }`}
-                  />
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Enter city, address, or place..."
+                      value={manualLocationInput}
+                      onChange={(e) => setManualLocationInput(e.target.value)}
+                      className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
+                    />
+                    <motion.button
+                      onClick={() => handleManualLocationSubmit(manualLocationInput)}
+                      disabled={!manualLocationInput.trim()}
+                      className={`px-4 py-3 rounded-xl transition-all ${
+                        manualLocationInput.trim()
+                          ? theme === 'dark'
+                            ? 'bg-gray-700 text-white hover:bg-gray-600'
+                            : 'bg-gray-800 text-white hover:bg-gray-900'
+                          : theme === 'dark'
+                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                      whileHover={manualLocationInput.trim() ? { scale: 1.02 } : {}}
+                      whileTap={manualLocationInput.trim() ? { scale: 0.98 } : {}}
+                    >
+                      Add
+                    </motion.button>
+                  </div>
                 </div>
 
                 {/* Popular Locations */}
@@ -1064,9 +1134,13 @@ const CreatePost: React.FC = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {popularLocations.map((loc) => (
                       <motion.button
-                        key={loc}
+                        key={loc.name}
                         onClick={() => {
-                          setLocation(loc);
+                          setLocation({
+                            address: loc.name,
+                            lat: loc.lat,
+                            lng: loc.lng
+                          });
                           setIsLocationModalOpen(false);
                         }}
                         className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm transition-all text-left group border ${
@@ -1078,7 +1152,7 @@ const CreatePost: React.FC = () => {
                         whileTap={{ scale: 0.98 }}
                       >
                         <MapPin className="w-5 h-5 text-gray-400" />
-                        <span className="font-medium truncate">{loc}</span>
+                        <span className="font-medium truncate">{loc.name}</span>
                       </motion.button>
                     ))}
                   </div>

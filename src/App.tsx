@@ -85,14 +85,20 @@ function App() {
         return <ProfileScreen />;
       case 'messages':
         return (
-          <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center">
+          <div className={`min-h-screen flex items-center justify-center ${
+            theme === 'dark' 
+              ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
+              : 'bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50'
+          }`}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="text-center p-8"
             >
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Messages</h2>
-              <p className="text-gray-600">Coming soon...</p>
+              <h2 className={`text-2xl font-bold mb-4 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-800'
+              }`}>Messages</h2>
+              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Coming soon...</p>
             </motion.div>
           </div>
         );
@@ -118,8 +124,14 @@ function App() {
               <div className="hidden xl:block w-80 flex-shrink-0">
                 <div className="sticky top-28 space-y-6">
                   {/* Suggested Connections */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Suggested Connections</h2>
+                  <div className={`rounded-2xl shadow-sm border p-4 ${
+                    theme === 'dark' 
+                      ? 'bg-gray-900 border-gray-800' 
+                      : 'bg-white border-gray-100'
+                  }`}>
+                    <h2 className={`text-lg font-semibold mb-4 ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>Suggested Connections</h2>
                     <div className="space-y-3">
                       {[
                         { name: 'Casey Morgan', username: 'caseymorgan', avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2' },
@@ -134,8 +146,12 @@ function App() {
                               className="w-10 h-10 rounded-full object-cover"
                             />
                             <div>
-                              <h3 className="font-medium text-gray-900">{person.name}</h3>
-                              <p className="text-sm text-gray-500">@{person.username}</p>
+                              <h3 className={`font-medium ${
+                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                              }`}>{person.name}</h3>
+                              <p className={`text-sm ${
+                                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                              }`}>@{person.username}</p>
                             </div>
                           </div>
                           <button className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-1 rounded-full text-sm font-medium hover:from-emerald-600 hover:to-teal-700 transition-all">
@@ -147,21 +163,35 @@ function App() {
                   </div>
 
                   {/* Upcoming Events */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h2>
+                  <div className={`rounded-2xl shadow-sm border p-4 ${
+                    theme === 'dark' 
+                      ? 'bg-gray-900 border-gray-800' 
+                      : 'bg-white border-gray-100'
+                  }`}>
+                    <h2 className={`text-lg font-semibold mb-4 ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>Upcoming Events</h2>
                     <div className="space-y-4">
                       {[
                         { title: 'Pride Parade 2025', date: 'Jun 15', time: '10:00 AM', color: 'bg-emerald-500' },
                         { title: 'Trans Rights Rally', date: 'Mar 31', time: '2:00 PM', color: 'bg-teal-500' },
                         { title: 'Queer Film Festival', date: 'Apr 12', time: '7:00 PM', color: 'bg-green-500' },
                       ].map((event, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div key={index} className={`flex items-center space-x-3 p-2 rounded-lg transition-colors cursor-pointer ${
+                          theme === 'dark' 
+                            ? 'hover:bg-gray-800' 
+                            : 'hover:bg-gray-50'
+                        }`}>
                           <div className={`w-10 h-10 rounded-lg ${event.color} flex items-center justify-center text-white font-bold text-sm`}>
                             {event.date.split(' ')[1]}
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-medium text-gray-900">{event.title}</h3>
-                            <p className="text-sm text-gray-500">{event.date} at {event.time}</p>
+                            <h3 className={`font-medium ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>{event.title}</h3>
+                            <p className={`text-sm ${
+                              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                            }`}>{event.date} at {event.time}</p>
                           </div>
                         </div>
                       ))}
