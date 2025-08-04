@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift } from 'lucide-react';
+import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift, Flag } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface NearbyUser {
@@ -16,6 +16,114 @@ interface NearbyUser {
 const NearbyScreen: React.FC = () => {
   const { theme } = useTheme();
   const [nearbyUsers] = useState<NearbyUser[]>([
+    {
+      id: 1,
+      name: 'Alex Rivera',
+      age: 26,
+      distance: '0.5 km',
+      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Art', 'Music']
+    },
+    {
+      id: 2,
+      name: 'Jordan Kim',
+      age: 24,
+      distance: '1.2 km',
+      avatar: 'https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: false,
+      interests: ['Tech', 'Books']
+    },
+    {
+      id: 3,
+      name: 'Sam Chen',
+      age: 28,
+      distance: '2.1 km',
+      avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Yoga', 'Travel']
+    },
+    {
+      id: 4,
+      name: 'Casey Morgan',
+      age: 25,
+      distance: '3.5 km',
+      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Photography', 'Nature']
+    },
+    {
+      id: 5,
+      name: 'Riley Thompson',
+      age: 27,
+      distance: '4.2 km',
+      avatar: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: false,
+      interests: ['Fitness', 'Cooking']
+    },
+    {
+      id: 6,
+      name: 'Taylor Davis',
+      age: 23,
+      distance: '5.8 km',
+      avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Music', 'Art']
+    },
+    {
+      id: 1,
+      name: 'Alex Rivera',
+      age: 26,
+      distance: '0.5 km',
+      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Art', 'Music']
+    },
+    {
+      id: 2,
+      name: 'Jordan Kim',
+      age: 24,
+      distance: '1.2 km',
+      avatar: 'https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: false,
+      interests: ['Tech', 'Books']
+    },
+    {
+      id: 3,
+      name: 'Sam Chen',
+      age: 28,
+      distance: '2.1 km',
+      avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Yoga', 'Travel']
+    },
+    {
+      id: 4,
+      name: 'Casey Morgan',
+      age: 25,
+      distance: '3.5 km',
+      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Photography', 'Nature']
+    },
+    {
+      id: 5,
+      name: 'Riley Thompson',
+      age: 27,
+      distance: '4.2 km',
+      avatar: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: false,
+      interests: ['Fitness', 'Cooking']
+    },
+    {
+      id: 6,
+      name: 'Taylor Davis',
+      age: 23,
+      distance: '5.8 km',
+      avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=2',
+      isOnline: true,
+      interests: ['Music', 'Art']
+    },
     {
       id: 1,
       name: 'Alex Rivera',
@@ -181,7 +289,7 @@ const NearbyScreen: React.FC = () => {
           {nearbyUsers.map((user, index) => (
             <div
               key={user.id}
-              className={`group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ${
+              className={` select-none relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ${
                 theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
               }`}
             >
@@ -196,11 +304,31 @@ const NearbyScreen: React.FC = () => {
                 
                 {/* Online Status */}
                 {user.isOnline && (
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 flex items-center space-x-2">
                     <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
                       <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></div>
                       <span className="text-white text-sm font-medium">Online</span>
                     </div>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-all duration-200 cursor-pointer border border-white/20"
+                    >
+                      <Flag className="w-4 h-4 text-white" />
+                    </motion.button>
+                  </div>
+                )}
+                
+                {/* Report Button (when not online) */}
+                {!user.isOnline && (
+                  <div className="absolute top-4 right-4">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 flex items-center justify-center transition-all duration-200 cursor-pointer border border-white/20"
+                    >
+                      <Flag className="w-4 h-4 text-white" />
+                    </motion.button>
                   </div>
                 )}
                 
@@ -236,35 +364,25 @@ const NearbyScreen: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="flex justify-center gap-2 mt-2">
                     {[
-                      { icon: <Hand className="w-4 h-4" />, label: 'Touch', color: 'text-orange-400' },
-                      { icon: <Heart className="w-4 h-4" />, label: 'Like', color: 'text-red-400' },
-                      { icon: <Smile className="w-4 h-4" />, label: 'Kiss', color: 'text-yellow-400' },
-                      { icon: <Gift className="w-4 h-4" />, label: 'Gift', color: 'text-green-400' },
-                      { icon: <MessageCircle className="w-4 h-4" />, label: 'Message', color: 'text-blue-400' },
-                      { icon: <Users className="w-4 h-4" />, label: 'Follow', color: 'text-indigo-400' },
+                      { icon: <Hand className="w-5 h-5" />, label: 'Touch', color: 'text-orange-400' },
+                      { icon: <Heart className="w-5 h-5" />, label: 'Like', color: 'text-red-400' },
+                      { icon: <Smile className="w-5 h-5" />, label: 'Kiss', color: 'text-yellow-400' },
+                      { icon: <Gift className="w-5 h-5" />, label: 'Gift', color: 'text-green-400' },
+                      { icon: <MessageCircle className="w-5 h-5" />, label: 'Message', color: 'text-blue-400' },
+                      { icon: <Users className="w-5 h-5" />, label: 'Follow', color: 'text-indigo-400' },
                     ].map(({ icon, label, color }, idx) => (
                       <motion.button
                         key={idx}
-                        whileHover={{ 
-                          scale: 1.05,
-                          transition: { duration: 0.1 }
-                        }}
-                        whileTap={{ 
-                          scale: 0.95,
-                          transition: { duration: 0.05 }
-                        }}
-                        className="relative flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-black/40 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/20"
+                        whileHover={{ scale: 1.12 }}
+                        whileTap={{ scale: 0.92 }}
+                        className="group relative flex items-center justify-center min-w-10 max-w-10 w-10 h-10 min-h-10 max-h-10 rounded-full bg-white/10 backdrop-blur-sm hover:bg-black/40 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/20"
                       >
-                        <div className={color}>
-                          {icon}
-                        </div>
-                        <span className="text-xs font-semibold mt-1 text-white">{label}</span>
-                        
+                        <div className={color}>{icon}</div>
                         {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                          <div className="bg-black/90 backdrop-blur-sm text-white text-sm rounded-lg py-2 px-3 whitespace-nowrap shadow-lg border border-white/20">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                          <div className="bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg py-1 px-3 whitespace-nowrap shadow-lg border border-white/20">
                             {label}
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-black/90"></div>
                           </div>

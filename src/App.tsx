@@ -248,9 +248,9 @@ function App() {
   return (
     <>
       <motion.header 
-        className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${
+        className={`fixed top-0 back left-0 right-0 z-50 border-b backdrop-blur-xl ${
           theme === 'dark' 
-            ? 'border-gray-800 bg-gray-900/95' 
+            ? 'border-gray-800 bg-black' 
             : 'border-gray-200 bg-white/95'
         }`}
       >
