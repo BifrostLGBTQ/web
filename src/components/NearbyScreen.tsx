@@ -173,7 +173,7 @@ const NearbyScreen: React.FC = () => {
 
         {/* Users Grid */}
         <motion.div 
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
@@ -186,110 +186,92 @@ const NearbyScreen: React.FC = () => {
               }`}
             >
               {/* Cover Image */}
-              <div className="relative h-36">
+              <div className="relative min-h-[512px]">
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full  min-h-[512px] object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                 
                 {/* Online Status */}
                 {user.isOnline && (
-                  <div className="absolute top-3 right-3">
-                    <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-white text-xs font-medium">Online</span>
+                  <div className="absolute top-4 right-4">
+                    <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
+                      <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-white text-sm font-medium">Online</span>
                     </div>
                   </div>
                 )}
                 
                 {/* Distance Badge */}
-                <div className="absolute bottom-3 left-3">
-                  <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1">
-                    <MapPin className="w-3 h-3 text-white" />
-                    <span className="text-white text-xs font-medium">{user.distance}</span>
+                <div className="absolute bottom-4 left-4">
+                  <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
+                    <MapPin className="w-4 h-4 text-white" />
+                    <span className="text-white text-sm font-medium">{user.distance}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* User Info */}
-              <div className="p-4">
-                <div className="mb-3">
-                  <h3 className={`text-sm font-bold truncate ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    {user.name}
-                  </h3>
-                  <p className={`text-xs ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    {user.age} years old
-                  </p>
-                </div>
+                {/* User Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-white truncate">
+                      {user.name}
+                    </h3>
+                    <p className="text-sm text-gray-200">
+                      {user.age} years old
+                    </p>
+                  </div>
 
-                {/* Interests */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {user.interests.slice(0, 2).map((interest, idx) => (
-                    <span
-                      key={idx}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                        theme === 'dark' 
-                          ? 'bg-gray-700 text-gray-200' 
-                          : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
+                  {/* Interests */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {user.interests.slice(0, 2).map((interest, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1.5 rounded-full text-sm font-medium bg-white/20 backdrop-blur-sm text-white"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { icon: <Hand className="w-3.5 h-3.5" />, label: 'Touch' },
-                    { icon: <Heart className="w-3.5 h-3.5" />, label: 'Like' },
-                    { icon: <Smile className="w-3.5 h-3.5" />, label: 'Kiss' },
-                    { icon: <Gift className="w-3.5 h-3.5" />, label: 'Gift' },
-                    { icon: <MessageCircle className="w-3.5 h-3.5" />, label: 'Message' },
-                    { icon: <Users className="w-3.5 h-3.5" />, label: 'Follow' },
-                  ].map(({ icon, label }, idx) => (
-                    <motion.button
-                      key={idx}
-                      whileHover={{ 
-                        scale: 1.05,
-                        transition: { duration: 0.1 }
-                      }}
-                      whileTap={{ 
-                        scale: 0.95,
-                        transition: { duration: 0.05 }
-                      }}
-                      className={`relative flex flex-col items-center justify-center py-2.5 px-1.5 rounded-lg transition-all duration-150 cursor-pointer ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 hover:bg-gray-600 text-white shadow-sm hover:shadow-md'
-                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700 shadow-sm hover:shadow-md'
-                      }`}
-                    >
-                      {icon}
-                      <span className="text-[8px] font-semibold mt-1">{label}</span>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                        <div className={`text-xs rounded-lg py-1.5 px-2.5 whitespace-nowrap shadow-lg ${
-                          theme === 'dark'
-                            ? 'bg-gray-900 text-white'
-                            : 'bg-gray-800 text-white'
-                        }`}>
-                          {label}
-                          <div className={`absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent ${
-                            theme === 'dark'
-                              ? 'border-t-gray-900'
-                              : 'border-t-gray-800'
-                          }`}></div>
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { icon: <Hand className="w-4 h-4" />, label: 'Touch', color: 'text-orange-400' },
+                      { icon: <Heart className="w-4 h-4" />, label: 'Like', color: 'text-red-400' },
+                      { icon: <Smile className="w-4 h-4" />, label: 'Kiss', color: 'text-yellow-400' },
+                      { icon: <Gift className="w-4 h-4" />, label: 'Gift', color: 'text-green-400' },
+                      { icon: <MessageCircle className="w-4 h-4" />, label: 'Message', color: 'text-blue-400' },
+                      { icon: <Users className="w-4 h-4" />, label: 'Follow', color: 'text-indigo-400' },
+                    ].map(({ icon, label, color }, idx) => (
+                      <motion.button
+                        key={idx}
+                        whileHover={{ 
+                          scale: 1.05,
+                          transition: { duration: 0.1 }
+                        }}
+                        whileTap={{ 
+                          scale: 0.95,
+                          transition: { duration: 0.05 }
+                        }}
+                        className="relative flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-black/40 backdrop-blur-sm hover:bg-black/60 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/20"
+                      >
+                        <div className={color}>
+                          {icon}
                         </div>
-                      </div>
-                    </motion.button>
-                  ))}
+                        <span className="text-xs font-semibold mt-1 text-white">{label}</span>
+                        
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                          <div className="bg-black/90 backdrop-blur-sm text-white text-sm rounded-lg py-2 px-3 whitespace-nowrap shadow-lg border border-white/20">
+                            {label}
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-black/90"></div>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
