@@ -60,6 +60,7 @@ html, body {
   display: block;
 }
 
+/* Brand gradient palette for buttons and pride flag backgrounds */
 .gay {
   --g-red: #d04b36;
   --g-orange: #e36511;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Filter, Search, Users, Heart, MessageCircle } from 'lucide-react';
+import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface NearbyUser {
@@ -73,45 +73,45 @@ const NearbyScreen: React.FC = () => {
   ]);
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'} p-4`}>
+    <div className={`w-full min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'} p-4`}>
       <motion.div 
-        className="max-w-md mx-auto"
+        className="w-full mx-auto max-w-7xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         {/* Header */}
         <motion.div 
-          className="mb-6"
+          className="mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <h1 className={`text-2xl font-bold mb-2 ${
+          <h1 className={`text-3xl font-bold mb-3 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
             Nearby People
           </h1>
-          <p className={`text-sm ${
+          <p className={`text-base ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
           }`}>Discover LGBTIQ+ community members around you</p>
         </motion.div>
 
         {/* Search and Filter */}
         <motion.div 
-          className="flex space-x-3 mb-6"
+          className="flex space-x-4 mb-8"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <div className="flex-1 relative">
-            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+            <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
               theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
             }`} />
             <input
               type="text"
-              placeholder="Search nearby..."
-              className={`w-full pl-10 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all duration-300 text-sm ${
+              placeholder="Search nearby people..."
+              className={`w-full pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all duration-300 text-base ${
                 theme === 'dark'
                   ? 'bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:border-gray-600 focus:ring-gray-600'
                   : 'bg-white border border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-400 focus:ring-gray-400'
@@ -119,7 +119,7 @@ const NearbyScreen: React.FC = () => {
             />
           </div>
           <motion.button
-            className={`p-3 rounded-2xl transition-colors duration-200 ${
+            className={`px-6 py-4 rounded-2xl transition-colors duration-200 ${
               theme === 'dark'
                 ? 'bg-gray-900 border border-gray-700 hover:bg-gray-800'
                 : 'bg-white border border-gray-200 hover:bg-gray-50'
@@ -127,7 +127,7 @@ const NearbyScreen: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Filter className={`w-5 h-5 ${
+            <Filter className={`w-6 h-6 ${
               theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
             }`} />
           </motion.button>
@@ -135,7 +135,7 @@ const NearbyScreen: React.FC = () => {
 
         {/* Stats */}
         <motion.div 
-          className={`rounded-2xl p-4 mb-6 shadow-sm border ${
+          className={`rounded-3xl p-6 mb-8 shadow-lg border ${
             theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
           }`}
           initial={{ opacity: 0, y: 20 }}
@@ -143,28 +143,28 @@ const NearbyScreen: React.FC = () => {
           transition={{ delay: 0.4, duration: 0.5 }}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+            <div className="flex items-center space-x-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
               }`}>
-                <Users className={`w-4 h-4 ${
+                <Users className={`w-6 h-6 ${
                   theme === 'dark' ? 'text-white' : 'text-gray-700'
                 }`} />
               </div>
               <div>
-                <p className={`text-sm font-medium ${
+                <p className={`text-lg font-semibold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>{nearbyUsers.length} people nearby</p>
-                <p className={`text-xs ${
+                <p className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                 }`}>Within 10km radius</p>
               </div>
             </div>
             <div className="text-right">
-              <p className={`text-sm font-medium ${
+              <p className={`text-lg font-semibold ${
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}>{nearbyUsers.filter(u => u.isOnline).length} online</p>
-              <p className={`text-xs ${
+              <p className={`text-sm ${
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
               }`}>Active now</p>
             </div>
@@ -173,98 +173,138 @@ const NearbyScreen: React.FC = () => {
 
         {/* Users Grid */}
         <motion.div 
-          className="grid grid-cols-2 gap-4"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
           {nearbyUsers.map((user, index) => (
-            <motion.div
+            <div
               key={user.id}
-              className={`rounded-2xl p-4 shadow-sm border transition-all duration-300 ${
-                theme === 'dark'
-                  ? 'bg-gray-900 border-gray-800 hover:bg-gray-800'
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              className={`group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ${
+                theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
               }`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <div className="relative mb-3">
+              {/* Cover Image */}
+              <div className="relative h-36">
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="w-full h-32 object-cover rounded-xl"
+                  className="w-full h-full object-cover"
                 />
-                {user.isOnline && (
-                  <motion.div 
-                    className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.8 + index * 0.1, type: "spring", stiffness: 500, damping: 15 }}
-                  />
-                )}
-                <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1">
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-3 h-3 text-white" />
-                    <span className="text-xs text-white font-medium">{user.distance}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <h3 className={`font-semibold text-sm ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>{user.name}, {user.age}</h3>
-                  <div className="flex items-center space-x-1 mt-1">
-                    {user.interests.slice(0, 2).map((interest, i) => (
-                      <span key={i} className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        theme === 'dark'
-                          ? 'bg-gray-800 text-gray-300'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                 
-                {/* Action Buttons */}
-                <div className="flex items-center space-x-2">
-                  <button className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
-                    theme === 'dark'
-                      ? 'bg-gray-800 text-white hover:bg-gray-700'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }`}>
-                    <Heart className="w-3 h-3" />
-                    <span className="text-xs">Like</span>
-                  </button>
-                  <button className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
-                    theme === 'dark'
-                      ? 'bg-gray-800 text-white hover:bg-gray-700'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }`}>
-                    <MessageCircle className="w-3 h-3" />
-                    <span className="text-xs">Message</span>
-                  </button>
+                {/* Online Status */}
+                {user.isOnline && (
+                  <div className="absolute top-3 right-3">
+                    <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-white text-xs font-medium">Online</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Distance Badge */}
+                <div className="absolute bottom-3 left-3">
+                  <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1">
+                    <MapPin className="w-3 h-3 text-white" />
+                    <span className="text-white text-xs font-medium">{user.distance}</span>
+                  </div>
                 </div>
               </div>
-            </motion.div>
+
+              {/* User Info */}
+              <div className="p-4">
+                <div className="mb-3">
+                  <h3 className={`text-sm font-bold truncate ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    {user.name}
+                  </h3>
+                  <p className={`text-xs ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                  }`}>
+                    {user.age} years old
+                  </p>
+                </div>
+
+                {/* Interests */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {user.interests.slice(0, 2).map((interest, idx) => (
+                    <span
+                      key={idx}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                        theme === 'dark' 
+                          ? 'bg-gray-700 text-gray-200' 
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { icon: <Hand className="w-3.5 h-3.5" />, label: 'Touch' },
+                    { icon: <Heart className="w-3.5 h-3.5" />, label: 'Like' },
+                    { icon: <Smile className="w-3.5 h-3.5" />, label: 'Kiss' },
+                    { icon: <Gift className="w-3.5 h-3.5" />, label: 'Gift' },
+                    { icon: <MessageCircle className="w-3.5 h-3.5" />, label: 'Message' },
+                    { icon: <Users className="w-3.5 h-3.5" />, label: 'Follow' },
+                  ].map(({ icon, label }, idx) => (
+                    <motion.button
+                      key={idx}
+                      whileHover={{ 
+                        scale: 1.05,
+                        transition: { duration: 0.1 }
+                      }}
+                      whileTap={{ 
+                        scale: 0.95,
+                        transition: { duration: 0.05 }
+                      }}
+                      className={`relative flex flex-col items-center justify-center py-2.5 px-1.5 rounded-lg transition-all duration-150 cursor-pointer ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 hover:bg-gray-600 text-white shadow-sm hover:shadow-md'
+                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700 shadow-sm hover:shadow-md'
+                      }`}
+                    >
+                      {icon}
+                      <span className="text-[8px] font-semibold mt-1">{label}</span>
+                      
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div className={`text-xs rounded-lg py-1.5 px-2.5 whitespace-nowrap shadow-lg ${
+                          theme === 'dark'
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-800 text-white'
+                        }`}>
+                          {label}
+                          <div className={`absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent ${
+                            theme === 'dark'
+                              ? 'border-t-gray-900'
+                              : 'border-t-gray-800'
+                          }`}></div>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
           ))}
         </motion.div>
 
         {/* Load More */}
         <motion.div 
-          className="text-center mt-6"
+          className="text-center mt-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
         >
           <motion.button
-            className={`px-6 py-3 rounded-2xl font-medium shadow-lg transition-all duration-300 ${
+            className={`px-8 py-4 rounded-2xl font-semibold shadow-lg transition-all duration-300 ${
               theme === 'dark'
                 ? 'bg-gray-900 text-white hover:bg-gray-800'
                 : 'bg-gray-900 text-white hover:bg-gray-800'
