@@ -53,6 +53,8 @@ const Footer: React.FC = () => {
           : 'bg-white border-gray-200/60'
       }`}
     >
+
+      
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
@@ -257,6 +259,79 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className='w-full p-8'>
+      <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded gay"></div>
+      <h6 className="font-sans ExampleTitle">Gay Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded bi"></div>
+      <h6 className="font-sans ExampleTitle">Bisexual Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded trans"></div>
+      <h6 className="font-sans ExampleTitle">Transgender Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded nonb"></div>
+      <h6 className="font-sans ExampleTitle">Non-Binary Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded asex"></div>
+      <h6 className="font-sans ExampleTitle">Asexual Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded pan"></div>
+      <h6 className="font-sans ExampleTitle">Pansexual Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded queer"></div>
+      <h6 className="font-sans ExampleTitle">Queer Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded gaymen"></div>
+      <h6 className="font-sans ExampleTitle">Gay Male Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded lesbian"></div>
+      <h6 className="font-sans ExampleTitle">Lesbian Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded intersex"></div>
+      <h6 className="font-sans ExampleTitle">Intersex Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded gf"></div>
+      <h6 className="font-sans ExampleTitle">Gender Fluid Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded agender"></div>
+      <h6 className="font-sans ExampleTitle">Agender Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded polyamorous"></div>
+      <h6 className="font-sans ExampleTitle">Polyamorous Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded omni"></div>
+      <h6 className="font-sans ExampleTitle">Omnisexual Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded genderqueer"></div>
+      <h6 className="font-sans ExampleTitle">Genderqueer Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded aroace"></div>
+      <h6 className="font-sans ExampleTitle">AroAce Pride</h6>
+    </div>
+    <div className="Example">
+      <div className="Banner mb-4 shadow-md rounded poly"></div>
+      <h6 className="font-sans ExampleTitle">Polysexual Pride</h6>
+    </div>
+  </section>
       </div>
 
       {/* Bottom Bar */}

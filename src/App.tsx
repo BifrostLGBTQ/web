@@ -6,18 +6,18 @@ import Footer from './components/Footer';
 import Stories from './components/Stories';
 import CreatePost from './components/CreatePost';
 import Post from './components/Post';
-import MobileNavigation from './components/MobileNavigation';
 import MatchScreen from './components/MatchScreen';
 import NearbyScreen from './components/NearbyScreen';
 import ProfileScreen from './components/ProfileScreen';
 import SearchScreen from './components/SearchScreen';
 import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
-import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2 } from 'lucide-react';
+import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon } from 'lucide-react';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
-  const { theme } = useTheme();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const samplePosts = [
     {
@@ -79,6 +79,15 @@ function App() {
   ];
 
   const navigationItems = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'search', label: 'Search', icon: Search },
+    { id: 'nearby', label: 'Nearby', icon: MapPin },
+    { id: 'match', label: 'Match', icon: Heart },
+    { id: 'messages', label: 'Chat', icon: MessageCircle },
+    { id: 'places', label: 'Places', icon: Building2 },
+  ];
+
+  const mobileNavItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'search', label: 'Search', icon: Search },
     { id: 'nearby', label: 'Nearby', icon: MapPin },
@@ -237,79 +246,180 @@ function App() {
   };
 
   return (
-    <motion.div 
-      className={`min-h-screen transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-black' : 'bg-gray-50'
-      }`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-    >
-      {/* Header - Show on all screens */}
-      <Header />
-      
-      {/* Ultra Professional Navigation - Fixed Sticky */}
-      <div className={`fixed top-0 left-0 right-0 z-40 border-b backdrop-blur-xl ${
-        theme === 'dark' 
-          ? 'border-gray-800 bg-gray-900/95' 
-          : 'border-gray-200 bg-white/95'
-      }`} style={{ top: '80px' }}>
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between lg:justify-start lg:space-x-6 overflow-x-auto scrollbar-hide py-4">
-            {navigationItems.map((item, index) => {
-              const Icon = item.icon;
-              const isActive = activeScreen === item.id;
-              
-              return (
-                <motion.button
-                  key={item.id}
-                  onClick={() => setActiveScreen(item.id)}
-                  className={`flex items-center space-x-2.5 py-2.5 px-4 rounded-xl transition-all duration-300 whitespace-nowrap ${
-                    isActive
-                      ? theme === 'dark'
-                        ? 'text-white bg-gray-800 shadow-lg'
-                        : 'text-white bg-gray-900 shadow-lg'
-                      : theme === 'dark'
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                  whileHover={{ 
-                    scale: 1.02,
-                    y: -1,
-                    transition: { type: "spring", stiffness: 400, damping: 17 }
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                >
-                  <div className={`relative transition-all duration-300 ${
-                    isActive ? 'scale-110' : 'group-hover:scale-105'
-                  }`}>
-                    <Icon className={`w-4 h-4 transition-all duration-300 ${
+    <>
+      <motion.header 
+        className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${
+          theme === 'dark' 
+            ? 'border-gray-800 bg-gray-900/95' 
+            : 'border-gray-200 bg-white/95'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            {/* Logo Section */}
+            <div className="flex items-center">
+              <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>PridePal</h1>
+            </div>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-6">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeScreen === item.id;
+                return (
+                  <motion.button
+                    key={item.id}
+                    onClick={() => setActiveScreen(item.id)}
+                    className={`flex  flex-col items-center gap-1 py-2.5 px-4 rounded-xl transition-all duration-300 whitespace-nowrap ${
+                      isActive
+                        ? theme === 'dark'
+                          ? 'text-white bg-gray-800 shadow-lg'
+                          : 'text-white bg-gray-900 shadow-lg'
+                        : theme === 'dark'
+                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                    whileHover={{ 
+                      scale: 1.04,
+                      y: -1,
+                      transition: { type: "spring", stiffness: 400, damping: 17 }
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: navigationItems.indexOf(item) * 0.1, duration: 0.5 }}
+                  >
+                    <Icon className={`w-5 h-5 mb-0.5 transition-all duration-300 ${
                       isActive 
                         ? 'text-white' 
                         : theme === 'dark' 
                           ? 'text-gray-400 group-hover:text-white' 
                           : 'text-gray-600 group-hover:text-gray-900'
                     }`} />
-                  </div>
-                  <span className={`font-semibold text-sm tracking-wide transition-all duration-300 ${
-                    isActive 
-                      ? 'text-white' 
-                      : theme === 'dark' 
-                        ? 'text-gray-400 group-hover:text-white' 
-                        : 'text-gray-600 group-hover:text-gray-900'
-                  }`}>{item.label}</span>
-                </motion.button>
-              );
-            })}
+                    <span className={`font-semibold text-xs tracking-wide transition-all duration-300 ${
+                      isActive 
+                        ? 'text-white' 
+                        : theme === 'dark' 
+                          ? 'text-gray-400 group-hover:text-white' 
+                          : 'text-gray-600 group-hover:text-gray-900'
+                    }`}>{item.label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+            {/* Mobile Hamburger Menu */}
+            <button
+              className="md:hidden p-2 rounded-xl transition-all duration-300"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`} />
+            </button>
+            {/* Profile Section */}
+            <div className="flex items-center space-x-4">
+              <button className={`p-2 rounded-full transition-colors ${
+                theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+              }`}>
+                <MessageCircle className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
+              </button>
+              <button className={`p-2 rounded-full transition-colors ${
+                theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+              }`}>
+                <Map className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
+              </button>
+              <button className={`p-2 rounded-full transition-colors ${
+                theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+              }`}>
+                <User className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.header>
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className={`fixed top-0 left-0 bottom-0 w-4/5 max-w-xs z-[101] ${theme === 'dark' ? 'bg-black border-r border-gray-800' : 'bg-white border-r border-gray-200'} shadow-2xl rounded-tr-3xl rounded-br-3xl flex flex-col`}
+          >
+            {/* User/Profile Section */}
+            <div className={`flex flex-col items-center gap-2 px-6 py-6 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+              <img
+                src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
+                alt="Profile"
+                className="w-16 h-16 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md"
+              />
+              <div className="flex flex-col items-center">
+                <p className={`font-semibold text-base ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Alex Rivera</p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>alexr_pride@email.com</p>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            {/* Navigation */}
+            <nav className="flex-1 grid grid-cols-3 gap-2 px-4 py-6">
+              {mobileNavItems.map((item) => {
+                const isActive = activeScreen === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    className={`flex flex-col items-center gap-1 py-4 rounded-2xl transition-all duration-200 shadow-sm ${
+                      isActive
+                        ? theme === 'dark'
+                          ? 'bg-gray-800 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-900 shadow-lg'
+                        : theme === 'dark'
+                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                    onClick={() => {
+                      setActiveScreen(item.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Icon className="w-6 h-6 mb-0.5" />
+                    <span className="text-xs font-semibold tracking-wide">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+            {/* Theme Toggle */}
+            <div className="p-6 border-t flex flex-col items-center gap-3">
+              <span className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</span>
+              <button
+                onClick={toggleTheme}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-2xl font-medium transition-colors shadow-sm ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 text-white hover:bg-gray-700'
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                }`}
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Content */}
-      <div className="pt-20">
+      <div className="mt-20 overflow-hidden w-full h-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeScreen}
@@ -323,11 +433,12 @@ function App() {
         </AnimatePresence>
       </div>
       
-      <MobileNavigation activeScreen={activeScreen} onScreenChange={setActiveScreen} />
+
       
       {/* Footer - Only show on home screen */}
+     
       {activeScreen === 'home' && <Footer />}
-    </motion.div>
+    </>
   );
 }
 

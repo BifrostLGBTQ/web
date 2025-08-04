@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
@@ -25,7 +25,9 @@ import {
   Volume2,
   VolumeX,
   Settings,
-  Info
+  Info,
+  Menu,
+  X
 } from 'lucide-react';
 
 const MessagesScreen: React.FC = () => {
@@ -34,6 +36,30 @@ const MessagesScreen: React.FC = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  React.useEffect(() => {
+    if (!selectedChat && isMobile) {
+      setShowSidebar(true);
+    }
+    if (selectedChat && isMobile) {
+      setShowSidebar(false);
+    }
+  }, [selectedChat, isMobile]);
 
   const groupChats = [
     {
@@ -126,14 +152,17 @@ const MessagesScreen: React.FC = () => {
     }
   ];
 
+  const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '💯', '✨', '🏳️‍🌈', '💪', '😍', '🤔', '😭', '😡', '🤗', '👏', '🙏', '💖', '💕', '💔', '😎', '🤩', '😴', '🤯', '🥳', '😇', '🤠', '👻', '🤖', '👽', '👾'];
+
   const selectedGroupChat = groupChats.find(chat => chat.id === selectedChat);
   const selectedPrivateChat = privateChats.find(chat => chat.id === selectedChat);
 
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (message.trim() || selectedFiles.length > 0) {
       setMessage('');
+      setSelectedFiles([]);
       setIsTyping(false);
-      // Here you would typically send the message to your backend
+      setShowEmojiPicker(false);
     }
   };
 
@@ -142,31 +171,71 @@ const MessagesScreen: React.FC = () => {
     setIsTyping(e.target.value.length > 0);
   };
 
+  const handleChatSelect = (chatId: string) => {
+    setSelectedChat(chatId);
+    setShowSidebar(false);
+  };
+
+  const handleEmojiClick = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
-    <div className={`h-[calc(100dvh-176px)] ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
-      <div className="h-full max-w-7xl mx-auto">
-        <div className="flex h-full">
-          {/* Sidebar - Hidden on mobile when chat is selected */}
-          <div className={`w-80 border-r ${
+    <div className={`h-[90dvh] min-h-[90dvh] max-h-[90dvh] w-full overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
+      <div className="h-full w-full">
+        <div className="flex h-full w-full relative">
+          {/* Sidebar - Responsive Design */}
+          <div className={`absolute lg:relative inset-0 z-40 lg:z-auto w-full lg:w-80 border-r ${
             theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
-          } ${selectedChat ? 'hidden lg:block' : 'block'}`}>
+          } ${showSidebar ? 'block' : 'hidden lg:block'}`}>
             {/* Header */}
-            <div className={`p-4 border-b ${
+            <div className={`p-3 sm:p-4 border-b ${
               theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
             }`}>
-              <h1 className={`text-xl font-bold ${
-                theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>Messages</h1>
+              <div className="flex items-center justify-between">
+                <h1 className={`text-lg sm:text-xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>Messages</h1>
+                <button 
+                  onClick={() => setShowSidebar(false)}
+                  className="lg:hidden p-2 rounded-lg transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              </div>
               
               {/* Search */}
-              <div className="mt-4 relative">
+              <div className="mt-3 sm:mt-4 relative">
                 <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                 }`} />
                 <input
                   type="text"
                   placeholder="Search messages..."
-                  className={`w-full pl-10 pr-4 py-2 rounded-xl border ${
+                  className={`w-full pl-10 pr-4 py-2 sm:py-3 rounded-xl border text-sm ${
                     theme === 'dark' 
                       ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
                       : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'
@@ -179,7 +248,7 @@ const MessagesScreen: React.FC = () => {
             <div className="flex border-b">
               <button
                 onClick={() => setActiveTab('groups')}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                className={`flex-1 py-3 sm:py-4 px-3 sm:px-4 text-sm font-medium transition-colors ${
                   activeTab === 'groups'
                     ? theme === 'dark'
                       ? 'text-white border-b-2 border-gray-300'
@@ -194,7 +263,7 @@ const MessagesScreen: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('private')}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                className={`flex-1 py-3 sm:py-4 px-3 sm:px-4 text-sm font-medium transition-colors ${
                   activeTab === 'private'
                     ? theme === 'dark'
                       ? 'text-white border-b-2 border-gray-300'
@@ -210,7 +279,7 @@ const MessagesScreen: React.FC = () => {
             </div>
 
             {/* Chat List */}
-            <div className="h-[calc(100%-140px)] overflow-y-auto scrollbar-hide">
+            <div className="h-[calc(100%-120px)] sm:h-[calc(100%-140px)] overflow-y-auto scrollbar-hide">
               <AnimatePresence mode="wait">
                 {activeTab === 'groups' ? (
                   <motion.div
@@ -218,13 +287,19 @@ const MessagesScreen: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="space-y-1"
+                    className="space-y-0"
                   >
-                    {groupChats.map((chat) => (
+                    {groupChats.length === 0 ? (
+                      <div className="flex items-center justify-center h-full text-gray-400 text-center p-8">
+                        No group chats found.
+                      </div>
+                    ) : groupChats.map((chat) => (
                       <motion.div
                         key={chat.id}
-                        onClick={() => setSelectedChat(chat.id)}
-                        className={`p-4 cursor-pointer transition-colors ${
+                        onClick={() => handleChatSelect(chat.id)}
+                        className={`p-3 sm:p-4 cursor-pointer transition-colors border-b ${
+                          theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
+                        } ${
                           selectedChat === chat.id
                             ? theme === 'dark'
                               ? 'bg-gray-800'
@@ -233,34 +308,34 @@ const MessagesScreen: React.FC = () => {
                             ? 'hover:bg-gray-800/50'
                             : 'hover:bg-gray-50'
                         }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="text-2xl">{chat.flag}</div>
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="text-xl sm:text-2xl flex-shrink-0">{chat.flag}</div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <h3 className={`font-semibold truncate ${
+                              <div className="flex items-center space-x-1 sm:space-x-2 min-w-0 flex-1">
+                                <h3 className={`font-semibold truncate text-sm sm:text-base ${
                                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                                 }`}>{chat.name}</h3>
                                 {chat.pinned && (
-                                  <Star className="w-3 h-3 text-yellow-500" />
+                                  <Star className="w-3 h-3 text-yellow-500 flex-shrink-0" />
                                 )}
                               </div>
-                              <span className={`text-xs ${
+                              <span className={`text-xs flex-shrink-0 ml-1 sm:ml-2 ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>{chat.lastTime}</span>
                             </div>
-                            <p className={`text-sm truncate ${
+                            <p className={`text-xs sm:text-sm truncate mt-1 ${
                               theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                             }`}>{chat.lastMessage}</p>
-                            <div className="flex items-center justify-between mt-1">
+                            <div className="flex items-center justify-between mt-1 sm:mt-2">
                               <span className={`text-xs ${
                                 theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
                               }`}>{chat.members} members • {chat.online} online</span>
                               {chat.unread > 0 && (
-                                <span className="bg-gray-900 text-white text-xs px-2 py-1 rounded-full">
+                                <span className="bg-gray-900 text-white text-xs px-2 py-1 rounded-full flex-shrink-0">
                                   {chat.unread}
                                 </span>
                               )}
@@ -276,13 +351,19 @@ const MessagesScreen: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="space-y-1"
+                    className="space-y-0"
                   >
-                    {privateChats.map((chat) => (
+                    {privateChats.length === 0 ? (
+                      <div className="flex items-center justify-center h-full text-gray-400 text-center p-8">
+                        No private chats found.
+                      </div>
+                    ) : privateChats.map((chat) => (
                       <motion.div
                         key={chat.id}
-                        onClick={() => setSelectedChat(chat.id)}
-                        className={`p-4 cursor-pointer transition-colors ${
+                        onClick={() => handleChatSelect(chat.id)}
+                        className={`p-3 sm:p-4 cursor-pointer transition-colors border-b ${
+                          theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
+                        } ${
                           selectedChat === chat.id
                             ? theme === 'dark'
                               ? 'bg-gray-800'
@@ -291,15 +372,15 @@ const MessagesScreen: React.FC = () => {
                             ? 'hover:bg-gray-800/50'
                             : 'hover:bg-gray-50'
                         }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="relative">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="relative flex-shrink-0">
                             <img
                               src={chat.avatar}
                               alt={chat.name}
-                              className="w-12 h-12 rounded-full object-cover"
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
                             />
                             {chat.online && (
                               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -312,18 +393,18 @@ const MessagesScreen: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <h3 className={`font-semibold truncate ${
+                              <h3 className={`font-semibold truncate text-sm sm:text-base ${
                                 theme === 'dark' ? 'text-white' : 'text-gray-900'
                               }`}>{chat.name}</h3>
-                              <span className={`text-xs ${
+                              <span className={`text-xs flex-shrink-0 ml-1 sm:ml-2 ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>{chat.lastTime}</span>
                             </div>
-                            <p className={`text-sm truncate ${
+                            <p className={`text-xs sm:text-sm truncate mt-1 ${
                               theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                             }`}>{chat.lastMessage}</p>
                             {chat.unread > 0 && (
-                              <div className="flex justify-end mt-1">
+                              <div className="flex justify-end mt-1 sm:mt-2">
                                 <span className="bg-gray-900 text-white text-xs px-2 py-1 rounded-full">
                                   {chat.unread}
                                 </span>
@@ -340,42 +421,42 @@ const MessagesScreen: React.FC = () => {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1 flex flex-col h-full w-full">
             {selectedChat ? (
               <>
                 {/* Chat Header */}
-                <div className={`p-4 border-b ${
+                <div className={`p-3 sm:p-4 border-b ${
                   theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
                 }`}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {/* Mobile back button */}
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      {/* Mobile menu button */}
                       <button 
-                        onClick={() => setSelectedChat(null)}
-                        className="lg:hidden p-2 rounded-lg transition-colors"
+                        onClick={() => setShowSidebar(true)}
+                        className="lg:hidden p-2 rounded-lg transition-colors flex-shrink-0"
                       >
-                        <ArrowLeft className="w-5 h-5" />
+                        <Menu className="w-5 h-5" />
                       </button>
                       
                       {activeTab === 'groups' && selectedGroupChat ? (
                         <>
-                          <div className="text-2xl">{selectedGroupChat.flag}</div>
-                          <div>
-                            <h2 className={`font-semibold ${
+                          <div className="text-xl sm:text-2xl flex-shrink-0">{selectedGroupChat.flag}</div>
+                          <div className="min-w-0 flex-1">
+                            <h2 className={`font-semibold truncate text-sm sm:text-base ${
                               theme === 'dark' ? 'text-white' : 'text-gray-900'
                             }`}>{selectedGroupChat.name}</h2>
-                            <p className={`text-sm ${
+                            <p className={`text-xs sm:text-sm truncate ${
                               theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                             }`}>{selectedGroupChat.members} members • {selectedGroupChat.online} online</p>
                           </div>
                         </>
                       ) : selectedPrivateChat ? (
                         <>
-                          <div className="relative">
+                          <div className="relative flex-shrink-0">
                             <img
                               src={selectedPrivateChat.avatar}
                               alt={selectedPrivateChat.name}
-                              className="w-10 h-10 rounded-full object-cover"
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                             />
                             {selectedPrivateChat.online && (
                               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -386,18 +467,18 @@ const MessagesScreen: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <h2 className={`font-semibold ${
+                          <div className="min-w-0 flex-1">
+                            <h2 className={`font-semibold truncate text-sm sm:text-base ${
                               theme === 'dark' ? 'text-white' : 'text-gray-900'
                             }`}>{selectedPrivateChat.name}</h2>
-                            <p className={`text-sm ${
+                            <p className={`text-xs sm:text-sm truncate ${
                               theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                             }`}>{selectedPrivateChat.online ? 'Online' : 'Offline'}</p>
                           </div>
                         </>
                       ) : null}
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 flex-shrink-0">
                       <button className={`p-2 rounded-lg transition-colors ${
                         theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
                       }`}>
@@ -428,17 +509,17 @@ const MessagesScreen: React.FC = () => {
                 </div>
 
                 {/* Messages */}
-                <div className={`flex-1 overflow-y-auto p-4 scrollbar-hide ${
+                <div className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${
                   theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
                 }`}>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
                     {/* Sample messages */}
                     <div className="flex justify-end">
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                      <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
                         theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white'
                       }`}>
-                        <p>Hello! How are you doing? 😊</p>
-                        <div className="flex items-center justify-end mt-1">
+                        <p className="text-sm leading-relaxed">Hello! How are you doing? 😊</p>
+                        <div className="flex items-center justify-end mt-2">
                           <span className="text-xs opacity-70">2:30 PM</span>
                           <CheckCheck className="w-3 h-3 ml-1" />
                         </div>
@@ -446,22 +527,22 @@ const MessagesScreen: React.FC = () => {
                     </div>
                     
                     <div className="flex justify-start">
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                      <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
                         theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
                       }`}>
-                        <p>I'm doing great! Thanks for asking. How about you?</p>
-                        <div className="flex items-center mt-1">
+                        <p className="text-sm leading-relaxed">I'm doing great! Thanks for asking. How about you?</p>
+                        <div className="flex items-center mt-2">
                           <span className="text-xs opacity-70">2:32 PM</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex justify-end">
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                      <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
                         theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white'
                       }`}>
-                        <p>Amazing! The community is so supportive here! 🏳️‍🌈</p>
-                        <div className="flex items-center justify-end mt-1">
+                        <p className="text-sm leading-relaxed">Amazing! The community is so supportive here! 🏳️‍🌈</p>
+                        <div className="flex items-center justify-end mt-2">
                           <span className="text-xs opacity-70">2:35 PM</span>
                           <CheckCheck className="w-3 h-3 ml-1" />
                         </div>
@@ -471,10 +552,10 @@ const MessagesScreen: React.FC = () => {
                     {/* Typing indicator */}
                     {isTyping && (
                       <div className="flex justify-start">
-                        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
                           theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
                         }`}>
-                          <div className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-2">
                             <div className="flex space-x-1">
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -488,45 +569,110 @@ const MessagesScreen: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Selected Files Preview */}
+                {selectedFiles.length > 0 && (
+                  <div className={`p-3 sm:p-4 border-t ${
+                    theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
+                  }`}>
+                    <div className="space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className={`flex items-center justify-between p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        }`}>
+                          <div className="flex items-center space-x-2 flex-1 min-w-0">
+                            {file.type.startsWith('image/') ? (
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="w-8 h-8 rounded object-cover"
+                              />
+                            ) : (
+                              <Paperclip className="w-4 h-4" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className={`text-sm truncate ${
+                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                              }`}>{file.name}</p>
+                              <p className={`text-xs ${
+                                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                              }`}>{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Message Input */}
-                <div className={`p-4 border-t ${
+                <div className={`p-3 sm:p-4 border-t ${
                   theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
                 }`}>
                   <div className="flex items-center space-x-2">
-                    <button className={`p-2 rounded-lg transition-colors ${
-                      theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                    }`}>
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`p-2 rounded-lg transition-colors ${
+                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                      }`}
+                    >
                       <Paperclip className="w-4 h-4" />
                     </button>
-                    <button className={`p-2 rounded-lg transition-colors ${
-                      theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                    }`}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <button 
+                      onClick={() => imageInputRef.current?.click()}
+                      className={`p-2 rounded-lg transition-colors ${
+                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                      }`}
+                    >
                       <Image className="w-4 h-4" />
                     </button>
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
                     <div className="flex-1 relative">
                       <input
                         type="text"
                         value={message}
                         onChange={handleTyping}
                         placeholder="Type a message..."
-                        className={`w-full pl-4 pr-12 py-2 rounded-xl border ${
+                        className={`w-full pl-4 pr-12 py-2 sm:py-3 rounded-xl border text-sm ${
                           theme === 'dark' 
                             ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
                             : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'
                         }`}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       />
-                      <button className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-                      }`}>
+                      <button 
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-lg transition-colors ${
+                          theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
+                        }`}
+                      >
                         <Smile className="w-4 h-4" />
                       </button>
                     </div>
                     <button
                       onClick={handleSendMessage}
-                      disabled={!message.trim()}
+                      disabled={!message.trim() && selectedFiles.length === 0}
                       className={`p-2 rounded-lg transition-colors ${
-                        message.trim()
+                        (message.trim() || selectedFiles.length > 0)
                           ? theme === 'dark'
                             ? 'bg-gray-800 hover:bg-gray-700'
                             : 'bg-gray-900 hover:bg-gray-800'
@@ -543,25 +689,45 @@ const MessagesScreen: React.FC = () => {
                       <Mic className="w-4 h-4" />
                     </button>
                   </div>
+
+                  {/* Emoji Picker */}
+                  {showEmojiPicker && (
+                    <div className={`mt-2 p-3 rounded-lg border ${
+                      theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                    }`}>
+                      <div className="grid grid-cols-8 gap-2">
+                        {emojis.map((emoji, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleEmojiClick(emoji)}
+                            className="p-2 text-lg hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
-              /* Welcome Screen */
-              <div className={`flex-1 flex items-center justify-center ${
-                theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
-              }`}>
-                <div className="text-center">
-                  <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
-                    theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
-                  }`} />
-                  <h2 className={`text-xl font-semibold mb-2 ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>Select a conversation</h2>
-                  <p className={`${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Choose a group or private chat to start messaging</p>
+              !isMobile ? (
+                <div className={`flex-1 flex items-center justify-center ${
+                  theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+                }`}>
+                  <div className="text-center px-4">
+                    <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
+                      theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
+                    }`} />
+                    <h2 className={`text-xl font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>Select a conversation</h2>
+                    <p className={`${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Choose a group or private chat to start messaging</p>
+                  </div>
                 </div>
-              </div>
+              ) : null
             )}
           </div>
         </div>
