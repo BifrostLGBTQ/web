@@ -255,7 +255,7 @@ const NearbyScreen: React.FC = () => {
                           scale: 0.95,
                           transition: { duration: 0.05 }
                         }}
-                        className="relative flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-black/40 backdrop-blur-sm hover:bg-black/60 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/20"
+                        className="relative flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-black/40 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/20"
                       >
                         <div className={color}>
                           {icon}
