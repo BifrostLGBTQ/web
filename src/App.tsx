@@ -297,18 +297,6 @@ function App() {
                       <Icon className="w-5 h-5" />
                       <span className="hidden xl:block">{item.label}</span>
 
-                      {/* Active indicator */}
-                      {isActive && (
-                        <motion.div
-                          className={`absolute -bottom-1 left-1/2 w-1 h-1 rounded-full ${
-                            theme === 'dark' ? 'bg-white' : 'bg-white'
-                          }`}
-                          layoutId="activeIndicator"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          style={{ x: '-50%' }}
-                        />
-                      )}
                     </motion.button>
                   );
                 })}
