@@ -530,7 +530,7 @@ function App() {
       </AnimatePresence>
       
       {/* Content */}
-      <div className="mt-20 overflow-hidden w-full h-full">
+      <div className="pt-20 overflow-hidden w-full h-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeScreen}
