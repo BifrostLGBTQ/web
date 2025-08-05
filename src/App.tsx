@@ -67,31 +67,30 @@ function App() {
       {/* Professional Header */}
       <motion.header
         className={`fixed top-0 left-0 right-0 z-50 `}
-  
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between h-18 sm:h-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6">
+          <div className="flex items-center justify-center  h-16 sm:h-20">
 
             {/* Enhanced Logo Section */}
             <motion.div
-              className="flex w-full items-center space-x-3"
+              className="w-full flex justify-start items-center space-x-2 sm:space-x-3"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center ${
                 theme === 'dark'
                   ? 'bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600'
                   : 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300'
               }`}>
-                <span className={`text-xl font-bold ${
+                <span className={`text-lg sm:text-xl font-bold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>P</span>
               </div>
-              <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight ${
+              <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
                 PridePal
@@ -99,15 +98,12 @@ function App() {
             </motion.div>
 
             {/* Professional Desktop Navigation */}
-            <div className="w-full hidden lg:flex items-center">
-              <nav className={`flex items-center space-x-2 p-2 rounded-2xl 
-              
-              backdrop-blur-3xl border-b ${
-          theme === 'dark'
-            ? 'border-gray-800/30 bg-black/80 backdrop-saturate-150'
-            : 'border-gray-200/30 bg-white/80 backdrop-saturate-150'
-        }
-              ${
+            <div className="w-full hidden lg:flex  items-center">
+              <nav className={`flex items-center space-x-2 p-2 rounded-2xl backdrop-blur-3xl border-b ${
+                theme === 'dark'
+                  ? 'border-gray-800/30 bg-black/80 backdrop-saturate-150'
+                  : 'border-gray-200/30 bg-white/80 backdrop-saturate-150'
+              } ${
                 theme === 'dark'
                   ? 'bg-gray-900/50 border border-gray-800'
                   : 'bg-gray-50/50 border border-gray-200'
@@ -139,20 +135,19 @@ function App() {
                     >
                       <Icon className="w-5 h-5" />
                       <span className="hidden xl:block">{item.label}</span>
-
                     </motion.button>
                   );
                 })}
               </nav>
             </div>
 
-            {/* Right Section */}
-            <div className="w-full flex justify-end items-center space-x-3">
+            {/* Right Section - Mobile Optimized */}
+            <div className="w-full  justify-end flex items-center space-x-2 sm:space-x-3">
 
               {/* Map Icon - Desktop */}
               <motion.button
                 onClick={() => setActiveScreen('nearby')}
-                className={`hidden sm:flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                className={`hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl transition-all duration-300 ${
                   activeScreen === 'nearby'
                     ? theme === 'dark'
                       ? 'bg-white/10 text-white border border-gray-600'
@@ -167,13 +162,13 @@ function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
               >
-                <Map className="w-5 h-5" />
+                <Map className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
 
               {/* Theme Toggle - Desktop */}
               <motion.button
                 onClick={toggleTheme}
-                className={`hidden sm:flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                className={`hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl transition-all duration-300 ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
                     : 'bg-gray-100/50 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200'
@@ -185,15 +180,15 @@ function App() {
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
                 {theme === 'dark' ?
-                  <Sun className="w-5 h-5" /> :
-                  <Moon className="w-5 h-5" />
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> :
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
                 }
               </motion.button>
 
-              {/* Profile Avatar */}
+              {/* Profile Avatar - Mobile Optimized */}
               <motion.button
                 onClick={() => setActiveScreen('profile')}
-                className={`flex items-center space-x-2 p-1 rounded-xl transition-all duration-300 ${
+                className={`flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-1 rounded-xl transition-all duration-300 ${
                   activeScreen === 'profile'
                     ? theme === 'dark'
                       ? 'bg-gray-800 ring-2 ring-gray-600'
@@ -209,22 +204,22 @@ function App() {
                 <img
                   src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
                   alt="Profile"
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
                 />
-                <span className={`hidden sm:block font-medium text-sm ${
+                <span className={`hidden md:block font-medium text-sm ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
                   Alex
                 </span>
               </motion.button>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Button - Ultra Clean */}
               <motion.button
-                className={`lg:hidden flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                className={`lg:hidden flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 ${
                   theme === 'dark'
-                    ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
-                    : 'bg-gray-100/50 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200'
-                }`}
+                    ? 'bg-gray-800/70 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700/50'
+                    : 'bg-gray-100/70 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200/50'
+                } backdrop-blur-sm`}
                 onClick={() => setIsMobileMenuOpen(true)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -232,7 +227,7 @@ function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.0, duration: 0.5 }}
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4" />
               </motion.button>
             </div>
           </div>
@@ -372,8 +367,8 @@ function App() {
         )}
       </AnimatePresence>
       
-      {/* Content */}
-      <div className=" pt-20 overflow-hidden scrollbar-hide w-full h-full">
+      {/* Content - Mobile Optimized */}
+      <div className="pt-16 sm:pt-20 overflow-hidden scrollbar-hide w-full h-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeScreen}
