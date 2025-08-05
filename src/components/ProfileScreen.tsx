@@ -49,9 +49,9 @@ const ProfileScreen: React.FC = () => {
   ];
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
+    <div className={`max-w-2xl mx-auto min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
       <motion.div 
-        className={`max-w-md mx-auto min-h-screen ${
+        className={`max-w-2xl mx-auto min-h-screen ${
           theme === 'dark' ? 'bg-gray-900' : 'bg-white'
         }`}
         initial={{ opacity: 0 }}
@@ -60,7 +60,7 @@ const ProfileScreen: React.FC = () => {
       >
         {/* Header */}
         <motion.div 
-          className="relative h-80 overflow-hidden"
+          className="relative h-80 rounded-lg overflow-hidden"
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.8 }}
@@ -68,7 +68,7 @@ const ProfileScreen: React.FC = () => {
           <img
             src={profileData.photos[0]}
             alt="Profile"
-            className="w-full h-full object-cover"
+            className="w-full h-full  object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
           
