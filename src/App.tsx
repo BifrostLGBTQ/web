@@ -13,6 +13,7 @@ import SearchScreen from './components/SearchScreen';
 import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
 import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon } from 'lucide-react';
+import PlacesScreen from './components/PlacesScreen';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -108,34 +109,7 @@ function App() {
       case 'profile':
         return <ProfileScreen />;
       case 'places':
-        return (
-          <div className={`min-h-screen flex items-center justify-center ${
-            theme === 'dark' 
-              ? 'bg-black' 
-              : 'bg-gray-50'
-          }`}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-8"
-            >
-              <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
-              }`}>
-                <Building2 className="w-12 h-12 text-gray-500" />
-              </div>
-              <h2 className={`text-3xl font-bold mb-4 ${
-                theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>Places</h2>
-              <p className={`text-lg ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`}>Discover amazing places</p>
-              <p className={`mt-2 ${
-                theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
-              }`}>Coming soon...</p>
-            </motion.div>
-          </div>
-        );
+        return <PlacesScreen/>;
       case 'messages':
         return <MessagesScreen />;
       default:
