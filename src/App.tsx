@@ -221,174 +221,323 @@ function App() {
 
   return (
     <>
-      <motion.header 
-        className={`fixed top-0 back left-0 right-0 z-50 border-b backdrop-blur-xl ${
-          theme === 'dark' 
-            ? 'border-gray-800 bg-black' 
-            : 'border-gray-200 bg-white/95'
+      {/* Professional Header */}
+      <motion.header
+        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-3xl border-b ${
+          theme === 'dark'
+            ? 'border-gray-800/30 bg-black/80 backdrop-saturate-150'
+            : 'border-gray-200/30 bg-white/80 backdrop-saturate-150'
         }`}
+        style={{
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)'
+        }}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Logo Section */}
-            <div className="flex items-center">
-              <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>PridePal</h1>
-            </div>
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeScreen === item.id;
-                return (
-                  <motion.button
-                    key={item.id}
-                    onClick={() => setActiveScreen(item.id)}
-                    className={`flex  flex-col items-center gap-1 py-2.5 px-4 rounded-xl transition-all duration-300 whitespace-nowrap ${
-                      isActive
-                        ? theme === 'dark'
-                          ? 'text-white bg-gray-800 shadow-lg'
-                          : 'text-white bg-gray-900 shadow-lg'
-                        : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                    whileHover={{ 
-                      scale: 1.04,
-                      y: -1,
-                      transition: { type: "spring", stiffness: 400, damping: 17 }
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: navigationItems.indexOf(item) * 0.1, duration: 0.5 }}
-                  >
-                    <Icon className={`w-5 h-5 mb-0.5 transition-all duration-300 ${
-                      isActive 
-                        ? 'text-white' 
-                        : theme === 'dark' 
-                          ? 'text-gray-400 group-hover:text-white' 
-                          : 'text-gray-600 group-hover:text-gray-900'
-                    }`} />
-                    <span className={`font-semibold text-xs tracking-wide transition-all duration-300 ${
-                      isActive 
-                        ? 'text-white' 
-                        : theme === 'dark' 
-                          ? 'text-gray-400 group-hover:text-white' 
-                          : 'text-gray-600 group-hover:text-gray-900'
-                    }`}>{item.label}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
-            {/* Mobile Hamburger Menu */}
-            <button
-              className="md:hidden p-2 rounded-xl transition-all duration-300"
-              onClick={() => setIsMobileMenuOpen(true)}
+          <div className="flex items-center justify-between h-18 sm:h-20">
+
+            {/* Enhanced Logo Section */}
+            <motion.div
+              className="flex items-center space-x-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
             >
-              <Menu className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`} />
-            </button>
-            {/* Profile Section */}
-            <div className="flex items-center space-x-4">
-              <button className={`p-2 rounded-full transition-colors ${
-                theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600'
+                  : 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300'
               }`}>
-                <MessageCircle className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
-              </button>
-              <button className={`p-2 rounded-full transition-colors ${
-                theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                <span className={`text-xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>P</span>
+              </div>
+              <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
-                <Map className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
-              </button>
-              <button className={`p-2 rounded-full transition-colors ${
-                theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                PridePal
+              </h1>
+            </motion.div>
+
+            {/* Professional Desktop Navigation */}
+            <div className="hidden lg:flex items-center">
+              <nav className={`flex items-center space-x-2 p-2 rounded-2xl ${
+                theme === 'dark'
+                  ? 'bg-gray-900/50 border border-gray-800'
+                  : 'bg-gray-50/50 border border-gray-200'
               }`}>
-                <User className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
-              </button>
+                {navigationItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const isActive = activeScreen === item.id;
+                  return (
+                    <motion.button
+                      key={item.id}
+                      onClick={() => setActiveScreen(item.id)}
+                      className={`relative flex items-center space-x-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                        isActive
+                          ? theme === 'dark'
+                            ? 'text-white bg-white/10 shadow-lg'
+                            : 'text-white bg-gray-900 shadow-lg'
+                          : theme === 'dark'
+                          ? 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-white/80'
+                      }`}
+                      whileHover={{
+                        scale: 1.05,
+                        transition: { type: "spring", stiffness: 400, damping: 17 }
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="hidden xl:block">{item.label}</span>
+
+                      {/* Active indicator */}
+                      {isActive && (
+                        <motion.div
+                          className={`absolute -bottom-1 left-1/2 w-1 h-1 rounded-full ${
+                            theme === 'dark' ? 'bg-white' : 'bg-white'
+                          }`}
+                          layoutId="activeIndicator"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          style={{ x: '-50%' }}
+                        />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center space-x-3">
+
+              {/* Map Icon - Desktop */}
+              <motion.button
+                onClick={() => setActiveScreen('nearby')}
+                className={`hidden sm:flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                  activeScreen === 'nearby'
+                    ? theme === 'dark'
+                      ? 'bg-white/10 text-white border border-gray-600'
+                      : 'bg-gray-900 text-white border border-gray-300'
+                    : theme === 'dark'
+                    ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
+                    : 'bg-gray-100/50 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+              >
+                <Map className="w-5 h-5" />
+              </motion.button>
+
+              {/* Theme Toggle - Desktop */}
+              <motion.button
+                onClick={toggleTheme}
+                className={`hidden sm:flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
+                    : 'bg-gray-100/50 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                {theme === 'dark' ?
+                  <Sun className="w-5 h-5" /> :
+                  <Moon className="w-5 h-5" />
+                }
+              </motion.button>
+
+              {/* Profile Avatar */}
+              <motion.button
+                onClick={() => setActiveScreen('profile')}
+                className={`flex items-center space-x-2 p-1 rounded-xl transition-all duration-300 ${
+                  activeScreen === 'profile'
+                    ? theme === 'dark'
+                      ? 'bg-gray-800 ring-2 ring-gray-600'
+                      : 'bg-gray-100 ring-2 ring-gray-300'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.9, duration: 0.5 }}
+              >
+                <img
+                  src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
+                  alt="Profile"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                />
+                <span className={`hidden sm:block font-medium text-sm ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Alex
+                </span>
+              </motion.button>
+
+              {/* Mobile Menu Button */}
+              <motion.button
+                className={`lg:hidden flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
+                    : 'bg-gray-100/50 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200'
+                }`}
+                onClick={() => setIsMobileMenuOpen(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.0, duration: 0.5 }}
+              >
+                <Menu className="w-5 h-5" />
+              </motion.button>
             </div>
           </div>
         </div>
       </motion.header>
-      {/* Mobile Menu Overlay */}
+      {/* Professional Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-      {/* Mobile Menu Drawer */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className={`fixed top-0 left-0 bottom-0 w-4/5 max-w-xs z-[101] ${theme === 'dark' ? 'bg-black border-r border-gray-800' : 'bg-white border-r border-gray-200'} shadow-2xl rounded-tr-3xl rounded-br-3xl flex flex-col`}
-          >
-            {/* User/Profile Section */}
-            <div className={`flex flex-col items-center gap-2 px-6 py-6 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
-              <img
-                src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
-                alt="Profile"
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md"
-              />
-              <div className="flex flex-col items-center">
-                <p className={`font-semibold text-base ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Alex Rivera</p>
-                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>alexr_pride@email.com</p>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+
+            {/* Mobile Menu Panel */}
+            <motion.div
+              initial={{ x: '-100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '-100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className={`fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] z-[101] ${
+                theme === 'dark'
+                  ? 'bg-gray-900/95 backdrop-blur-xl border-r border-gray-800'
+                  : 'bg-white/95 backdrop-blur-xl border-r border-gray-200'
+              } shadow-2xl flex flex-col`}
+            >
+              {/* Header */}
+              <div className={`relative px-6 py-8 border-b ${
+                theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+              }`}>
+                <motion.button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+
+                {/* Profile Section */}
+                <div className="flex items-center space-x-4">
+                  <img
+                    src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
+                    alt="Profile"
+                    className="w-16 h-16 rounded-2xl object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                  />
+                  <div>
+                    <h3 className={`text-lg font-bold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      Alex Rivera
+                    </h3>
+                    <p className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      @alexr_pride
+                    </p>
+                  </div>
+                </div>
               </div>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            {/* Navigation */}
-            <nav className="flex-1 grid grid-cols-3 gap-2 px-4 py-6">
-              {mobileNavItems.map((item) => {
-                const isActive = activeScreen === item.id;
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    className={`flex flex-col items-center gap-1 py-4 rounded-2xl transition-all duration-200 shadow-sm ${
-                      isActive
-                        ? theme === 'dark'
-                          ? 'bg-gray-800 text-white shadow-lg'
-                          : 'bg-gray-100 text-gray-900 shadow-lg'
-                        : theme === 'dark'
-                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                    onClick={() => {
-                      setActiveScreen(item.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <Icon className="w-6 h-6 mb-0.5" />
-                    <span className="text-xs font-semibold tracking-wide">{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-            {/* Theme Toggle */}
-            <div className="p-6 border-t flex flex-col items-center gap-3">
-              <span className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Theme</span>
-              <button
-                onClick={toggleTheme}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-2xl font-medium transition-colors shadow-sm ${
-                  theme === 'dark'
-                    ? 'bg-gray-800 text-white hover:bg-gray-700'
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                }`}
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-              </button>
-            </div>
-          </motion.div>
+
+              {/* Navigation */}
+              <nav className="flex-1 px-6 py-6">
+                <div className="space-y-2">
+                  {mobileNavItems.map((item, index) => {
+                    const isActive = activeScreen === item.id;
+                    const Icon = item.icon;
+                    return (
+                      <motion.button
+                        key={item.id}
+                        className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 ${
+                          isActive
+                            ? theme === 'dark'
+                              ? 'bg-white/10 text-white shadow-lg border border-gray-700'
+                              : 'bg-gray-900 text-white shadow-lg'
+                            : theme === 'dark'
+                            ? 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        }`}
+                        onClick={() => {
+                          setActiveScreen(item.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Icon className="w-6 h-6" />
+                        <span className="text-base">{item.label}</span>
+                        {isActive && (
+                          <motion.div
+                            className={`ml-auto w-2 h-2 rounded-full ${
+                              theme === 'dark' ? 'bg-white' : 'bg-white'
+                            }`}
+                            layoutId="mobileActiveIndicator"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                          />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </nav>
+
+              {/* Footer */}
+              <div className={`px-6 py-6 border-t ${
+                theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+              }`}>
+                <motion.button
+                  onClick={toggleTheme}
+                  className={`w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 ${
+                    theme === 'dark'
+                      ? 'bg-gray-800 text-white hover:bg-gray-700'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  <span>Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
       
