@@ -1,30 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MapPin, 
-  Star, 
-  Heart, 
-  Search, 
-  Filter, 
-  Globe, 
-  Clock, 
-  Phone, 
+import {
+  MapPin,
+  Star,
+  Heart,
+  Search,
+  Filter,
+  Phone,
   ExternalLink,
   ChevronDown,
   X,
   Send,
   ThumbsUp,
-  MessageCircle,
   Share2,
-  Bookmark,
-  Camera,
   Navigation,
-  Users,
-  Calendar,
-  Award,
-  Verified,
-  ArrowLeft,
-  MoreHorizontal
+  Verified
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -313,7 +303,7 @@ const PlacesScreen: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col space-y-4"
+            className="flex flex-col space-y-6"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -328,19 +318,21 @@ const PlacesScreen: React.FC = () => {
                   Discover safe and welcoming spaces in your community
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
-                <span className={`text-sm ${
-                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              <div className="flex items-center space-x-4">
+                <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 text-gray-300 border border-gray-700'
+                    : 'bg-white text-gray-700 border border-gray-200 shadow-sm'
                 }`}>
-                  {sortedPlaces.length} places found
-                </span>
+                  {sortedPlaces.length} places
+                </div>
               </div>
             </div>
 
-            {/* Search and Filters */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 relative">
+            {/* Enhanced Search and Filters */}
+            <div className="flex flex-col space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
                 <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                 }`} />
@@ -350,7 +342,7 @@ const PlacesScreen: React.FC = () => {
                   placeholder="Search places, categories, or features..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                  className={`w-full pl-12 pr-4 py-4 rounded-2xl border-2 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 ${
                     theme === 'dark'
                       ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500'
                       : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-400 focus:ring-gray-400'
@@ -358,130 +350,263 @@ const PlacesScreen: React.FC = () => {
                 />
               </div>
 
-              {/* Filter Button */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl border transition-all duration-200 ${
-                  showFilters
-                    ? theme === 'dark'
-                      ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-gray-100 border-gray-300 text-gray-900'
-                    : theme === 'dark'
-                    ? 'bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800'
-                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <Filter className="w-5 h-5" />
-                <span className="font-medium">Filters</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-              </button>
+              {/* Quick Filters */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`text-sm font-medium ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Quick filters:
+                </span>
+
+                {/* Category Pills */}
+                {categories.slice(1, 5).map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(selectedCategory === category ? 'all' : category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                      selectedCategory === category
+                        ? theme === 'dark'
+                          ? 'bg-white text-black'
+                          : 'bg-black text-white'
+                        : theme === 'dark'
+                        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+
+                {/* Advanced Filters Toggle */}
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all duration-200 ${
+                    showFilters
+                      ? theme === 'dark'
+                        ? 'bg-gray-800 border-gray-600 text-white'
+                        : 'bg-gray-100 border-gray-300 text-gray-900'
+                      : theme === 'dark'
+                      ? 'bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  <span className="text-sm font-medium">More filters</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
             </div>
 
-            {/* Filters Panel */}
+            {/* Advanced Filters Panel */}
             <AnimatePresence>
               {showFilters && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className={`rounded-xl border p-4 ${
-                    theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+                  initial={{ opacity: 0, height: 0, y: -10 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -10 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className={`rounded-2xl border-2 p-6 shadow-lg ${
+                    theme === 'dark'
+                      ? 'bg-gray-900 border-gray-800 shadow-black/20'
+                      : 'bg-white border-gray-200 shadow-gray-900/10'
                   }`}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Country Filter */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Country
-                      </label>
-                      <select
-                        value={selectedCountry}
-                        onChange={(e) => setSelectedCountry(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          theme === 'dark'
-                            ? 'bg-gray-800 border-gray-700 text-white'
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                      >
-                        {countries.map(country => (
-                          <option key={country} value={country}>
-                            {country === 'all' ? 'All Countries' : country}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`text-lg font-semibold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      Advanced Filters
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setSelectedCountry('all');
+                        setSelectedCity('all');
+                        setSelectedCategory('all');
+                        setSortBy('rating');
+                      }}
+                      className={`text-sm font-medium transition-colors ${
+                        theme === 'dark'
+                          ? 'text-gray-400 hover:text-white'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Clear all
+                    </button>
+                  </div>
 
-                    {/* City Filter */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Location Filters */}
+                    <div className="space-y-4">
+                      <h4 className={`text-sm font-semibold uppercase tracking-wide ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                       }`}>
-                        City
-                      </label>
-                      <select
-                        value={selectedCity}
-                        onChange={(e) => setSelectedCity(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          theme === 'dark'
-                            ? 'bg-gray-800 border-gray-700 text-white'
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                      >
-                        {cities.map(city => (
-                          <option key={city} value={city}>
-                            {city === 'all' ? 'All Cities' : city}
-                          </option>
-                        ))}
-                      </select>
+                        Location
+                      </h4>
+
+                      {/* Country */}
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          Country
+                        </label>
+                        <select
+                          value={selectedCountry}
+                          onChange={(e) => setSelectedCountry(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                            theme === 'dark'
+                              ? 'bg-gray-800 border-gray-700 text-white focus:border-gray-500 focus:ring-gray-500'
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-gray-400 focus:ring-gray-400'
+                          }`}
+                        >
+                          {countries.map(country => (
+                            <option key={country} value={country}>
+                              {country === 'all' ? 'All Countries' : country}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* City */}
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          City
+                        </label>
+                        <select
+                          value={selectedCity}
+                          onChange={(e) => setSelectedCity(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                            theme === 'dark'
+                              ? 'bg-gray-800 border-gray-700 text-white focus:border-gray-500 focus:ring-gray-500'
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-gray-400 focus:ring-gray-400'
+                          }`}
+                        >
+                          {cities.map(city => (
+                            <option key={city} value={city}>
+                              {city === 'all' ? 'All Cities' : city}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     {/* Category Filter */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${
+                    <div className="space-y-4">
+                      <h4 className={`text-sm font-semibold uppercase tracking-wide ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                       }`}>
                         Category
-                      </label>
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          theme === 'dark'
-                            ? 'bg-gray-800 border-gray-700 text-white'
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                      >
-                        {categories.map(category => (
-                          <option key={category} value={category}>
-                            {category === 'all' ? 'All Categories' : category}
-                          </option>
-                        ))}
-                      </select>
+                      </h4>
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          Place Type
+                        </label>
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                            theme === 'dark'
+                              ? 'bg-gray-800 border-gray-700 text-white focus:border-gray-500 focus:ring-gray-500'
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-gray-400 focus:ring-gray-400'
+                          }`}
+                        >
+                          {categories.map(category => (
+                            <option key={category} value={category}>
+                              {category === 'all' ? 'All Categories' : category}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    {/* Sort By */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${
+                    {/* Sort Options */}
+                    <div className="space-y-4">
+                      <h4 className={`text-sm font-semibold uppercase tracking-wide ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                       }`}>
                         Sort By
-                      </label>
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          theme === 'dark'
-                            ? 'bg-gray-800 border-gray-700 text-white'
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                      >
-                        <option value="rating">Highest Rated</option>
-                        <option value="reviews">Most Reviews</option>
-                        <option value="distance">Nearest</option>
-                        <option value="name">Name A-Z</option>
-                      </select>
+                      </h4>
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          Order
+                        </label>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                            theme === 'dark'
+                              ? 'bg-gray-800 border-gray-700 text-white focus:border-gray-500 focus:ring-gray-500'
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-gray-400 focus:ring-gray-400'
+                          }`}
+                        >
+                          <option value="rating">⭐ Highest Rated</option>
+                          <option value="reviews">💬 Most Reviews</option>
+                          <option value="distance">📍 Nearest</option>
+                          <option value="name">🔤 Name A-Z</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Filter Summary */}
+                    <div className="space-y-4">
+                      <h4 className={`text-sm font-semibold uppercase tracking-wide ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Active Filters
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedCountry !== 'all' && (
+                          <div className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
+                            theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            <span>Country: {selectedCountry}</span>
+                            <button
+                              onClick={() => setSelectedCountry('all')}
+                              className={`ml-2 ${
+                                theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        {selectedCity !== 'all' && (
+                          <div className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
+                            theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            <span>City: {selectedCity}</span>
+                            <button
+                              onClick={() => setSelectedCity('all')}
+                              className={`ml-2 ${
+                                theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        {selectedCategory !== 'all' && (
+                          <div className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
+                            theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            <span>Type: {selectedCategory}</span>
+                            <button
+                              onClick={() => setSelectedCategory('all')}
+                              className={`ml-2 ${
+                                theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -497,19 +622,44 @@ const PlacesScreen: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16"
+            className={`text-center py-20 px-8 rounded-3xl border-2 border-dashed ${
+              theme === 'dark'
+                ? 'border-gray-700 bg-gray-900/50'
+                : 'border-gray-300 bg-gray-50/50'
+            }`}
           >
-            <MapPin className={`w-16 h-16 mx-auto mb-4 ${
-              theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
-            }`} />
-            <h3 className={`text-xl font-semibold mb-2 ${
+            <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+            }`}>
+              <MapPin className={`w-10 h-10 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`} />
+            </div>
+            <h3 className={`text-2xl font-bold mb-3 ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               No places found
             </h3>
-            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              Try adjusting your search terms or filters
+            <p className={`text-lg mb-6 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              Try adjusting your search terms or filters to discover more places
             </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCountry('all');
+                setSelectedCity('all');
+                setSelectedCategory('all');
+              }}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                theme === 'dark'
+                  ? 'bg-white text-black hover:bg-gray-100'
+                  : 'bg-black text-white hover:bg-gray-800'
+              }`}
+            >
+              Clear all filters
+            </button>
           </motion.div>
         ) : (
           <motion.div 
@@ -523,430 +673,615 @@ const PlacesScreen: React.FC = () => {
                 key={place.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                className={`group rounded-2xl overflow-hidden shadow-lg border transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] cursor-pointer ${
+                transition={{ delay: index * 0.05, duration: 0.4 }}
+                className={`group relative rounded-3xl overflow-hidden shadow-lg border-2 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] cursor-pointer ${
                   theme === 'dark'
-                    ? 'bg-gray-900 border-gray-800 hover:border-gray-700'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    ? 'bg-gray-900 border-gray-800 hover:border-gray-600 shadow-black/20'
+                    : 'bg-white border-gray-200 hover:border-gray-300 shadow-gray-900/10'
                 }`}
                 onClick={() => setSelectedPlace(place)}
               >
-                {/* Image */}
-                <div className="relative h-48 overflow-hidden">
+                {/* Image Container */}
+                <div className="relative h-52 overflow-hidden">
                   <img
                     src={place.image}
                     alt={place.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  
-                  {/* Rating Badge */}
-                  <div className="absolute top-3 right-3 flex items-center space-x-1 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full">
-                    <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                    <span className="text-xs text-white font-semibold">{place.rating}</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                  {/* Top Badges */}
+                  <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
+                    {/* Verified Badge */}
+                    {place.verified && (
+                      <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30">
+                        <Verified className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs text-white font-semibold">Verified</span>
+                      </div>
+                    )}
+
+                    {/* Rating Badge */}
+                    <div className="flex items-center space-x-1 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-white font-bold">{place.rating}</span>
+                    </div>
                   </div>
 
-                  {/* Verified Badge */}
-                  {place.verified && (
-                    <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm p-1.5 rounded-full">
-                      <Verified className="w-3 h-3 text-blue-400" />
-                    </div>
-                  )}
+                  {/* Bottom Info */}
+                  <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                    {/* Distance */}
+                    {place.distance && (
+                      <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-md px-3 py-2 rounded-full border border-white/30">
+                        <Navigation className="w-4 h-4 text-white" />
+                        <span className="text-sm text-white font-semibold">{place.distance}</span>
+                      </div>
+                    )}
 
-                  {/* Distance */}
-                  {place.distance && (
-                    <div className="absolute bottom-3 left-3 flex items-center space-x-1 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <Navigation className="w-3 h-3 text-white" />
-                      <span className="text-xs text-white font-medium">{place.distance}</span>
-                    </div>
-                  )}
+                    {/* Favorite Button */}
+                    <button
+                      className="p-2.5 bg-white/20 backdrop-blur-md rounded-full border border-white/30 hover:bg-white/30 transition-all duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle favorite logic here
+                      }}
+                    >
+                      <Heart className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className={`text-lg font-bold line-clamp-1 ${
-                      theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}>
-                      {place.name}
-                    </h3>
-                    <button className={`p-1 rounded-full transition-colors ${
-                      theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                    }`}>
-                      <Heart className={`w-4 h-4 ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`} />
-                    </button>
-                  </div>
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`text-xl font-bold truncate ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {place.name}
+                      </h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <MapPin className={`w-4 h-4 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`} />
+                        <span className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          {place.city}, {place.country}
+                        </span>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center space-x-2 mb-2">
-                    <MapPin className={`w-4 h-4 ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`} />
-                    <span className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    {/* Category Badge */}
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      theme === 'dark'
+                        ? 'bg-gray-800 text-gray-300 border border-gray-700'
+                        : 'bg-gray-100 text-gray-700 border border-gray-200'
                     }`}>
-                      {place.city}, {place.country}
+                      {place.category}
                     </span>
                   </div>
 
-                  <p className={`text-sm line-clamp-2 mb-3 ${
+                  {/* Description */}
+                  <p className={`text-sm leading-relaxed mb-4 line-clamp-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
                     {place.description}
                   </p>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {place.tags.slice(0, 2).map(tag => (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {place.tags.slice(0, 3).map(tag => (
                       <span
                         key={tag}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           theme === 'dark'
-                            ? 'bg-gray-800 text-gray-300'
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
                         {tag}
                       </span>
                     ))}
-                    {place.tags.length > 2 && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    {place.tags.length > 3 && (
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${
                         theme === 'dark'
                           ? 'bg-gray-800 text-gray-400'
                           : 'bg-gray-100 text-gray-500'
                       }`}>
-                        +{place.tags.length - 2}
+                        +{place.tags.length - 3} more
                       </span>
                     )}
                   </div>
 
-                  {/* Rating and Reviews */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {renderStars(place.rating)}
-                      <span className={`text-sm ${
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3">
+                      {renderStars(place.rating, false, 'w-4 h-4')}
+                      <span className={`text-sm font-medium ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                       }`}>
-                        ({place.reviewCount})
+                        {place.reviewCount} reviews
                       </span>
                     </div>
-                    <span className={`text-sm font-medium ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      {place.priceRange}
-                    </span>
+                    <div className="flex items-center space-x-3">
+                      <span className={`text-lg font-bold ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {place.priceRange}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Hover Overlay */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
+                  theme === 'dark'
+                    ? 'bg-gradient-to-t from-gray-900/20 to-transparent'
+                    : 'bg-gradient-to-t from-white/20 to-transparent'
+                }`} />
               </motion.div>
             ))}
           </motion.div>
         )}
       </div>
 
-      {/* Place Detail Modal */}
+      {/* Professional Place Detail Modal */}
       <AnimatePresence>
         {selectedPlace && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
             onClick={() => setSelectedPlace(null)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${
-                theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+              exit={{ opacity: 0, scale: 0.95, y: 30 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className={`w-full max-w-6xl max-h-[95vh] overflow-hidden rounded-3xl shadow-2xl ${
+                theme === 'dark'
+                  ? 'bg-gray-900 border border-gray-800'
+                  : 'bg-white border border-gray-200'
               }`}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className="relative">
+              {/* Enhanced Header with Image Gallery */}
+              <div className="relative h-80 overflow-hidden">
+                {/* Main Image */}
                 <img
                   src={selectedPlace.image}
                   alt={selectedPlace.name}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                
-                <button
-                  onClick={() => setSelectedPlace(null)}
-                  className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
 
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h2 className="text-2xl font-bold">{selectedPlace.name}</h2>
-                        {selectedPlace.verified && (
-                          <Verified className="w-5 h-5 text-blue-400" />
+                {/* Professional Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
+
+                {/* Top Action Bar */}
+                <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
+                  {/* Status Badges */}
+                  <div className="flex items-center space-x-3">
+                    {selectedPlace.verified && (
+                      <div className="flex items-center space-x-2 bg-white/15 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">
+                        <Verified className="w-5 h-5 text-blue-400" />
+                        <span className="text-white font-semibold text-sm">Verified Place</span>
+                      </div>
+                    )}
+                    <div className="flex items-center space-x-2 bg-white/15 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">
+                      <span className={`w-3 h-3 rounded-full ${
+                        selectedPlace.category === 'Cafe' ? 'bg-green-400' :
+                        selectedPlace.category === 'Bar' ? 'bg-purple-400' :
+                        selectedPlace.category === 'Restaurant' ? 'bg-orange-400' :
+                        'bg-blue-400'
+                      }`} />
+                      <span className="text-white font-medium text-sm">{selectedPlace.category}</span>
+                    </div>
+                  </div>
+
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setSelectedPlace(null)}
+                    className="w-12 h-12 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white/25 transition-all duration-200 border border-white/20"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Bottom Info Overlay */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="flex items-end justify-between">
+                    {/* Place Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h1 className="text-4xl font-bold text-white">{selectedPlace.name}</h1>
+                        <div className="flex items-center space-x-1 bg-yellow-500/20 backdrop-blur-xl px-3 py-1.5 rounded-full border border-yellow-500/30">
+                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                          <span className="text-white font-bold text-lg">{selectedPlace.rating}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-4 text-white/90">
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5" />
+                          <span className="font-medium">{selectedPlace.address}</span>
+                        </div>
+                        {selectedPlace.distance && (
+                          <div className="flex items-center space-x-2">
+                            <Navigation className="w-5 h-5" />
+                            <span className="font-medium">{selectedPlace.distance} away</span>
+                          </div>
                         )}
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="w-4 h-4" />
-                        <span className="text-sm">{selectedPlace.address}</span>
-                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center space-x-1 mb-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-lg font-bold">{selectedPlace.rating}</span>
-                      </div>
-                      <span className="text-sm opacity-90">({selectedPlace.reviewCount} reviews)</span>
+
+                    {/* Quick Actions */}
+                    <div className="flex items-center space-x-3">
+                      <button className="w-14 h-14 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white/25 transition-all duration-200 border border-white/20">
+                        <Heart className="w-6 h-6" />
+                      </button>
+                      <button className="w-14 h-14 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white/25 transition-all duration-200 border border-white/20">
+                        <Share2 className="w-6 h-6" />
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Main Content */}
-                  <div className="lg:col-span-2 space-y-6">
-                    {/* Description */}
-                    <div>
-                      <h3 className={`text-lg font-semibold mb-3 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+              {/* Professional Content Layout */}
+              <div className="max-h-[calc(95vh-20rem)] overflow-y-auto">
+                <div className="p-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2 space-y-8">
+                      {/* About Section */}
+                      <div className={`p-6 rounded-2xl border ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/50 border-gray-700'
+                          : 'bg-gray-50/50 border-gray-200'
                       }`}>
-                        About
-                      </h3>
-                      <p className={`leading-relaxed ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        {selectedPlace.description}
-                      </p>
-                    </div>
-
-                    {/* Tags */}
-                    <div>
-                      <h3 className={`text-lg font-semibold mb-3 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        Features
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedPlace.tags.map(tag => (
-                          <span
-                            key={tag}
-                            className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                              theme === 'dark'
-                                ? 'bg-gray-800 text-gray-300'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Hours */}
-                    <div>
-                      <h3 className={`text-lg font-semibold mb-3 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        Hours
-                      </h3>
-                      <div className="space-y-2">
-                        {Object.entries(selectedPlace.hours).map(([day, hours]) => (
-                          <div key={day} className="flex justify-between">
-                            <span className={`font-medium ${
-                              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                            }`}>
-                              {day}
-                            </span>
-                            <span className={`${
-                              hours === 'Closed'
-                                ? 'text-red-500'
-                                : theme === 'dark'
-                                ? 'text-gray-400'
-                                : 'text-gray-600'
-                            }`}>
-                              {hours}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Reviews Section */}
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className={`text-lg font-semibold ${
+                        <h3 className={`text-xl font-bold mb-4 flex items-center ${
                           theme === 'dark' ? 'text-white' : 'text-gray-900'
                         }`}>
-                          Reviews ({selectedPlace.reviewCount})
+                          <div className={`w-2 h-6 rounded-full mr-3 ${
+                            selectedPlace.category === 'Cafe' ? 'bg-green-400' :
+                            selectedPlace.category === 'Bar' ? 'bg-purple-400' :
+                            selectedPlace.category === 'Restaurant' ? 'bg-orange-400' :
+                            'bg-blue-400'
+                          }`} />
+                          About This Place
                         </h3>
-                        <button
-                          onClick={() => setShowReviewModal(true)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            theme === 'dark'
-                              ? 'bg-gray-800 text-white hover:bg-gray-700'
-                              : 'bg-gray-900 text-white hover:bg-gray-800'
-                          }`}
-                        >
-                          Write Review
-                        </button>
+                        <p className={`text-lg leading-relaxed ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          {selectedPlace.description}
+                        </p>
                       </div>
 
-                      <div className="space-y-4">
-                        {reviews.map(review => (
-                          <div
-                            key={review.id}
-                            className={`p-4 rounded-xl border ${
+                      {/* Features & Amenities */}
+                      <div className={`p-6 rounded-2xl border ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/50 border-gray-700'
+                          : 'bg-gray-50/50 border-gray-200'
+                      }`}>
+                        <h3 className={`text-xl font-bold mb-4 flex items-center ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          <div className="w-2 h-6 rounded-full bg-blue-400 mr-3" />
+                          Features & Amenities
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          {selectedPlace.tags.map(tag => (
+                            <div
+                              key={tag}
+                              className={`flex items-center space-x-3 p-3 rounded-xl transition-colors ${
+                                theme === 'dark'
+                                  ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300'
+                                  : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
+                              }`}
+                            >
+                              <div className="w-2 h-2 rounded-full bg-green-400" />
+                              <span className="font-medium">{tag}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Operating Hours */}
+                      <div className={`p-6 rounded-2xl border ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/50 border-gray-700'
+                          : 'bg-gray-50/50 border-gray-200'
+                      }`}>
+                        <h3 className={`text-xl font-bold mb-4 flex items-center ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          <div className="w-2 h-6 rounded-full bg-orange-400 mr-3" />
+                          Operating Hours
+                        </h3>
+                        <div className="space-y-3">
+                          {Object.entries(selectedPlace.hours).map(([day, hours]) => {
+                            const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }) === day;
+                            const isClosed = hours === 'Closed';
+
+                            return (
+                              <div
+                                key={day}
+                                className={`flex justify-between items-center p-3 rounded-xl ${
+                                  isToday
+                                    ? theme === 'dark'
+                                      ? 'bg-gray-700 border border-gray-600'
+                                      : 'bg-blue-50 border border-blue-200'
+                                    : 'transparent'
+                                }`}
+                              >
+                                <span className={`font-semibold ${
+                                  isToday
+                                    ? theme === 'dark' ? 'text-white' : 'text-blue-900'
+                                    : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                  {day} {isToday && <span className="text-xs ml-2 opacity-75">(Today)</span>}
+                                </span>
+                                <span className={`font-medium ${
+                                  isClosed
+                                    ? 'text-red-500'
+                                    : isToday
+                                    ? theme === 'dark' ? 'text-white' : 'text-blue-900'
+                                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                  {hours}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Reviews Section */}
+                      <div className={`p-6 rounded-2xl border ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/50 border-gray-700'
+                          : 'bg-gray-50/50 border-gray-200'
+                      }`}>
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className={`text-xl font-bold flex items-center ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            <div className="w-2 h-6 rounded-full bg-purple-400 mr-3" />
+                            Reviews ({selectedPlace.reviewCount})
+                          </h3>
+                          <button
+                            onClick={() => setShowReviewModal(true)}
+                            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
                               theme === 'dark'
-                                ? 'bg-gray-800 border-gray-700'
-                                : 'bg-gray-50 border-gray-200'
+                                ? 'bg-white text-black hover:bg-gray-100'
+                                : 'bg-black text-white hover:bg-gray-800'
                             }`}
                           >
-                            <div className="flex items-start space-x-3">
-                              <img
-                                src={review.user.avatar}
-                                alt={review.user.name}
-                                className="w-10 h-10 rounded-full object-cover"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className={`font-semibold ${
-                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            Write Review
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          {reviews.map(review => (
+                            <div
+                              key={review.id}
+                              className={`p-5 rounded-xl border transition-all duration-200 hover:shadow-md ${
+                                theme === 'dark'
+                                  ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
+                                  : 'bg-white border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-start space-x-4">
+                                <img
+                                  src={review.user.avatar}
+                                  alt={review.user.name}
+                                  className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                                />
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      <span className={`font-bold ${
+                                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                      }`}>
+                                        {review.user.name}
+                                      </span>
+                                      {review.user.verified && (
+                                        <Verified className="w-5 h-5 text-blue-400" />
+                                      )}
+                                    </div>
+                                    <span className={`text-sm ${
+                                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                    }`}>
+                                      {review.date}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center space-x-2 mb-3">
+                                    {renderStars(review.rating, false, 'w-5 h-5')}
+                                  </div>
+
+                                  <p className={`text-base leading-relaxed mb-4 ${
+                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                                   }`}>
-                                    {review.user.name}
-                                  </span>
-                                  {review.user.verified && (
-                                    <Verified className="w-4 h-4 text-blue-400" />
-                                  )}
-                                  <span className={`text-sm ${
-                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                                  }`}>
-                                    {review.date}
-                                  </span>
-                                </div>
-                                <div className="flex items-center space-x-2 mb-2">
-                                  {renderStars(review.rating)}
-                                </div>
-                                <p className={`mb-3 ${
-                                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                }`}>
-                                  {review.comment}
-                                </p>
-                                <div className="flex items-center space-x-4">
-                                  <button className={`flex items-center space-x-1 text-sm transition-colors ${
-                                    review.helpful
-                                      ? 'text-blue-500'
-                                      : theme === 'dark'
-                                      ? 'text-gray-400 hover:text-white'
-                                      : 'text-gray-500 hover:text-gray-700'
-                                  }`}>
-                                    <ThumbsUp className="w-4 h-4" />
-                                    <span>{review.likes}</span>
-                                  </button>
-                                  <button className={`text-sm transition-colors ${
-                                    theme === 'dark'
-                                      ? 'text-gray-400 hover:text-white'
-                                      : 'text-gray-500 hover:text-gray-700'
-                                  }`}>
-                                    Reply
-                                  </button>
+                                    {review.comment}
+                                  </p>
+
+                                  <div className="flex items-center space-x-6">
+                                    <button className={`flex items-center space-x-2 text-sm font-medium transition-colors ${
+                                      review.helpful
+                                        ? 'text-blue-500'
+                                        : theme === 'dark'
+                                        ? 'text-gray-400 hover:text-white'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}>
+                                      <ThumbsUp className="w-4 h-4" />
+                                      <span>Helpful ({review.likes})</span>
+                                    </button>
+                                    <button className={`text-sm font-medium transition-colors ${
+                                      theme === 'dark'
+                                        ? 'text-gray-400 hover:text-white'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}>
+                                      Reply
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Sidebar */}
-                  <div className="space-y-6">
-                    {/* Contact Info */}
-                    <div className={`p-4 rounded-xl border ${
-                      theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}>
-                      <h4 className={`font-semibold mb-3 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    {/* Professional Sidebar */}
+                    <div className="space-y-6">
+                      {/* Quick Stats */}
+                      <div className={`p-6 rounded-2xl border ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/50 border-gray-700'
+                          : 'bg-gray-50/50 border-gray-200'
                       }`}>
-                        Contact
-                      </h4>
-                      <div className="space-y-3">
-                        {selectedPlace.phone && (
-                          <div className="flex items-center space-x-3">
-                            <Phone className={`w-4 h-4 ${
-                              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                            }`} />
+                        <h4 className={`text-lg font-bold mb-4 flex items-center ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          <div className="w-2 h-6 rounded-full bg-green-400 mr-3" />
+                          Quick Info
+                        </h4>
+
+                        <div className="space-y-4">
+                          {/* Rating */}
+                          <div className="flex items-center justify-between">
+                            <span className={`font-medium ${
+                              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Rating
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                              <span className={`font-bold ${
+                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                              }`}>
+                                {selectedPlace.rating}/5
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Reviews */}
+                          <div className="flex items-center justify-between">
+                            <span className={`font-medium ${
+                              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Reviews
+                            </span>
+                            <span className={`font-bold ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              {selectedPlace.reviewCount}
+                            </span>
+                          </div>
+
+                          {/* Price Range */}
+                          <div className="flex items-center justify-between">
+                            <span className={`font-medium ${
+                              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Price Range
+                            </span>
+                            <span className={`font-bold text-lg ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              {selectedPlace.priceRange}
+                            </span>
+                          </div>
+
+                          {/* Distance */}
+                          {selectedPlace.distance && (
+                            <div className="flex items-center justify-between">
+                              <span className={`font-medium ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                Distance
+                              </span>
+                              <span className={`font-bold ${
+                                theme === 'dark' ? 'text-white' : 'text-gray-900'
+                              }`}>
+                                {selectedPlace.distance}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Contact Information */}
+                      <div className={`p-6 rounded-2xl border ${
+                        theme === 'dark'
+                          ? 'bg-gray-800/50 border-gray-700'
+                          : 'bg-gray-50/50 border-gray-200'
+                      }`}>
+                        <h4 className={`text-lg font-bold mb-4 flex items-center ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          <div className="w-2 h-6 rounded-full bg-blue-400 mr-3" />
+                          Contact Info
+                        </h4>
+
+                        <div className="space-y-4">
+                          {selectedPlace.phone && (
                             <a
                               href={`tel:${selectedPlace.phone}`}
-                              className={`text-sm hover:underline ${
-                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                              className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 hover:scale-105 ${
+                                theme === 'dark'
+                                  ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white'
+                                  : 'bg-white hover:bg-gray-100 text-gray-700 hover:text-gray-900 border border-gray-200'
                               }`}
                             >
-                              {selectedPlace.phone}
+                              <Phone className="w-5 h-5 text-green-500" />
+                              <span className="font-medium">{selectedPlace.phone}</span>
                             </a>
-                          </div>
-                        )}
-                        {selectedPlace.website && (
-                          <div className="flex items-center space-x-3">
-                            <ExternalLink className={`w-4 h-4 ${
-                              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                            }`} />
+                          )}
+
+                          {selectedPlace.website && (
                             <a
                               href={selectedPlace.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`text-sm hover:underline ${
-                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                              className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 hover:scale-105 ${
+                                theme === 'dark'
+                                  ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300 hover:text-white'
+                                  : 'bg-white hover:bg-gray-100 text-gray-700 hover:text-gray-900 border border-gray-200'
                               }`}
                             >
-                              Visit Website
+                              <ExternalLink className="w-5 h-5 text-blue-500" />
+                              <span className="font-medium">Visit Website</span>
                             </a>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="space-y-3">
-                      <button className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-                        theme === 'dark'
-                          ? 'bg-gray-800 text-white hover:bg-gray-700'
-                          : 'bg-gray-900 text-white hover:bg-gray-800'
-                      }`}>
-                        <Heart className="w-4 h-4 inline mr-2" />
-                        Add to Favorites
-                      </button>
-                      <button className={`w-full py-3 rounded-xl font-semibold border transition-colors ${
-                        theme === 'dark'
-                          ? 'border-gray-700 text-gray-300 hover:bg-gray-800'
-                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}>
-                        <Share2 className="w-4 h-4 inline mr-2" />
-                        Share
-                      </button>
-                    </div>
+                      {/* Action Buttons */}
+                      <div className="space-y-4">
+                        <button className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-200 hover:scale-105 ${
+                          theme === 'dark'
+                            ? 'bg-white text-black hover:bg-gray-100'
+                            : 'bg-black text-white hover:bg-gray-800'
+                        }`}>
+                          <Heart className="w-5 h-5 inline mr-3" />
+                          Add to Favorites
+                        </button>
 
-                    {/* Price Range */}
-                    <div className={`p-4 rounded-xl border ${
-                      theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}>
-                      <h4 className={`font-semibold mb-2 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        Price Range
-                      </h4>
-                      <span className={`text-lg font-bold ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        {selectedPlace.priceRange}
-                      </span>
+                        <button className={`w-full py-4 rounded-2xl font-bold text-lg border-2 transition-all duration-200 hover:scale-105 ${
+                          theme === 'dark'
+                            ? 'border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500'
+                            : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                        }`}>
+                          <Share2 className="w-5 h-5 inline mr-3" />
+                          Share Place
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
