@@ -20,6 +20,94 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import L from 'leaflet';
 
+// Popular LGBTQ+ friendly locations
+const popularLocations = [
+  {
+    name: "New York City",
+    country: "🇺🇸 USA",
+    description: "Birthplace of Stonewall, massive Pride parades, queer history",
+    lat: 40.7128,
+    lng: -74.0060
+  },
+  {
+    name: "São Paulo",
+    country: "🇧🇷 Brazil",
+    description: "World's largest Pride parade, huge queer scene",
+    lat: -23.5505,
+    lng: -46.6333
+  },
+  {
+    name: "Berlin",
+    country: "🇩🇪 Germany",
+    description: "Liberal culture, historic queer bars, intense nightlife",
+    lat: 52.5200,
+    lng: 13.4050
+  },
+  {
+    name: "San Francisco",
+    country: "🇺🇸 USA",
+    description: "Castro district, LGBT history museums, heart of activism",
+    lat: 37.7749,
+    lng: -122.4194
+  },
+  {
+    name: "Madrid",
+    country: "🇪🇸 Spain",
+    description: "One of Europe's biggest Pride events, Chueca neighborhood",
+    lat: 40.4168,
+    lng: -3.7038
+  },
+  {
+    name: "Tel Aviv",
+    country: "🇮🇱 Israel",
+    description: "One of Middle East's most liberal cities, vibrant beach and nightlife",
+    lat: 32.0853,
+    lng: 34.7818
+  },
+  {
+    name: "Bangkok",
+    country: "🇹🇭 Thailand",
+    description: "Asia's queer capital, open drag culture and free atmosphere",
+    lat: 13.7563,
+    lng: 100.5018
+  },
+  {
+    name: "Toronto",
+    country: "🇨🇦 Canada",
+    description: "Canada's largest Pride event, Church-Wellesley district",
+    lat: 43.6532,
+    lng: -79.3832
+  },
+  {
+    name: "Amsterdam",
+    country: "🇳🇱 Netherlands",
+    description: "Marriage equality pioneer, canal Pride events",
+    lat: 52.3676,
+    lng: 4.9041
+  },
+  {
+    name: "Mexico City",
+    country: "🇲🇽 Mexico",
+    description: "Rising queer culture in Latin America, huge festivals",
+    lat: 19.4326,
+    lng: -99.1332
+  },
+  {
+    name: "Taipei",
+    country: "🇹🇼 Taiwan",
+    description: "First in Asia to legalize same-sex marriage, free and modern capital",
+    lat: 25.0330,
+    lng: 121.5654
+  },
+  {
+    name: "Istanbul",
+    country: "🇹🇷 Turkey",
+    description: "Strong queer resistance despite challenges, intense cultural production and alternative scenes",
+    lat: 41.0082,
+    lng: 28.9784
+  }
+];
+
 const CreatePost: React.FC = () => {
   const [postText, setPostText] = useState('');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -37,7 +125,7 @@ const CreatePost: React.FC = () => {
   const [charCount, setCharCount] = useState(0);
   const [location, setLocation] = useState<{ address: string; lat: number; lng: number } | null>(null);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState('smileys');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -131,7 +219,7 @@ const CreatePost: React.FC = () => {
             lat: latitude,
             lng: longitude
           });
-          setIsLocationModalOpen(false);
+          setIsLocationPickerOpen(false);
         } else {
           // Fallback with coordinates
           setLocation({
@@ -139,7 +227,7 @@ const CreatePost: React.FC = () => {
             lat: latitude,
             lng: longitude
           });
-          setIsLocationModalOpen(false);
+          setIsLocationPickerOpen(false);
         }
       } catch (addressError) {
         console.error('Error fetching address:', addressError);
@@ -149,7 +237,7 @@ const CreatePost: React.FC = () => {
           lat: latitude,
           lng: longitude
         });
-        setIsLocationModalOpen(false);
+        setIsLocationPickerOpen(false);
       }
     } catch (error) {
       console.error('Error getting location:', error);
@@ -223,11 +311,18 @@ const CreatePost: React.FC = () => {
     }
 
     try {
-      // Create map with a small delay to ensure DOM is ready
-      setTimeout(() => {
+      // Create map with proper delay to ensure DOM is ready
+      const initMap = () => {
         if (!mapRef.current || !location) return;
 
-        const map = L.map(mapRef.current, {
+        // Ensure container has proper dimensions
+        const container = mapRef.current;
+        container.style.width = '100%';
+        container.style.height = '288px';
+        container.style.position = 'relative';
+        container.style.zIndex = '1';
+
+        const map = L.map(container, {
           center: [location.lat, location.lng],
           zoom: 15,
           zoomControl: false,
@@ -237,15 +332,17 @@ const CreatePost: React.FC = () => {
           scrollWheelZoom: false,
           boxZoom: false,
           keyboard: false,
-          attributionControl: false
+          attributionControl: false,
+          preferCanvas: true
         });
 
         mapInstanceRef.current = map;
 
-        // Add tile layer
+        // Add tile layer with better error handling
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
-          maxZoom: 19
+          maxZoom: 19,
+          errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2Y5ZmFmYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOWNhM2FmIiBmb250LXNpemU9IjE0cHgiPk1hcCBUaWxlPC90ZXh0Pjwvc3ZnPg=='
         }).addTo(map);
 
         // Add custom marker
@@ -261,6 +358,7 @@ const CreatePost: React.FC = () => {
               display: flex;
               align-items: center;
               justify-content: center;
+              position: relative;
             ">
               <div style="
                 width: 10px;
@@ -277,7 +375,18 @@ const CreatePost: React.FC = () => {
 
         L.marker([location.lat, location.lng], { icon: customIcon }).addTo(map);
 
-      }, 100);
+        // Force map to invalidate size after a short delay
+        setTimeout(() => {
+          if (map && mapInstanceRef.current) {
+            map.invalidateSize();
+          }
+        }, 200);
+      };
+
+      // Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        setTimeout(initMap, 50);
+      });
 
     } catch (error) {
       console.error('Error creating map:', error);
@@ -294,7 +403,7 @@ const CreatePost: React.FC = () => {
         }
       }
     };
-  }, [location, theme]);
+  }, [location]);
 
 
 
@@ -519,7 +628,7 @@ const CreatePost: React.FC = () => {
         {/* Professional Attachments Section */}
         <div className='w-full p-4'>
         <AnimatePresence>
-          {(selectedImages.length > 0 || location || isPollActive || isEventActive || isEmojiPickerOpen) && (
+          {(selectedImages.length > 0 || location || isPollActive || isEventActive || isEmojiPickerOpen || isLocationPickerOpen) && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -731,7 +840,7 @@ const CreatePost: React.FC = () => {
                       ))}
 
                       <div className="flex flex-col space-y-4 pt-3 w-full max-w-full">
-                        {pollOptions.length < 4 && (
+                        {pollOptions.length < 100 && (
                           <button
                             onClick={addPollOption}
                             className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 rounded-xl border transition-all duration-200 w-full sm:w-auto ${
@@ -807,72 +916,74 @@ const CreatePost: React.FC = () => {
                     <div className="relative h-72 overflow-hidden">
                       <div
                         ref={mapRef}
-                        className="w-full h-full"
-                        style={{ zIndex: 1, minHeight: '288px' }}
+                        className="w-full h-full relative"
+                        style={{
+                          zIndex: 1,
+                          minHeight: '288px',
+                          height: '288px',
+                          width: '100%'
+                        }}
                       />
 
                       {/* Professional Map Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
-                      {/* Map Attribution */}
-                      <div className="absolute bottom-2 right-2 z-10">
-                        <div className={`px-2 py-1 backdrop-blur-md rounded-lg text-xs font-medium shadow-sm ${
+                      {/* Glass Effect Location Info Overlay */}
+                      <div className="absolute bottom-4 left-4 right-4 z-10">
+                        <div className={`backdrop-blur-xl rounded-2xl shadow-2xl border ${
                           theme === 'dark'
-                            ? 'bg-black/60 text-white border border-white/20'
-                            : 'bg-white/80 text-gray-700 border border-gray-200'
+                            ? 'bg-black/60 border-white/20'
+                            : 'bg-white/80 border-black/20'
                         }`}>
-                          <div className="flex items-center space-x-1">
-                            <MapPin className="w-3 h-3" />
-                            <span>Live Map</span>
+                          <div className="p-4">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                theme === 'dark' ? 'bg-white/20' : 'bg-black/10'
+                              }`}>
+                                <MapPin className={`w-5 h-5 ${
+                                  theme === 'dark' ? 'text-white' : 'text-gray-800'
+                                }`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`font-bold text-sm ${
+                                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                  {(() => {
+                                    const parts = location.address.split(',');
+                                    const city = parts[parts.length - 3]?.trim() || parts[0]?.trim();
+                                    const country = parts[parts.length - 1]?.trim();
+                                    return city && country ? `${city}, ${country}` : location.address.split(',')[0];
+                                  })()}
+                                </p>
+                                <p className={`text-xs mt-0.5 ${
+                                  theme === 'dark' ? 'text-white/70' : 'text-gray-600'
+                                }`}>
+                                  {(() => {
+                                    const parts = location.address.split(',');
+                                    return parts.slice(0, -2).join(', ').trim() || 'Exact location';
+                                  })()}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => setLocation(null)}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  theme === 'dark'
+                                    ? 'text-white/70 hover:text-white hover:bg-white/20'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-black/10'
+                                }`}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
+
+                      {/* Map Attribution */}
+                      
                     </div>
 
-                    {/* Enhanced Location Info */}
-                    <div className="px-6 py-5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                          }`}>
-                            <MapPin className={`w-6 h-6 ${
-                              theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
-                            }`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-bold text-base ${
-                              theme === 'dark' ? 'text-white' : 'text-gray-900'
-                            }`}>
-                              {(() => {
-                                const parts = location.address.split(',');
-                                const city = parts[parts.length - 3]?.trim() || parts[0]?.trim();
-                                const country = parts[parts.length - 1]?.trim();
-                                return city && country ? `${city}, ${country}` : location.address.split(',')[0];
-                              })()}
-                            </p>
-                            <p className={`text-sm mt-1 ${
-                              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                            }`}>
-                              {(() => {
-                                const parts = location.address.split(',');
-                                return parts.slice(0, -2).join(', ').trim() || 'Exact location';
-                              })()}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setLocation(null)}
-                          className={`p-2.5 rounded-xl transition-all duration-200 ${
-                            theme === 'dark'
-                              ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-gray-700 hover:border-red-500/30'
-                              : 'text-gray-500 hover:text-red-500 hover:bg-red-50 border border-gray-200 hover:border-red-200'
-                          }`}
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
+
                   </div>
                 </motion.div>
               )}
@@ -1096,6 +1207,150 @@ const CreatePost: React.FC = () => {
                   </div>
                 </motion.div>
               )}
+
+              {/* Location Picker Inside Attachments */}
+              {isLocationPickerOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mb-6"
+                >
+                  <div className={`rounded-2xl border overflow-hidden shadow-lg ${
+                    theme === 'dark'
+                      ? 'bg-gray-800/50 border-gray-700'
+                      : 'bg-white border-gray-200'
+                  }`}>
+                    {/* Location Picker Header */}
+                    <div className={`flex items-center justify-between p-4 border-b ${
+                      theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                    }`}>
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-orange-500/20' : 'bg-orange-50'
+                        }`}>
+                          <MapPin className={`w-5 h-5 ${
+                            theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
+                          }`} />
+                        </div>
+                        <div>
+                          <h4 className={`font-semibold ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            Add Location
+                          </h4>
+                          <p className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            Share where you are
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsLocationPickerOpen(false)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          theme === 'dark'
+                            ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                            : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                        }`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Location Picker Content */}
+                    <div className="p-4 space-y-4">
+                      <button
+                        onClick={getCurrentLocation}
+                        disabled={isGettingLocation}
+                        className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
+                          isGettingLocation
+                            ? theme === 'dark'
+                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : theme === 'dark'
+                            ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border border-orange-500/30'
+                            : 'bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200'
+                        }`}
+                      >
+                        {isGettingLocation ? (
+                          <>
+                            <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${
+                              theme === 'dark' ? 'border-gray-500' : 'border-gray-400'
+                            }`} />
+                            <span>Getting location...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Navigation className="w-4 h-4" />
+                            <span>Use Current Location</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Divider */}
+                      <div className={`flex items-center ${
+                        theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
+                      }`}>
+                        <div className={`flex-1 h-px ${
+                          theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                        }`} />
+                        <span className="px-3 text-xs font-medium">or choose popular</span>
+                        <div className={`flex-1 h-px ${
+                          theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                        }`} />
+                      </div>
+
+                      {/* Popular Locations */}
+                      <div className="max-h-64  p-4 scrollbar-hide overflow-y-auto space-y-2">
+                        {popularLocations.map((loc, index) => (
+                          <motion.button
+                            key={index}
+                            onClick={() => {
+                              setLocation({
+                                address: `${loc.name}, ${loc.country}`,
+                                lat: loc.lat,
+                                lng: loc.lng
+                              });
+                              setIsLocationPickerOpen(false);
+                            }}
+                            className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
+                              theme === 'dark'
+                                ? 'hover:bg-gray-700 border border-gray-700 hover:border-gray-600'
+                                : 'hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
+                            }`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${
+                                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                              }`}>
+                                🏳️‍🌈
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-2">
+                                  <h4 className={`font-semibold text-sm ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                  }`}>
+                                    {loc.name}
+                                  </h4>
+                                  <span className="text-xs">{loc.country.split(' ')[0]}</span>
+                                </div>
+                                <p className={`text-xs mt-1 ${
+                                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                  {loc.description}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1204,9 +1459,9 @@ const CreatePost: React.FC = () => {
 
             {/* Location */}
             <motion.button
-              onClick={() => setIsLocationModalOpen(!isLocationModalOpen)}
+              onClick={() => setIsLocationPickerOpen(!isLocationPickerOpen)}
               className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
-                location
+                location || isLocationPickerOpen
                   ? theme === 'dark'
                     ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                     : 'bg-orange-50 text-orange-600 border border-orange-200'
@@ -1276,82 +1531,7 @@ const CreatePost: React.FC = () => {
 
 
 
-      {/* Professional Location Modal */}
-      <AnimatePresence>
-        {isLocationModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setIsLocationModalOpen(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`w-full max-w-md rounded-2xl shadow-2xl ${
-                theme === 'dark'
-                  ? 'bg-gray-900 border border-gray-800'
-                  : 'bg-white border border-gray-200'
-              }`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Location Header */}
-              <div className={`flex items-center justify-between p-6 border-b ${
-                theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
-              }`}>
-                <h3 className={`text-xl font-bold ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Add Location
-                </h3>
-                <button
-                  onClick={() => setIsLocationModalOpen(false)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    theme === 'dark'
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
 
-              {/* Location Content */}
-              <div className="p-6">
-                <button
-                  onClick={getCurrentLocation}
-                  disabled={isGettingLocation}
-                  className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 ${
-                    isGettingLocation
-                      ? theme === 'dark'
-                        ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : theme === 'dark'
-                      ? 'bg-white text-black hover:bg-gray-100'
-                      : 'bg-black text-white hover:bg-gray-800'
-                  }`}
-                >
-                  {isGettingLocation ? (
-                    <>
-                      <div className={`w-5 h-5 border-2 border-t-transparent rounded-full animate-spin ${
-                        theme === 'dark' ? 'border-gray-500' : 'border-gray-400'
-                      }`} />
-                      <span>Getting location...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Navigation className="w-5 h-5" />
-                      <span>Use Current Location</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 };
