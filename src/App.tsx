@@ -368,7 +368,7 @@ function App() {
       </AnimatePresence>
       
       {/* Content - Mobile Optimized */}
-      <div className="pt-16 sm:pt-20 overflow-hidden scrollbar-hide w-full h-full">
+      <div className="pt-16 sm:pt-20 scrollbar-hide w-full h-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeScreen}

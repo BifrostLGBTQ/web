@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift, Flag } from 'lucide-react';
+import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift, Flag, HandHeart, Baby, HeartHandshake, MessageCircleHeart, Banana, Carrot, Coffee } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface NearbyUser {
@@ -189,6 +189,8 @@ const NearbyScreen: React.FC = () => {
         transition={{ duration: 0.6 }}
       >
         {/* Header */}
+
+        
         <motion.div 
           className="mb-8"
           initial={{ opacity: 0, y: -20 }}
@@ -364,22 +366,25 @@ const NearbyScreen: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex justify-center gap-2 mt-2">
+                  <div className="absolute flex flex-col gap-2 right-3  -top-[280px]  itens-end justify-center gap-2 mt-2">
                     {[
-                      { icon: <Hand className="w-5 h-5" />, label: 'Touch', color: 'text-orange-400' },
-                      { icon: <Heart className="w-5 h-5" />, label: 'Like', color: 'text-red-400' },
-                      { icon: <Smile className="w-5 h-5" />, label: 'Kiss', color: 'text-yellow-400' },
-                      { icon: <Gift className="w-5 h-5" />, label: 'Gift', color: 'text-green-400' },
-                      { icon: <MessageCircle className="w-5 h-5" />, label: 'Message', color: 'text-blue-400' },
-                      { icon: <Users className="w-5 h-5" />, label: 'Follow', color: 'text-indigo-400' },
+                      { icon: <HeartHandshake className="w-5 h-5" />, label: 'Touch', color: 'text-white/50' },
+                      { icon: <Banana className="w-5 h-5" />, label: 'Banana', color: 'text-white/50' },
+                      { icon: <Carrot className="w-5 h-5" />, label: 'Carrot', color: 'text-white/50' },
+                      { icon: <Coffee className="w-5 h-5" />, label: 'Coffee', color: 'text-white/50' },
+                      { icon: <Heart className="w-5 h-5" />, label: 'Like', color: 'text-white/50' },
+                      { icon: <Baby className="w-5 h-5" />, label: 'Kiss', color: 'text-white/50' },
+                      { icon: <Gift className="w-5 h-5" />, label: 'Gift', color: 'text-white/50' },
+                      { icon: <MessageCircleHeart className="w-5 h-5" />, label: 'Message', color: 'text-white/50' },
+                      { icon: <Users className="w-5 h-5" />, label: 'Follow', color: 'text-white/50' },
                     ].map(({ icon, label, color }, idx) => (
                       <motion.button
                         key={idx}
                         whileHover={{ scale: 1.12 }}
                         whileTap={{ scale: 0.92 }}
-                        className="group relative flex items-center justify-center min-w-10 max-w-10 w-10 h-10 min-h-10 max-h-10 rounded-full bg-white/10 backdrop-blur-sm hover:bg-black/40 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/20"
+                        className="group relative flex items-center justify-center min-w-10 max-w-10 w-10 h-10 min-h-10 max-h-10 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/30 text-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer border border-white/30 hover:bg-white/30"
                       >
-                        <div className={color}>{icon}</div>
+                        <div className={`${color} group-hover:text-white`}>{icon}</div>
                         {/* Tooltip */}
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                           <div className="bg-black/90 backdrop-blur-sm text-white text-xs rounded-lg py-1 px-3 whitespace-nowrap shadow-lg border border-white/20">
