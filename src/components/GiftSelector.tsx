@@ -24,8 +24,19 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
 
   const gifts: Gift[] = [
 
+  { id: 1, name: 'Banana', icon: "/gifts/banana.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+  { id: 1, name: 'Carrot', icon: "/gifts/carrot.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+  { id: 1, name: 'Cucumber', icon: "/gifts/cucumber-original.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+    { id: 1, name: 'Cucumber', icon: "/gifts/cucumber-thin.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+    { id: 1, name: 'Aubergine', icon: "/gifts/aubergine.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+    { id: 1, name: 'Aubergine', icon: "/gifts/aubergine-thin.svg", price: 10, color: 'text-red-400', rarity: 'common' },
 
-  { id: 1, name: 'Balloon', icon: "/gifts/ballon.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+  { id: 1, name: 'Peach One', icon: "/gifts/peach-one.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+  { id: 1, name: 'Peach Two', icon: "/gifts/peach-two.svg", price: 10, color: 'text-red-400', rarity: 'common' },,
+    { id: 1, name: 'Condom', icon: "/gifts/condom.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+    { id: 1, name: 'Tongue', icon: "/gifts/tongue.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+  { id: 1, name: 'Watermelon', icon: "/gifts/watermelon.svg", price: 10, color: 'text-red-400', rarity: 'common' },
+
   { id: 2, name: 'Flower', icon: "/gifts/flower.svg", price: 15, color: 'text-pink-400', rarity: 'common' },
   { id: 3, name: 'Ice Cream', icon: "/gifts/icecream.svg", price: 20, color: 'text-amber-500', rarity: 'common' },
   { id: 4, name: 'Bear Heart', icon: "/gifts/bear-heart.svg", price: 30, color: 'text-rose-500', rarity: 'uncommon' },
@@ -55,6 +66,10 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
   { id: 28, name: 'Cocktail Glass', icon: "/gifts/cocktailglass.svg", price: 40, color: 'text-orange-500', rarity: 'common' },
   { id: 29, name: 'Cucumber', icon: "/gifts/cucumber.svg", price: 20, color: 'text-green-400', rarity: 'common' },
   { id: 30, name: 'Engagement Ring', icon: "/gifts/engagementringdiamond.svg", price: 200, color: 'text-yellow-400', rarity: 'legendary' },
+  { id: 30, name: 'Rainbow Flag', icon: "/gifts/rainbow-flag.svg", price: 200, color: 'text-yellow-400', rarity: 'legendary' },
+  { id: 27, name: 'Cocktail', icon: "/gifts/panda.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
+  { id: 27, name: 'Cocktail', icon: "/gifts/dog.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
+  { id: 27, name: 'Cocktail', icon: "/gifts/bear-head.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
 
   ];
 
