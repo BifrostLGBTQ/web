@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift, Flag, HandHeart, Baby, HeartHandshake, MessageCircleHeart, Banana, Carrot, Coffee } from 'lucide-react';
+import { MapPin, Filter, Search, Users, Heart, MessageCircle, ThumbsUp, Hand, Smile, Phone, Video, Gift, Flag, HandHeart, Baby, HeartHandshake, MessageCircleHeart, Banana, Carrot, Coffee, UserPlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface NearbyUser {
@@ -376,7 +376,7 @@ const NearbyScreen: React.FC = () => {
                       { icon: <Baby className="w-5 h-5" />, label: 'Kiss', color: 'text-white/50' },
                       { icon: <Gift className="w-5 h-5" />, label: 'Gift', color: 'text-white/50' },
                       { icon: <MessageCircleHeart className="w-5 h-5" />, label: 'Message', color: 'text-white/50' },
-                      { icon: <Users className="w-5 h-5" />, label: 'Follow', color: 'text-white/50' },
+                      { icon: <UserPlus className="w-5 h-5" />, label: 'Follow', color: 'text-white/50' },
                     ].map(({ icon, label, color }, idx) => (
                       <motion.button
                         key={idx}
