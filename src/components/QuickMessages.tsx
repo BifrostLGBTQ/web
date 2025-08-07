@@ -4,75 +4,59 @@ import { X, Heart, Star, Crown, Diamond, Sparkles, Coffee, Cake, Music, Zap } fr
 import { useTheme } from '../contexts/ThemeContext';
 
 
+
+interface QuickMessage {
+  id: number;
+  text: string;
+}
+
+
 interface QuickMessagesProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendMessage: (gift: Gift) => void;
+  onSendMessage: (message: QuickMessage) => void;
   userName: string;
 }
 
 const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMessage, userName }) => {
   const { theme } = useTheme();
 
-  const gifts: Gift[] = [
 
-  { id: 1, name: 'Banana', icon: "/gifts/banana.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-  { id: 1, name: 'Carrot', icon: "/gifts/carrot.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-  { id: 1, name: 'Cucumber', icon: "/gifts/cucumber-original.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-    { id: 1, name: 'Cucumber', icon: "/gifts/cucumber-thin.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-    { id: 1, name: 'Aubergine', icon: "/gifts/aubergine.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-    { id: 1, name: 'Aubergine', icon: "/gifts/aubergine-thin.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-
-  { id: 1, name: 'Peach One', icon: "/gifts/peach-one.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-  { id: 1, name: 'Peach Two', icon: "/gifts/peach-two.svg", price: 10, color: 'text-red-400', rarity: 'common' },,
-    { id: 1, name: 'Condom', icon: "/gifts/condom.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-    { id: 1, name: 'Tongue', icon: "/gifts/tongue.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-  { id: 1, name: 'Watermelon', icon: "/gifts/watermelon.svg", price: 10, color: 'text-red-400', rarity: 'common' },
-
-  { id: 2, name: 'Flower', icon: "/gifts/flower.svg", price: 15, color: 'text-pink-400', rarity: 'common' },
-  { id: 3, name: 'Ice Cream', icon: "/gifts/icecream.svg", price: 20, color: 'text-amber-500', rarity: 'common' },
-  { id: 4, name: 'Bear Heart', icon: "/gifts/bear-heart.svg", price: 30, color: 'text-rose-500', rarity: 'uncommon' },
-  { id: 5, name: 'Gem', icon: "/gifts/gem.svg", price: 100, color: 'text-cyan-500', rarity: 'rare' },
-  { id: 6, name: 'Kiss', icon: "/gifts/kiss.svg", price: 35, color: 'text-pink-600', rarity: 'uncommon' },
-  { id: 7, name: 'Bear', icon: "/gifts/bear.svg", price: 25, color: 'text-yellow-500', rarity: 'common' },
-  { id: 8, name: 'Heart Arrow', icon: "/gifts/heart-arrow.svg", price: 40, color: 'text-red-500', rarity: 'uncommon' },
-  { id: 9, name: 'Heart Circle', icon: "/gifts/heart-circle.svg", price: 30, color: 'text-pink-500', rarity: 'common' },
-  { id: 10, name: 'Heart', icon: "/gifts/heart.svg", price: 25, color: 'text-red-500', rarity: 'common' },
-  { id: 11, name: 'Love', icon: "/gifts/love.svg", price: 50, color: 'text-pink-500', rarity: 'rare' },
-  { id: 12, name: 'Lovebirds', icon: "/gifts/lovebirds.svg", price: 80, color: 'text-red-400', rarity: 'rare' },
-  { id: 13, name: 'Cheers', icon: "/gifts/cheersalcohol.svg", price: 40, color: 'text-amber-400', rarity: 'common' },
-  { id: 14, name: 'Heart Hand', icon: "/gifts/hearthand.svg", price: 60, color: 'text-rose-400', rarity: 'rare' },
-  { id: 15, name: 'Marriage Heart', icon: "/gifts/heartlovemarriage.svg", price: 90, color: 'text-purple-500', rarity: 'epic' },
-  { id: 16, name: 'Clover', icon: "/gifts/cloverleaf.svg", price: 20, color: 'text-green-500', rarity: 'common' },
-  { id: 17, name: 'Love Flower', icon: "/gifts/loveflower.svg", price: 50, color: 'text-pink-500', rarity: 'uncommon' },
-  { id: 18, name: 'Love Gem', icon: "/gifts/lovegem.svg", price: 120, color: 'text-indigo-500', rarity: 'epic' },
-  { id: 19, name: 'Melange', icon: "/gifts/melange.svg", price: 35, color: 'text-violet-400', rarity: 'uncommon' },
-  { id: 20, name: 'Rainbow', icon: "/gifts/rainbow.svg", price: 60, color: 'text-pink-400', rarity: 'rare' },
-  { id: 21, name: 'Rose', icon: "/gifts/rose.svg", price: 30, color: 'text-red-400', rarity: 'common' },
-  { id: 22, name: 'Snowman', icon: "/gifts/snowman.svg", price: 20, color: 'text-blue-400', rarity: 'common' },
-  { id: 23, name: 'Tape Recorder', icon: "/gifts/taperecorder.svg", price: 25, color: 'text-gray-400', rarity: 'common' },
-  { id: 24, name: 'Dog With Flag', icon: "/gifts/dogwithflag.svg", price: 45, color: 'text-yellow-500', rarity: 'uncommon' },
-  { id: 25, name: 'High Heels', icon: "/gifts/highheels.svg", price: 70, color: 'text-fuchsia-500', rarity: 'rare' },
-  { id: 26, name: 'Home', icon: "/gifts/home.svg", price: 80, color: 'text-blue-500', rarity: 'rare' },
-  { id: 27, name: 'Cocktail', icon: "/gifts/cocktail.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
-  { id: 28, name: 'Cocktail Glass', icon: "/gifts/cocktailglass.svg", price: 40, color: 'text-orange-500', rarity: 'common' },
-  { id: 29, name: 'Cucumber', icon: "/gifts/cucumber.svg", price: 20, color: 'text-green-400', rarity: 'common' },
-  { id: 30, name: 'Engagement Ring', icon: "/gifts/engagementringdiamond.svg", price: 200, color: 'text-yellow-400', rarity: 'legendary' },
-  { id: 30, name: 'Rainbow Flag', icon: "/gifts/rainbow-flag.svg", price: 200, color: 'text-yellow-400', rarity: 'legendary' },
-  { id: 27, name: 'Cocktail', icon: "/gifts/panda.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
-  { id: 27, name: 'Cocktail', icon: "/gifts/dog.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
-  { id: 27, name: 'Cocktail', icon: "/gifts/bear-head.svg", price: 35, color: 'text-orange-400', rarity: 'common' },
-
-  ];
-
+   const quickMessages : QuickMessage[] = [
+  { id: 1, text: "You look like trouble. I’m into it 😈" },
+  { id: 2, text: "Your lips look like they have stories to tell. Wanna share one?" },
+  { id: 3, text: "I dare you to flirt back… or more 👀" },
+  { id: 4, text: "That smirk in your photo? Unfair." },
+  { id: 5, text: "I’m not just here for the chat… unless the chat gets spicy 🌶️" },
+  { id: 6, text: "I like your vibe. I’d like it even closer." },
+  { id: 7, text: "Should we skip small talk and get to the tension?" },
+  { id: 8, text: "What would you whisper in my ear if we met tonight?" },
+  { id: 9, text: "Some matches are hot. Ours might melt my screen 🔥" },
+  { id: 10, text: "Let’s not pretend we don’t feel this chemistry." },
+  { id: 11, text: "Tell me your favorite way to be kissed… slowly or suddenly?" },
+  { id: 12, text: "You + me + one bed = interesting evening?" },
+  { id: 13, text: "Your type? Or should I show you why I’m your type?" },
+  { id: 14, text: "We could get to know each other… or just get lost in each other." },
+  { id: 15, text: "I'm curious how soft your skin is. Too soon?" },
+  { id: 16, text: "Let’s make this night unforgettable — your place or mine?" },
+  { id: 17, text: "Wanna see if we match as well in person as we do here?" },
+  { id: 18, text: "Just say the word and I’m yours tonight." },
+  { id: 19, text: "You tempt me in all the best ways." },
+  { id: 20, text: "Careful. I bite... only when invited." },
+  { id: 21, text: "What if this chat ends with your hands on my hips?" },
+  { id: 22, text: "Would you like to be the reason I can’t focus tomorrow?" },
+  { id: 23, text: "Your bed or mine? Or both. I’m flexible 😉" },
+  { id: 24, text: "I’ll be honest — I didn’t swipe right for conversation only." },
+  { id: 25, text: "Let’s stop imagining and make tonight real." }
+];
   
-  const handleGiftSelect = (gift: Gift) => {
-    onSelectGift(gift);
+  const handleMessageSelect = (gift: QuickMessage) => {
+    onSendMessage(gift);
     onClose();
   };
 
   return (
-    <AnimatePresence>
+  <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -94,7 +78,7 @@ const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMe
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={`p-6 border-b ${
+            <div className={`p-2 border-b ${
               theme === 'dark' ? 'border-white/10' : 'border-white/20'
             } ${
               theme === 'dark'
@@ -104,7 +88,7 @@ const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMe
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className={`text-xl font-bold text-white`}>
-                    Send Gift
+                    Send Quick Message
                   </h3>
                   <p className={`text-sm mt-1 text-white`}>
                     to {userName}
@@ -114,11 +98,7 @@ const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMe
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className={`p-3 rounded-full transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'hover:bg-gray-800/60 text-gray-400 hover:text-white bg-gray-800/30'
-                      : 'hover:bg-gray-100/60 text-gray-600 hover:text-gray-900 bg-gray-100/30'
-                  } backdrop-blur-sm border border-white/10`}
+                  className={`p-2 rounded-full transition-all duration-200  text-white border border-white/10`}
                 >
                   <X className="w-5 h-5" />
                 </motion.button>
@@ -126,14 +106,14 @@ const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMe
             </div>
 
             {/* Gifts Grid */}
-            <div className="p-4 max-h-80 overflow-y-auto scrollbar-hide">
-              <div className="grid grid-cols-4 gap-2">
-                {gifts.map((gift, index) => (
+            <div className="p-4 max-h-[355px] overflow-y-auto scrollbar-hide">
+              <div className="flex flex-col gap-2">
+                {quickMessages.map((message, index) => (
                   <motion.button
-                    key={gift.id}
+                    key={message.id}
                   
                     whileTap={{ scale: 0.92 }}
-                    onClick={() => handleGiftSelect(gift)}
+                    onClick={() => handleMessageSelect(message)}
                     className={`relative p-2 flex items-center justify-center rounded-xl border border-1 border-white/30 hover:border-white/50 transition-all duration-300  hover:shadow-xl group overflow-hidden`}
                   >
                  
@@ -146,16 +126,12 @@ const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMe
                     {/* Gift Icon */}
                     <div className={`relative flex items-center justify-center z-10`}>
                       <motion.div
-                        whileHover={{
-                          rotate: [0, -8, 8, 0],
-                          scale: [1, 1.1, 1.1, 1]
-                        }}
+                   
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                         className="relative"
                       >
-                        <img className='w-12 h-12' src={gift.icon ? gift.icon : "/gifts/heart.svg"}/>
-                        {/* Icon Glow */}
-                       
+                        <span className='text-white text-sm'>{message.text}</span>
+                  
                       </motion.div>
                     </div>
 

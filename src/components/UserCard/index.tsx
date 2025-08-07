@@ -4,15 +4,22 @@ import { motion } from 'framer-motion';
 import { Heart, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Github, HeartHandshake, Banana, Carrot, Coffee, Baby, Gift, MessageCircleHeart, UserPlus, Flag } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import GiftSelector from '../GiftSelector';
+import QuickMessages from '../QuickMessages';
 
 export const UserCard: React.FC<{ user: any }> = ({ user }) => {
   const { theme } = useTheme();
   const [isGiftSelectorOpen, setIsGiftSelectorOpen] = useState(false);
+  const [isQuickMessageSelectorOpen, setIsQuickMessageSelectorOpen] = useState(false);
 
   const handleGiftSelect = (gift: any) => {
     console.log(`Sending ${gift.name} to ${user.name}`);
     // Here you can add your gift sending logic
   };
+
+  const handleQuickMessageSelect = (message:any) => {
+        console.log(`Sending ${message.text} to ${user.name}`);
+
+  }
 
   return(
      <div
@@ -105,8 +112,13 @@ export const UserCard: React.FC<{ user: any }> = ({ user }) => {
                         console.log('Gift button clicked!');
                         setIsGiftSelectorOpen(true);
                       }},
-                      { icon: <MessageCircleHeart className="w-5 h-5" />, label: 'Message', color: 'text-white/50', action: () => {} },
-                      { icon: <UserPlus className="w-5 h-5" />, label: 'Follow', color: 'text-white/50', action: () => {} },
+                      { icon: <MessageCircleHeart className="w-5 h-5" />, label: 'Message', color: 'text-white/50', action: () => {
+                            console.log('Message button clicked!');
+                        setIsQuickMessageSelectorOpen(true);
+                      } },
+                      { icon: <UserPlus className="w-5 h-5" />, label: 'Follow', color: 'text-white/50', action: () => {
+                      
+                      } },
                     ].map(({ icon, label, color, action }, idx) => (
                       <motion.button
                         key={idx}
@@ -138,6 +150,12 @@ export const UserCard: React.FC<{ user: any }> = ({ user }) => {
                 isOpen={isGiftSelectorOpen}
                 onClose={() => setIsGiftSelectorOpen(false)}
                 onSelectGift={handleGiftSelect}
+                userName={user.name}
+              />
+
+              <QuickMessages onSendMessage={handleQuickMessageSelect}
+                isOpen={isQuickMessageSelectorOpen}
+                onClose={() => setIsQuickMessageSelectorOpen(false)}
                 userName={user.name}
               />
             </div>
