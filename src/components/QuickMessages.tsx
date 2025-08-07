@@ -3,23 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Star, Crown, Diamond, Sparkles, Coffee, Cake, Music, Zap } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-interface Gift {
-  id: number;
-  name: string;
-  icon: React.ReactNode;
-  price: number;
-  color: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-}
 
-interface GiftSelectorProps {
+interface QuickMessagesProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectGift: (gift: Gift) => void;
+  onSendMessage: (gift: Gift) => void;
   userName: string;
 }
 
-const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGift, userName }) => {
+const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMessage, userName }) => {
   const { theme } = useTheme();
 
   const gifts: Gift[] = [
@@ -73,31 +65,7 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
 
   ];
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'border-slate-300/50';
-      case 'rare': return 'border-blue-400/60';
-      case 'epic': return 'border-purple-400/60';
-      case 'legendary': return 'border-gradient-to-r from-yellow-400 to-orange-400';
-      default: return 'border-slate-300/50';
-    }
-  };
-
-  const getRarityGlow = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'shadow-lg shadow-slate-200/10';
-      case 'rare': return 'shadow-lg shadow-blue-400/25';
-      case 'epic': return 'shadow-lg shadow-purple-400/30';
-      case 'legendary': return 'shadow-xl shadow-yellow-400/40';
-      default: return 'shadow-lg shadow-slate-200/10';
-    }
-  };
-
-  const getRarityBg = (rarity: string, isDark: boolean) => {
-    const baseGlass = isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-white/10 hover:bg-white/30';
-    return `${baseGlass} backdrop-blur-md`;
-  };
-
+  
   const handleGiftSelect = (gift: Gift) => {
     onSelectGift(gift);
     onClose();
@@ -126,7 +94,7 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={`p-2 border-b ${
+            <div className={`p-6 border-b ${
               theme === 'dark' ? 'border-white/10' : 'border-white/20'
             } ${
               theme === 'dark'
@@ -146,7 +114,11 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className={`p-2 rounded-full transition-all duration-200  text-white border border-white/10`}
+                  className={`p-3 rounded-full transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'hover:bg-gray-800/60 text-gray-400 hover:text-white bg-gray-800/30'
+                      : 'hover:bg-gray-100/60 text-gray-600 hover:text-gray-900 bg-gray-100/30'
+                  } backdrop-blur-sm border border-white/10`}
                 >
                   <X className="w-5 h-5" />
                 </motion.button>
@@ -154,7 +126,7 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
             </div>
 
             {/* Gifts Grid */}
-            <div className="p-4 max-h-[355px] overflow-y-auto scrollbar-hide">
+            <div className="p-4 max-h-80 overflow-y-auto scrollbar-hide">
               <div className="grid grid-cols-4 gap-2">
                 {gifts.map((gift, index) => (
                   <motion.button
@@ -216,4 +188,4 @@ const GiftSelector: React.FC<GiftSelectorProps> = ({ isOpen, onClose, onSelectGi
   );
 };
 
-export default GiftSelector;
+export default QuickMessages;
