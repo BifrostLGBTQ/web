@@ -152,7 +152,7 @@ const QuickMessages: React.FC<QuickMessagesProps> = ({ isOpen, onClose, onSendMe
               <div className="flex items-center justify-center space-x-2">
                 <Sparkles className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
                 <p className={`text-sm text-center font-medium text-white`}>
-                  Choose the perfect gift for {userName}
+                  Choose the perfect message for {userName}
                 </p>
                 <Sparkles className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
               </div>

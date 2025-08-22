@@ -93,16 +93,16 @@ function App() {
               <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
-                PridePal
+                TESTTEST
               </h1>
             </motion.div>
 
             {/* Professional Desktop Navigation */}
             <div className="w-full hidden lg:flex  items-center">
-              <nav className={`flex items-center space-x-2 p-2 rounded-2xl backdrop-blur-3xl border-b ${
+              <nav className={`flex items-center space-x-2 p-2 rounded-2xl backdrop-blur-xl border-b  border-b ${
                 theme === 'dark'
-                  ? 'border-gray-800/30 bg-black/80 backdrop-saturate-150'
-                  : 'border-gray-200/30 bg-white/80 backdrop-saturate-150'
+                  ? 'border-gray-800/30 bg-black/10 border-black/20'
+                  : 'border-gray-200/30  bg-white/10 border-white/20'
               } ${
                 theme === 'dark'
                   ? 'bg-gray-900/50 border border-gray-800'

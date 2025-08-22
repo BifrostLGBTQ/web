@@ -11,7 +11,8 @@ import {
   Calendar,
   Camera,
   Shield,
-  Star
+  Star,
+  Rabbit
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -45,7 +46,8 @@ const ProfileScreen: React.FC = () => {
   const tabs = [
     { id: 'about', label: 'About', icon: Heart },
     { id: 'photos', label: 'Photos', icon: Camera },
-    { id: 'interests', label: 'Interests', icon: Star }
+    { id: 'interests', label: 'Interests', icon: Star },
+     { id: 'preferences', label: 'Preferences', icon: Rabbit }
   ];
 
   return (
@@ -256,6 +258,33 @@ const ProfileScreen: React.FC = () => {
           )}
 
           {activeTab === 'interests' && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex flex-wrap gap-3">
+                {profileData.interests.map((interest, index) => (
+                  <motion.span
+                    key={interest}
+                    className={`px-4 py-2 rounded-full text-sm font-medium border ${
+                      theme === 'dark'
+                        ? 'bg-gray-800 text-gray-300 border-gray-700'
+                        : 'bg-gray-100 text-gray-700 border-gray-200'
+                    }`}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1, type: "spring", stiffness: 500, damping: 15 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    {interest}
+                  </motion.span>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+            {activeTab === 'preferences' && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
