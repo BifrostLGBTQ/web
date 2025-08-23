@@ -11,6 +11,8 @@ import ProfileScreen from './components/ProfileScreen';
 import SearchScreen from './components/SearchScreen';
 import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
+import { useAuth } from './contexts/AuthContext';
+import AuthWizard from './components/AuthWizard';
 import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon } from 'lucide-react';
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
@@ -18,9 +20,9 @@ import HomeScreen from './components/HomeScreen';
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthWizardOpen, setIsAuthWizardOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-
-
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -185,33 +187,52 @@ function App() {
                 }
               </motion.button>
 
-              {/* Profile Avatar - Mobile Optimized */}
-              <motion.button
-                onClick={() => setActiveScreen('profile')}
-                className={`flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-1 rounded-xl transition-all duration-300 ${
-                  activeScreen === 'profile'
-                    ? theme === 'dark'
-                      ? 'bg-gray-800 ring-2 ring-gray-600'
-                      : 'bg-gray-100 ring-2 ring-gray-300'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.9, duration: 0.5 }}
-              >
-                <img
-                  src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
-                  alt="Profile"
-                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
-                />
-                <span className={`hidden md:block font-medium text-sm ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Alex
-                </span>
-              </motion.button>
+              {/* Profile Avatar or Auth Button */}
+              {isAuthenticated ? (
+                <motion.button
+                  onClick={() => setActiveScreen('profile')}
+                  className={`flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-1 rounded-xl transition-all duration-300 ${
+                    activeScreen === 'profile'
+                      ? theme === 'dark'
+                        ? 'bg-gray-800 ring-2 ring-gray-600'
+                        : 'bg-gray-100 ring-2 ring-gray-300'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9, duration: 0.5 }}
+                >
+                  <img
+                    src={user?.avatar || "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"}
+                    alt="Profile"
+                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                  />
+                  <span className={`hidden md:block font-medium text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    {user?.nickname || user?.name || 'Alex'}
+                  </span>
+                </motion.button>
+              ) : (
+                <motion.button
+                  onClick={() => setIsAuthWizardOpen(true)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                    theme === 'dark'
+                      ? 'bg-white text-gray-900 hover:bg-gray-100'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9, duration: 0.5 }}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">Join</span>
+                </motion.button>
+              )}
 
               {/* Mobile Menu Button - Ultra Clean */}
               <motion.button
@@ -385,8 +406,13 @@ function App() {
 
       
       {/* Footer - Only show on home screen */}
-     
       {activeScreen === 'home' && <Footer />}
+      
+      {/* Auth Wizard */}
+      <AuthWizard 
+        isOpen={isAuthWizardOpen} 
+        onClose={() => setIsAuthWizardOpen(false)} 
+      />
     </>
   );
 }
