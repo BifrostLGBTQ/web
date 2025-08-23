@@ -11,7 +11,7 @@ import ProfileScreen from './components/ProfileScreen';
 import SearchScreen from './components/SearchScreen';
 import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext.tsx';
 import AuthWizard from './components/AuthWizard';
 import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon } from 'lucide-react';
 import PlacesScreen from './components/PlacesScreen';
