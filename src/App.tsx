@@ -13,14 +13,17 @@ import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
 import { useAuth } from './contexts/AuthContext.tsx';
 import AuthWizard from './components/AuthWizard';
-import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon } from 'lucide-react';
+import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon, Languages } from 'lucide-react';
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
+import LanguageSelector from './components/LanguageSelector.tsx';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthWizardOpen, setIsAuthWizardOpen] = useState(false);
+    const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
+
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -166,6 +169,35 @@ function App() {
               >
                 <Map className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
+
+                 {/* Language Icon - Desktop */}
+              <motion.button
+                onClick={() => 
+                  setIsLanguageSelectorOpen(true)
+
+                }
+                className={`hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl transition-all duration-300 
+                  ${
+                  isLanguageSelectorOpen
+                    ? theme === 'dark'
+                      ? 'bg-white/10 text-white border border-gray-600'
+                      : 'bg-gray-900 text-white border border-gray-300'
+                    : theme === 'dark'
+                    ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700'
+                    : 'bg-gray-100/50 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+              >
+                <Languages className="w-4 h-4 sm:w-5 sm:h-5" />
+              </motion.button>
+
+           
+
+        
 
               {/* Theme Toggle - Desktop */}
               <motion.button
@@ -413,6 +445,9 @@ function App() {
         isOpen={isAuthWizardOpen} 
         onClose={() => setIsAuthWizardOpen(false)} 
       />
+     {/* LanguageSelector */}
+        <LanguageSelector isOpen={isLanguageSelectorOpen} onClose={()=>setIsLanguageSelectorOpen(false)} />
+
     </>
   );
 }
