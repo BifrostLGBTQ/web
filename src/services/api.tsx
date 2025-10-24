@@ -1,10 +1,12 @@
 import { ActionType } from "./actions";
 import { httpClient } from "./httpClient";
 
+
+
 interface ApiRequestOptions {
   method?: "GET" | "POST";
   params?: Record<string, any>;
-  body?: Record<string, any>;
+  body?: Record<string, any> | any; // array veya nested objelere izin verir
 }
 
 class ApiService {
@@ -22,9 +24,15 @@ class ApiService {
     }
 
     const response = await httpClient.post("/", {
-      action,
-      ...options.body,
-    });
+  action: action,    // opsiyonel, backend handlePacket için
+  body: options.body, // body tek objeye sarılıyor
+}, {
+    headers: {
+    "Content-Type": "multipart/form-data"
+  }
+});
+
+ 
     return response.data as T;
   }
 }

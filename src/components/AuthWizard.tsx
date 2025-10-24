@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, User, Calendar, Heart, Rabbit, X, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, User, Calendar, Heart, Rabbit, X, ChevronLeft, ChevronRight, ChevronDown, LocateFixed, MapPin } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useApp } from '../contexts/AppContext';
+import { api } from '../services/api.tsx';
+import { Actions } from '../services/actions.tsx';
 
 interface AuthWizardProps {
   isOpen: boolean;
@@ -16,7 +18,27 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { data, loading, defaultLanguage, setDefaultLanguage } = useApp();
 
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<{
+    name: string;
+    nickname: string;
+    birthDate: string;
+    day: string;
+    month: string;
+    year: string;
+    orientation: string;
+    location: {
+      country_code: string;
+      country_name: string;
+      city: string;
+      region?: string;
+      lat: number;
+      lng: number;
+      timezone?: string;
+      display: string;
+    } | null;
+    fantasies: string[];
+  }>({
     name: '',
     nickname: '',
     birthDate: '',
@@ -24,7 +46,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     month: '',
     year: '',
     orientation: '',
-    preferences: [] as string[]
+    location: null,
+    fantasies: []
   });
 
   // Date picker state
@@ -55,6 +78,15 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       field: 'nickname',
       placeholder: 'Enter your nickname',
       type: 'text'
+    },
+    {
+      id: 'location',
+      title: 'Allow Location Access',
+      subtitle: 'This helps us find nearby matches',
+      icon: MapPin, // istersen başka icon kullanabilirsin, örn: MapPin
+      field: 'location',
+      placeholder: '',
+      type: 'location'
     },
     {
       id: 'birthdate',
@@ -186,16 +218,25 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         : '';
 
       const user = {
-        id: Date.now().toString(),
         name: formData.nickname,
         nickname: formData.nickname,
-        birthDate,
+        birthDate: birthDate,
+        location: formData.location,
         orientation: formData.orientation,
-        preferences: formData.preferences,
-        avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2'
+        fantasies: formData.fantasies
       };
-      login(user);
-      onClose();
+
+
+      api.call(Actions.AUTH_REGISTER, { // action ilk parametre
+        method: "POST",
+        body: user
+      })
+        .then(response => console.log("User registered:", response))
+        .catch(err => console.error("Registration failed:", err));
+
+
+      //login(user);
+      //onClose();
     }
   };
 
@@ -213,16 +254,16 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const updateFormData = (field: string, value: string | string[]) => {
+  const updateFormData = <T extends keyof typeof formData>(field: T, value: typeof formData[T]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const togglePreference = (preference: string) => {
-    const current = formData.preferences;
-    if (current.includes(preference)) {
-      updateFormData('preferences', current.filter(p => p !== preference));
+  const togglePreference = (fantasy: string) => {
+    const current = formData.fantasies;
+    if (current.includes(fantasy)) {
+      updateFormData('fantasies', current.filter(p => p !== fantasy));
     } else {
-      updateFormData('preferences', [...current, preference]);
+      updateFormData('fantasies', [...current, fantasy]);
     }
   };
 
@@ -235,6 +276,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         return formData.nickname.trim() !== '';
       case 'birthDate':
         return selectedDate.day && selectedDate.month && selectedDate.year;
+      case 'location':
+        return !!formData.location;
       case 'orientation':
         return formData.orientation !== '';
       case 'preferences':
@@ -254,13 +297,100 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             value={formData[currentStepData.field as keyof typeof formData] as string}
             onChange={(e) => updateFormData(currentStepData.field, e.target.value)}
             className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
-                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+              : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
               }`}
             autoFocus
           />
         );
 
+      case 'location':
+        const handleLocationRequest = async () => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                try {
+                  // Reverse geocoding isteği
+                  const res = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+                  );
+                  const data = await res.json();
+
+                  const address = data.address || {};
+
+                  const newLocation: {
+                    country_code: string;
+                    country_name: string;
+                    city: string;
+                    region: string;
+                    lat: number;
+                    lng: number;
+                    timezone: string;
+                    display: string;
+                  } = {
+                    country_code: address.country_code?.toUpperCase() || '',
+                    country_name: address.country || '',
+                    city: address.city || address.town || address.village || '',
+                    region: address.state || '',
+                    lat: lat,
+                    lng: lng,
+                    timezone: '', // opsiyonel, IP veya başka API ile alabilirsin
+                    display: `${address.city || address.town || address.village || lat.toFixed(3)}, ${address.country || ''}`
+                  };
+
+                  updateFormData('location', newLocation);
+                } catch (err) {
+                  console.error("Reverse geocoding failed", err);
+
+                  // Eğer API başarısız olursa koordinatları kullan
+                  const fallbackLocation = {
+                    country_code: '',
+                    country_name: '',
+                    city: '',
+                    region: '',
+                    lat,
+                    lng,
+                    timezone: '',
+                    display: `${lat.toFixed(3)}, ${lng.toFixed(3)}`
+                  };
+
+                  updateFormData('location', fallbackLocation);
+                }
+              },
+              (error) => {
+                console.error("Location access denied", error);
+              }
+            );
+          } else {
+            console.error("Geolocation not supported");
+          }
+        };
+        return (
+          <div className="space-y-4">
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              Please allow location access to improve your experience.
+            </p>
+            <motion.button
+              onClick={handleLocationRequest}
+              className={`w-full px-4 py-3 rounded-2xl font-medium transition-colors ${theme === 'dark'
+                ? 'bg-white text-gray-900 hover:bg-gray-100'
+                : 'bg-gray-900 text-white hover:bg-gray-800'
+                }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Allow Location
+            </motion.button>
+            {formData.location && (
+              <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Location saved: {formData.location.lat.toFixed(2)}, {formData.location.lng.toFixed(2)}
+              </p>
+            )}
+          </div>
+        );
       case 'date-picker': {
         // Calculate year range for decade navigation
         const minYear = new Date().getFullYear() - 80;
@@ -286,8 +416,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             {/* Selected Date Display */}
             {selectedDate.day && selectedDate.month && selectedDate.year && (
               <div className={`text-center p-4 rounded-2xl border ${theme === 'dark'
-                  ? 'bg-gray-800/50 border-gray-700 text-white'
-                  : 'bg-gray-50 border-gray-200 text-gray-900'
+                ? 'bg-gray-800/50 border-gray-700 text-white'
+                : 'bg-gray-50 border-gray-200 text-gray-900'
                 }`}>
                 <div className="text-lg font-semibold">
                   {selectedDate.day} {months[selectedDate.month - 1]} {selectedDate.year}
@@ -296,8 +426,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             )}
             {/* Calendar */}
             <div className={`p-4 rounded-2xl border ${theme === 'dark'
-                ? 'bg-gray-800/30 border-gray-700'
-                : 'bg-gray-50/30 border-gray-200'
+              ? 'bg-gray-800/30 border-gray-700'
+              : 'bg-gray-50/30 border-gray-200'
               }`}>
               {/* Calendar Header */}
               <div className="flex items-center justify-between mb-4">
@@ -512,21 +642,23 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
             <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto scrollbar-hide p-2">
               {data &&
-                Object.entries(data.sexual_orientations).map(([key, translation]) => {
-                  const label = translation[defaultLanguage] || translation.en; // defaultLanguage varsa onu kullan, yoksa en
-                  const isSelected = formData.orientation === key;
+                data.sexual_orientations.map((sexual_orientation: any) => {
+                  const label =
+                    sexual_orientation.translations[defaultLanguage] ||
+                    sexual_orientation.translations.en;
+                  const isSelected = formData.orientation === sexual_orientation.id;
 
                   return (
                     <motion.button
-                      key={key}
-                      onClick={() => updateFormData("orientation", key)}
+                      key={sexual_orientation.id}
+                      onClick={() => updateFormData("orientation", sexual_orientation.id)}
                       className={`p-4 rounded-2xl border-2 text-sm font-medium transition-all text-center ${isSelected
-                          ? theme === "dark"
-                            ? "bg-white text-gray-900 border-white shadow-md"
-                            : "bg-gray-900 text-white border-gray-900 shadow-md"
-                          : theme === "dark"
-                            ? "bg-gray-800 border-gray-700 text-white hover:border-gray-600"
-                            : "bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300"
+                        ? theme === "dark"
+                          ? "bg-white text-gray-900 border-white shadow-md"
+                          : "bg-gray-900 text-white border-gray-900 shadow-md"
+                        : theme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white hover:border-gray-600"
+                          : "bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300"
                         }`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -544,23 +676,23 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           <div className="max-h-64 overflow-y-auto  scrollbar-hide p-2">
             <div className="grid grid-cols-2 gap-2">
               {data &&
-                Object.values(data.fantasies).map((preference) => (
+                Object.values(data.fantasies).map((fantasy) => (
                   <motion.button
-                    key={preference.id}
-                    onClick={() => togglePreference(preference.id)}
-                    className={`p-3 rounded-xl border transition-all text-left text-sm ${formData.preferences.includes(preference.id)
-                        ? theme === 'dark'
-                          ? 'bg-white text-gray-900 border-white'
-                          : 'bg-gray-900 text-white border-gray-900'
-                        : theme === 'dark'
-                          ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
-                          : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
+                    key={fantasy.id}
+                    onClick={() => togglePreference(fantasy.id)}
+                    className={`p-3 rounded-xl border transition-all text-left text-sm ${formData.fantasies.includes(fantasy.id)
+                      ? theme === 'dark'
+                        ? 'bg-white text-gray-900 border-white'
+                        : 'bg-gray-900 text-white border-gray-900'
+                      : theme === 'dark'
+                        ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
+                        : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
                       }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {/* Label'ı varsayılan olarak İngilizce alıyoruz */}
-                    {preference.translations.en?.label || preference.category}
+                    {fantasy.translations.en?.label || fantasy.category}
                   </motion.button>
                 ))}
             </div>
@@ -598,8 +730,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 <div
                   key={index}
                   className={`h-1 flex-1 rounded-full transition-colors ${index <= currentStep
-                      ? theme === 'dark' ? 'bg-white' : 'bg-gray-900'
-                      : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                    ? theme === 'dark' ? 'bg-white' : 'bg-gray-900'
+                    : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
                     }`}
                 />
               ))}
@@ -652,8 +784,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 <motion.button
                   onClick={handleBack}
                   className={`flex items-center justify-center px-4 py-3 rounded-2xl font-medium transition-colors ${theme === 'dark'
-                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -667,10 +799,10 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 onClick={handleNext}
                 disabled={!canProceed()}
                 className={`flex-1 flex items-center justify-center px-6 py-3 rounded-2xl font-medium transition-all ${canProceed()
-                    ? theme === 'dark'
-                      ? 'bg-white text-gray-900 hover:bg-gray-100'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? theme === 'dark'
+                    ? 'bg-white text-gray-900 hover:bg-gray-100'
+                    : 'bg-gray-900 text-white hover:bg-gray-800'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 whileHover={canProceed() ? { scale: 1.02 } : {}}
                 whileTap={canProceed() ? { scale: 0.98 } : {}}
@@ -683,8 +815,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 <motion.button
                   onClick={handleSkip}
                   className={`px-4 py-3 rounded-2xl font-medium transition-colors ${theme === 'dark'
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
