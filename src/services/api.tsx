@@ -1,4 +1,4 @@
-import { ActionType } from "./actions";
+import { Actions, ActionType } from "./actions";
 import { httpClient } from "./httpClient";
 
 
@@ -10,6 +10,16 @@ interface ApiRequestOptions {
 }
 
 class ApiService {
+
+
+  async handleRegister(user: Record<string, any>) {
+    return this.call(Actions.AUTH_REGISTER, {
+      method: "POST",
+      body: user,
+    });
+  }
+
+ 
   async call<T = any>(
     action: ActionType,
     options: ApiRequestOptions = {}
@@ -24,15 +34,15 @@ class ApiService {
     }
 
     const response = await httpClient.post("/", {
-  action: action,    // opsiyonel, backend handlePacket için
-  body: options.body, // body tek objeye sarılıyor
-}, {
-    headers: {
-    "Content-Type": "multipart/form-data"
-  }
-});
+      action: action,    // opsiyonel, backend handlePacket için
+      body: options.body, // body tek objeye sarılıyor
+    }, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
 
- 
+
     return response.data as T;
   }
 }
