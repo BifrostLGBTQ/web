@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from './components/Footer';
@@ -17,6 +16,7 @@ import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu,
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
+import React, { Suspense, lazy } from "react";
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -250,7 +250,7 @@ function App() {
                     />
                     <span className={`hidden md:block font-medium text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                       }`}>
-                      {user?.nickname || user?.name || 'Alex'}
+                      {user?.displayname || user?.username || 'Unknown'}
                     </span>
                   </motion.button>
                 ) : (

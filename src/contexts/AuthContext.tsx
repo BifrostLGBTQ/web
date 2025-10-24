@@ -1,19 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { User } from '../interfaces/user';
 
-interface User {
-  id: string;
-  name: string;
-  nickname?: string;
-  birthDate?: string;
-  orientation?: string;
-  preferences?: string[];
-  avatar?: string;
-}
+
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (user: User) => void;
+  token:string | null;
+  login: (token:string, user: User) => void;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -22,13 +16,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-
-  const login = (userData: User) => {
+  const [token,setToken] = useState<string | null>(null)
+  const login = (token:string, userData: User) => {
+    setToken(token)
     setUser(userData);
   };
 
   const logout = () => {
     setUser(null);
+    setToken("")
   };
 
   const updateUser = (userData: Partial<User>) => {
@@ -39,11 +35,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <AuthContext.Provider value={{
-      user,
-      isAuthenticated: !!user,
-      login,
-      logout,
-      updateUser
+        user,
+        isAuthenticated: !!token,
+        token,
+        login,
+        logout,
+        updateUser,
     }}>
       {children}
     </AuthContext.Provider>

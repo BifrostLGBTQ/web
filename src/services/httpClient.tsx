@@ -6,7 +6,7 @@ class HttpClient {
   constructor(baseURL: string) {
     this.instance = axios.create({
       baseURL,
-      timeout: 10000,
+      timeout: 10000000,
       headers: {
         "Content-Type": "application/json",
       },

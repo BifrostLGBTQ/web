@@ -231,12 +231,16 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         method: "POST",
         body: user
       })
-        .then(response => console.log("User registered:", response))
+        .then(response => {
+          login(response.token, response.user);
+          onClose();
+          console.log("User registered:", response)
+        })
         .catch(err => console.error("Registration failed:", err));
 
 
-      //login(user);
-      //onClose();
+
+      //
     }
   };
 
