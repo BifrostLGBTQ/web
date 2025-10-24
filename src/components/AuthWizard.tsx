@@ -25,6 +25,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     name: string;
     nickname: string;
     password: string;
+    confirmPassword: string;
     birthDate: string;
     day: string;
     month: string;
@@ -45,6 +46,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     name: '',
     nickname: '',
     password: '',
+    confirmPassword: '',
     birthDate: '',
     day: '',
     month: '',
@@ -359,7 +361,10 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       case 'loginForm':
         return formData.nickname.trim() !== '' && formData.password.trim() !== '';
       case 'nickname':
-        return formData.nickname.trim() !== '' && formData.password.trim() !== '';
+        return formData.nickname.trim() !== '' && 
+               formData.password.trim() !== '' && 
+               formData.confirmPassword.trim() !== '' &&
+               formData.password === formData.confirmPassword;
       case 'birthDate':
         return selectedDate.day && selectedDate.month && selectedDate.year;
       case 'orientation':
@@ -501,6 +506,31 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   }`}
               />
             </div>
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={(e) => updateFormData('confirmPassword', e.target.value)}
+                className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                  }`}
+              />
+              {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+                  Passwords do not match
+                </p>
+              )}
+              {formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && (
+                <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                  ✓ Passwords match
+                </p>
+              )}
+            </div>
           </div>
         );
 
@@ -576,17 +606,19 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
             
-            <motion.button
-              onClick={handleLocationRequest}
-              className={`w-full px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${theme === 'dark'
-                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/25'
-                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/25'
-                }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Allow Location Access
-            </motion.button>
+            {!formData.location && (
+              <motion.button
+                onClick={handleLocationRequest}
+                className={`w-full px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${theme === 'dark'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/25'
+                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/25'
+                  }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Allow Location Access
+              </motion.button>
+            )}
             
             {formData.location && (
               <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'}`}>
