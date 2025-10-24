@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from './components/Footer';
-import Stories from './components/Stories';
-import CreatePost from './components/CreatePost';
-import Post from './components/Post';
 import MatchScreen from './components/MatchScreen';
 import NearbyScreen from './components/NearbyScreen';
 import ProfileScreen from './components/ProfileScreen';
@@ -16,7 +13,6 @@ import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu,
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
-import React, { Suspense, lazy } from "react";
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -25,7 +21,8 @@ function App() {
   const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+
 
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -244,7 +241,7 @@ function App() {
                     transition={{ delay: 0.9, duration: 0.5 }}
                   >
                     <img
-                      src={user?.avatar || "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"}
+                      src={user?.profile_image_url || "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"}
                       alt="Profile"
                       className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
                     />
@@ -441,6 +438,7 @@ function App() {
         isOpen={isAuthWizardOpen}
         onClose={() => setIsAuthWizardOpen(false)}
       />
+      
       {/* LanguageSelector */}
       <LanguageSelector isOpen={isLanguageSelectorOpen} onClose={() => setIsLanguageSelectorOpen(false)} />
 

@@ -19,6 +19,13 @@ class ApiService {
     });
   }
 
+  async handleLogin(credentials: { nickname: string; password: string }) {
+    return this.call(Actions.AUTH_LOGIN, {
+      method: "POST",
+      body: credentials,
+    });
+  }
+
  
   async call<T = any>(
     action: ActionType,

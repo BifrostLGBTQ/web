@@ -5,7 +5,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useApp } from '../contexts/AppContext';
 import { api } from '../services/api.tsx';
-import { Actions } from '../services/actions.tsx';
 
 interface AuthWizardProps {
   isOpen: boolean;
@@ -16,12 +15,16 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const { theme } = useTheme();
   const { login } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-  const { data, loading, defaultLanguage, setDefaultLanguage } = useApp();
+  const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { data, defaultLanguage } = useApp();
 
 
   const [formData, setFormData] = useState<{
     name: string;
     nickname: string;
+    password: string;
     birthDate: string;
     day: string;
     month: string;
@@ -41,6 +44,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   }>({
     name: '',
     nickname: '',
+    password: '',
     birthDate: '',
     day: '',
     month: '',
@@ -71,22 +75,40 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
   const steps = [
     {
+      id: 'auth-mode',
+      title: 'Welcome to Bifrost',
+      subtitle: 'Choose how you\'d like to get started',
+      icon: Heart,
+      field: 'authMode',
+      placeholder: '',
+      type: 'auth-mode'
+    },
+    {
+      id: 'location',
+      title: 'Enable Location Services',
+      subtitle: 'To find amazing people near you and create meaningful connections, we need access to your location.',
+      icon: MapPin,
+      field: 'location',
+      placeholder: '',
+      type: 'location'
+    },
+    {
+      id: 'login-form',
+      title: 'Sign In',
+      subtitle: 'Enter your credentials to continue',
+      icon: User,
+      field: 'loginForm',
+      placeholder: '',
+      type: 'login-form'
+    },
+    {
       id: 'nickname',
-      title: 'Choose a nickname',
-      subtitle: 'How would you like others to call you?',
+      title: 'Create Your Account',
+      subtitle: 'Choose a nickname and secure password',
       icon: User,
       field: 'nickname',
       placeholder: 'Enter your nickname',
       type: 'text'
-    },
-    {
-      id: 'location',
-      title: 'Allow Location Access',
-      subtitle: 'This helps us find nearby matches',
-      icon: MapPin, // istersen başka icon kullanabilirsin, örn: MapPin
-      field: 'location',
-      placeholder: '',
-      type: 'location'
     },
     {
       id: 'birthdate',
@@ -150,15 +172,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const navigateYear = (direction: 'prev' | 'next') => {
-    const newYear = direction === 'prev' ? currentYear - 1 : currentYear + 1;
-    const minYear = new Date().getFullYear() - 80;
-    const maxYear = new Date().getFullYear() - 18;
-
-    if (newYear >= minYear && newYear <= maxYear) {
-      setCurrentYear(newYear);
-    }
-  };
 
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
@@ -210,9 +223,38 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   };
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep === 0) {
+      // Auth mode seçildikten sonra lokasyon adımına git
+      setCurrentStep(1);
+    } else if (currentStep === 1) {
+      // Lokasyon adımından sonra auth mode'a göre yönlendir
+      if (authMode === 'login') {
+        setCurrentStep(2); // Login form
+      } else {
+        setCurrentStep(3); // Register form (nickname)
+      }
+    } else if (currentStep === 2 && authMode === 'login') {
+      // Login işlemi
+      setIsLoading(true);
+      setError('');
+      api.handleLogin({
+        nickname: formData.nickname,
+        password: formData.password
+      })
+      .then(response => {
+        login(response.token, response.user);
+        onClose();
+      })
+      .catch(err => {
+        setError(err.response?.data?.message || 'Login failed. Please try again.');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+    } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      // Register işlemi
       const birthDate = selectedDate.day && selectedDate.month && selectedDate.year
         ? `${selectedDate.year}-${selectedDate.month.toString().padStart(2, '0')}-${selectedDate.day.toString().padStart(2, '0')}`
         : '';
@@ -220,20 +262,26 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       const user = {
         name: formData.nickname,
         nickname: formData.nickname,
+        password: formData.password,
         birthDate: birthDate,
         location: formData.location,
         orientation: formData.orientation,
         fantasies: formData.fantasies
       };
 
-
+      setIsLoading(true);
+      setError('');
       api.handleRegister(user)
         .then(response => {
           login(response.token, response.user);
           onClose();
-          console.log("User registered:", response)
         })
-        .catch(err => console.error("Registration failed:", err));
+        .catch(err => {
+          setError(err.response?.data?.message || 'Registration failed. Please try again.');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
   };
 
@@ -265,16 +313,55 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   };
 
   const currentStepData = steps[currentStep];
-  const isLastStep = currentStep === steps.length - 1;
+  
+  // Login için step sayısı: auth-mode (0) + location (1) + login-form (2) = 3
+  // Register için step sayısı: auth-mode (0) + location (1) + nickname (3) + birthdate (4) + orientation (5) + preferences (6) = 6
+  const getTotalSteps = () => {
+    if (authMode === 'login') {
+      return 3; // auth-mode, location, login-form
+    } else if (authMode === 'register') {
+      return 6; // auth-mode, location, nickname, birthdate, orientation, preferences
+    }
+    return steps.length;
+  };
+  
+  const getCurrentStepIndex = () => {
+    if (authMode === 'login') {
+      if (currentStep === 0) return 0; // auth-mode
+      if (currentStep === 1) return 1; // location
+      if (currentStep === 2) return 2; // login-form
+    } else if (authMode === 'register') {
+      if (currentStep === 0) return 0; // auth-mode
+      if (currentStep === 1) return 1; // location
+      if (currentStep === 3) return 2; // nickname
+      if (currentStep === 4) return 3; // birthdate
+      if (currentStep === 5) return 4; // orientation
+      if (currentStep === 6) return 5; // preferences
+    }
+    return currentStep;
+  };
+  
+  const isLastStep = () => {
+    if (authMode === 'login') {
+      return currentStep === 2; // login-form
+    } else if (authMode === 'register') {
+      return currentStep === 6; // preferences
+    }
+    return currentStep === steps.length - 1;
+  };
 
   const canProceed = () => {
     switch (currentStepData.field) {
-      case 'nickname':
-        return formData.nickname.trim() !== '';
-      case 'birthDate':
-        return selectedDate.day && selectedDate.month && selectedDate.year;
+      case 'authMode':
+        return authMode !== null;
       case 'location':
         return !!formData.location;
+      case 'loginForm':
+        return formData.nickname.trim() !== '' && formData.password.trim() !== '';
+      case 'nickname':
+        return formData.nickname.trim() !== '' && formData.password.trim() !== '';
+      case 'birthDate':
+        return selectedDate.day && selectedDate.month && selectedDate.year;
       case 'orientation':
         return formData.orientation !== '';
       case 'preferences':
@@ -286,19 +373,135 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
   const renderFormField = () => {
     switch (currentStepData.type) {
+      case 'auth-mode':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <motion.button
+                onClick={() => setAuthMode('login')}
+                className={`p-6 rounded-2xl border-2 text-center transition-all ${
+                  authMode === 'login'
+                    ? theme === 'dark'
+                      ? 'bg-white text-gray-900 border-white shadow-md'
+                      : 'bg-gray-900 text-white border-gray-900 shadow-md'
+                    : theme === 'dark'
+                      ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <User className="w-8 h-8 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold mb-2">I have an account</h3>
+                <p className="text-sm opacity-80">Sign in with your existing credentials</p>
+              </motion.button>
+
+              <motion.button
+                onClick={() => setAuthMode('register')}
+                className={`p-6 rounded-2xl border-2 text-center transition-all ${
+                  authMode === 'register'
+                    ? theme === 'dark'
+                      ? 'bg-white text-gray-900 border-white shadow-md'
+                      : 'bg-gray-900 text-white border-gray-900 shadow-md'
+                    : theme === 'dark'
+                      ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Heart className="w-8 h-8 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Create account</h3>
+                <p className="text-sm opacity-80">Join our community and find matches</p>
+              </motion.button>
+            </div>
+          </div>
+        );
+
+      case 'login-form':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Nickname
+              </label>
+              <input
+                type="text"
+                placeholder="Enter your nickname"
+                value={formData.nickname}
+                onChange={(e) => updateFormData('nickname', e.target.value)}
+                className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                  }`}
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => updateFormData('password', e.target.value)}
+                className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                  }`}
+              />
+            </div>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-2xl border ${theme === 'dark' 
+                  ? 'bg-red-900/20 border-red-700 text-red-300' 
+                  : 'bg-red-50 border-red-200 text-red-700'
+                  }`}
+              >
+                <p className="text-sm font-medium">{error}</p>
+              </motion.div>
+            )}
+          </div>
+        );
+
       case 'text':
         return (
-          <input
-            type="text"
-            placeholder={currentStepData.placeholder}
-            value={formData[currentStepData.field as keyof typeof formData] as string}
-            onChange={(e) => updateFormData(currentStepData.field, e.target.value)}
-            className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
-              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-              : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
-              }`}
-            autoFocus
-          />
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Nickname
+              </label>
+              <input
+                type="text"
+                placeholder="Enter your nickname"
+                value={formData.nickname}
+                onChange={(e) => updateFormData('nickname', e.target.value)}
+                className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                  }`}
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => updateFormData('password', e.target.value)}
+                className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                  }`}
+              />
+            </div>
+          </div>
         );
 
       case 'location':
@@ -366,25 +569,34 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           }
         };
         return (
-          <div className="space-y-4">
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Please allow location access to improve your experience.
-            </p>
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
+                <LocateFixed className={`w-8 h-8 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+              </div>
+            </div>
+            
             <motion.button
               onClick={handleLocationRequest}
-              className={`w-full px-4 py-3 rounded-2xl font-medium transition-colors ${theme === 'dark'
-                ? 'bg-white text-gray-900 hover:bg-gray-100'
-                : 'bg-gray-900 text-white hover:bg-gray-800'
+              className={`w-full px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${theme === 'dark'
+                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/25'
+                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/25'
                 }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              Allow Location
+              Allow Location Access
             </motion.button>
+            
             {formData.location && (
-              <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Location saved: {formData.location.lat.toFixed(2)}, {formData.location.lng.toFixed(2)}
-              </p>
+              <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'}`}>
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full mr-3 ${theme === 'dark' ? 'bg-green-400' : 'bg-green-500'}`}></div>
+                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
+                    Location saved: {formData.location.display}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         );
@@ -392,8 +604,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         // Calculate year range for decade navigation
         const minYear = new Date().getFullYear() - 80;
         const maxYear = new Date().getFullYear() - 18;
-        // Month abbreviations
-        const monthAbbrs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         // Decade block for year view
         const decadeYears: number[] = [];
@@ -715,19 +925,21 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className={`w-full max-w-md rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+          className={`w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' 
+            ? 'bg-gray-900 border-gray-800' 
+            : 'bg-white border-gray-200'
             }`}
         >
 
-          <div className="flex items-center justify-between p-6 pb-4">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-800">
 
             {/* Progress Bar */}
-            <div className="flex-1 flex space-x-2 mr-4">
-              {steps.map((_, index) => (
+            <div className="flex-1 flex space-x-2 mr-6">
+              {Array.from({ length: getTotalSteps() }, (_, index) => (
                 <div
                   key={index}
-                  className={`h-1 flex-1 rounded-full transition-colors ${index <= currentStep
-                    ? theme === 'dark' ? 'bg-white' : 'bg-gray-900'
+                  className={`h-2 flex-1 rounded-full transition-all duration-300 ${index <= getCurrentStepIndex()
+                    ? theme === 'dark' ? 'bg-white shadow-sm' : 'bg-gray-900 shadow-sm'
                     : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
                     }`}
                 />
@@ -737,10 +949,12 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             {/* X Button */}
             <button
               onClick={onClose}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${theme === 'dark' ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${theme === 'dark' 
+                ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300' 
+                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                 }`}
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
           </div>
@@ -750,22 +964,27 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             key={currentStep}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-center px-6"
+            className="text-center px-8 py-6"
           >
-            <currentStepData.icon className={`w-12 h-12 mx-auto mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`} />
-            <h2 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+            <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center ${theme === 'dark' 
+              ? 'bg-gray-800' 
+              : 'bg-gray-100'
+              }`}>
+              <currentStepData.icon className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`} />
+            </div>
+            <h2 className={`text-2xl font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
               {currentStepData.title}
             </h2>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            <p className={`text-base leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               }`}>
               {currentStepData.subtitle}
             </p>
           </motion.div>
 
           {/* Form */}
-          <div className="px-6 pb-6">
+          <div className="px-8 pb-8">
             <motion.div
               key={currentStep}
               initial={{ opacity: 0, x: 20 }}
@@ -776,44 +995,54 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             </motion.div>
 
             {/* Actions */}
-            <div className="flex space-x-3">
+            <div className="flex space-x-4">
               {currentStep > 0 && (
                 <motion.button
                   onClick={handleBack}
-                  className={`flex items-center justify-center px-4 py-3 rounded-2xl font-medium transition-colors ${theme === 'dark'
-                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`flex items-center justify-center px-6 py-4 rounded-2xl font-semibold transition-all duration-200 ${theme === 'dark'
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                     }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-5 h-5 mr-2" />
                   Back
                 </motion.button>
               )}
 
               <motion.button
                 onClick={handleNext}
-                disabled={!canProceed()}
-                className={`flex-1 flex items-center justify-center px-6 py-3 rounded-2xl font-medium transition-all ${canProceed()
+                disabled={!canProceed() || isLoading}
+                className={`flex-1 flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${canProceed() && !isLoading
                   ? theme === 'dark'
-                    ? 'bg-white text-gray-900 hover:bg-gray-100'
-                    : 'bg-gray-900 text-white hover:bg-gray-800'
+                    ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-white/25'
+                    : 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-gray-900/25'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
-                whileHover={canProceed() ? { scale: 1.02 } : {}}
-                whileTap={canProceed() ? { scale: 0.98 } : {}}
+                whileHover={canProceed() && !isLoading ? { scale: 1.02 } : {}}
+                whileTap={canProceed() && !isLoading ? { scale: 0.98 } : {}}
               >
-                {isLastStep ? 'Complete' : 'Next'}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className={`w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2`} />
+                    {authMode === 'login' ? 'Signing in...' : 'Creating account...'}
+                  </div>
+                ) : (
+                  <>
+                    {currentStep === 2 && authMode === 'login' ? 'Sign In' : 
+                     isLastStep() ? 'Complete Registration' : 'Continue'}
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
               </motion.button>
 
-              {currentStepData.field === 'preferences' && !isLastStep && (
+              {currentStepData.field === 'preferences' && !isLastStep() && (
                 <motion.button
                   onClick={handleSkip}
-                  className={`px-4 py-3 rounded-2xl font-medium transition-colors ${theme === 'dark'
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  className={`px-6 py-4 rounded-2xl font-semibold transition-all duration-200 ${theme === 'dark'
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
                     }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
