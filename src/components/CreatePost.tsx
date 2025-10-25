@@ -18,7 +18,47 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
+import { ToolbarContext } from '../contexts/ToolbarContext';
 import L from 'leaflet';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import {AutoFocusPlugin} from '@lexical/react/LexicalAutoFocusPlugin';
+import {HistoryPlugin} from '@lexical/react/LexicalHistoryPlugin';
+
+import {HashtagPlugin} from '@lexical/react/LexicalHashtagPlugin';
+import {ListPlugin} from '@lexical/react/LexicalListPlugin';
+import {LinkPlugin} from '@lexical/react/LexicalLinkPlugin';
+
+import {HashtagNode} from '@lexical/hashtag';
+import {HeadingNode, QuoteNode} from '@lexical/rich-text';
+import {ListNode, ListItemNode} from '@lexical/list';
+import {LinkNode, AutoLinkNode} from '@lexical/link';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import ToolbarPlugin from './Lexical/plugins/ToolbarPlugin';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+
+// ToolbarPlugin wrapper component
+const ToolbarPluginWrapper = () => {
+  const [editor] = useLexicalComposerContext();
+  const [activeEditor, setActiveEditor] = useState(editor);
+  const [isLinkEditMode, setIsLinkEditMode] = useState(false);
+
+  // Use isLinkEditMode to avoid warning
+  console.log('Link edit mode:', isLinkEditMode);
+
+  return (
+    <ToolbarContext>
+      <ToolbarPlugin
+        editor={editor}
+        activeEditor={activeEditor}
+        setActiveEditor={setActiveEditor}
+        setIsLinkEditMode={setIsLinkEditMode}
+      />
+    </ToolbarContext>
+  );
+};
 
 // Popular LGBTQ+ friendly locations
 const popularLocations = [
@@ -136,12 +176,9 @@ const CreatePost: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    setPostText(text);
-    setCharCount(text.length);
-  };
 
+
+  
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const imageFiles = files.filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
@@ -461,11 +498,59 @@ const CreatePost: React.FC = () => {
     { value: 'private', icon: Lock, label: 'Private', description: 'Only you can see this post' },
   ];
 
+
+  
+  
+  const editorConfig = {
+    namespace: "TailwindRichText",
+    editable: true,
+    nodes:[HashtagNode, HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, AutoLinkNode],
+    theme: {
+      paragraph: `mb-2 text-base ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+      heading: {
+        h1: `text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        h2: `text-2xl font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        h3: `text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+      },
+      list: {
+        nested: {
+          listitem: `list-none`,
+        },
+        ol: `list-decimal list-inside mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        ul: `list-disc list-inside mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        listitem: `mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+      },
+      quote: `border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-2 my-2 italic ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`,
+      link: `${theme === 'dark' ? 'text-white underline' : 'text-gray-900 underline'}`,
+      text: {
+        bold: "font-semibold",
+        italic: "italic",
+        underline: "underline",
+        strikethrough: "line-through",
+      },
+    },
+    onError(error: Error) {
+      console.error("Lexical Error:", error);
+    },
+  };
+  
+
+
+  const onChange = (editorState: any) => {
+    editorState.read(() => {
+      const text = editorState.toJSON();
+      console.log('Editor content:', text);
+    });
+  };
+  
+
+
+
   return (
     <>
       {/* Ultra-Professional Create Post Component */}
       <motion.div
-        className={`relative rounded-3xl shadow-lg mb-6 overflow-hidden transition-all duration-500 w-full max-w-full ${
+        className={` w-full rounded-3xl shadow-lg mb-6 transition-all duration-500 w-full max-w-full ${
           theme === 'dark'
             ? 'bg-gray-900/95 backdrop-blur-xl shadow-black/20'
             : 'bg-white/95 backdrop-blur-xl shadow-gray-900/10'
@@ -494,6 +579,7 @@ const CreatePost: React.FC = () => {
               }`}>
                 Create Post
               </h2>
+
             </div>
             
             {/* Audience Selector */}
@@ -516,7 +602,7 @@ const CreatePost: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="px-6 py-4 w-full max-w-full">
+        <div className="px-4 py-3 w-full max-w-full">
           <div className="flex space-x-4 w-full max-w-full">
             {/* Enhanced Avatar */}
             <div className="flex-shrink-0">
@@ -539,27 +625,48 @@ const CreatePost: React.FC = () => {
             </div>
 
             {/* Content Input Area */}
-            <div className="flex-1 min-w-0 w-full max-w-full overflow-hidden">
+            <div className="flex-1 min-w-0 w-full max-w-full">
               {/* Professional Text Area */}
               <div className="relative w-full max-w-full">
-                <textarea
-                  value={postText}
-                  onChange={handleTextChange}
-                  placeholder="What's on your mind? Share your thoughts, experiences, or ask a question..."
-                  className={`w-full max-w-full resize-none border-none outline-none text-base sm:text-lg leading-relaxed bg-transparent transition-all duration-300 placeholder:transition-colors scroll-none overflow-hidden ${
-                    theme === 'dark'
-                      ? 'text-white placeholder-gray-500 focus:placeholder-gray-600'
-                      : 'text-gray-900 placeholder-gray-500 focus:placeholder-gray-400'
-                  }`}
-                  rows={isExpanded ? 5 : 3}
-                  style={{
-                    minHeight: isExpanded ? '140px' : '80px',
-                    maxHeight: '300px',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word'
-                  }}
-                  onFocus={() => setIsExpanded(true)}
-                />
+
+
+       
+              <div className="w-full max-w-full">
+                <LexicalComposer initialConfig={editorConfig}>
+                  <div className="relative z-40">
+                    <HashtagPlugin/>
+                    <ListPlugin/>
+                    <LinkPlugin/>
+                  
+                    <ToolbarPluginWrapper />
+
+                    <RichTextPlugin
+                      contentEditable={
+                        <ContentEditable 
+                          className="editor-input lexical-editor"
+                          style={{
+                            minHeight: isExpanded ? '140px' : '80px',
+                            maxHeight: '300px',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word'
+                          }}
+                        />
+                      }
+                      placeholder={
+                        <div className="editor-placeholder relative mt-[40px]">
+                          What's on your mind? Share your thoughts, experiences, or ask a question...
+                        </div>
+                      }
+                      ErrorBoundary={LexicalErrorBoundary}
+                    />
+                    <OnChangePlugin onChange={onChange} />
+                    <AutoFocusPlugin />
+                    <HistoryPlugin />
+                  </div>
+                </LexicalComposer>
+              </div>
+
+
                 
                 {/* Floating Character Counter */}
                 <AnimatePresence>

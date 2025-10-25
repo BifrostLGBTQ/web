@@ -13,6 +13,7 @@ import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu,
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
+import CreatePost from './components/CreatePost.tsx';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -423,6 +424,7 @@ function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
+            <CreatePost/>
             {renderScreen()}
           </motion.div>
         </AnimatePresence>
