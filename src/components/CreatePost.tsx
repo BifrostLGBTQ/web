@@ -14,7 +14,9 @@ import {
   Plus,
   Clock,
   Navigation,
-  Calendar
+  Calendar,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
@@ -169,6 +171,7 @@ const CreatePost: React.FC = () => {
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState('smileys');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const { theme } = useTheme();
   const maxChars = 500;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -187,6 +190,10 @@ const CreatePost: React.FC = () => {
 
   const removeImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
   };
 
   const handleSubmit = async () => {
@@ -548,27 +555,70 @@ const CreatePost: React.FC = () => {
 
   return (
     <>
+      {/* Full Screen Overlay */}
+      <AnimatePresence>
+        {isFullScreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            onClick={toggleFullScreen}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Ultra-Professional Create Post Component */}
       <motion.div
-        className={` w-full rounded-3xl shadow-lg mb-6 transition-all duration-500 w-full max-w-full ${
+        className={`w-full rounded-3xl shadow-lg transition-all duration-500 ${
+          isFullScreen 
+            ? 'fixed inset-0 z-50 max-w-none max-h-none rounded-none mb-0'
+            : 'w-full max-w-full mb-6'
+        } ${
           theme === 'dark'
             ? 'bg-gray-900/95 backdrop-blur-xl shadow-black/20'
             : 'bg-white/95 backdrop-blur-xl shadow-gray-900/10'
         } ${isExpanded ? 'shadow-xl' : ''}`}
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
+        animate={{ 
+          opacity: 1, 
+          y: 0, 
+          scale: 1,
+          width: isFullScreen ? '100%' : 'auto',
+          height: isFullScreen ? '100%' : 'auto'
+        }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        whileHover={{
+        whileHover={!isFullScreen ? {
           y: -2,
           transition: { duration: 0.3 }
-        }}
+        } : {}}
       >
         {/* Professional Header */}
-        <div className={`px-6 py-4 border-b ${
+        <div className={`${isFullScreen ? 'px-6 py-3' : 'px-6 py-4'} border-b ${
           theme === 'dark' ? 'border-gray-800/50' : 'border-gray-200/50'
         }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
+              {/* Avatar in Header */}
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <img
+                    src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2"
+                    alt="Your avatar"
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover ring-2 transition-all duration-300 ${
+                      theme === 'dark'
+                        ? 'ring-gray-700 hover:ring-gray-600'
+                        : 'ring-gray-200 hover:ring-gray-300'
+                    }`}
+                  />
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 ${
+                    theme === 'dark'
+                      ? 'bg-green-500 border-gray-900'
+                      : 'bg-green-500 border-white'
+                  }`} />
+                </div>
+              </div>
+              
               <div className={`w-2 h-8 rounded-full bg-gradient-to-b ${
                 theme === 'dark' 
                   ? 'from-gray-600 to-gray-700' 
@@ -579,53 +629,57 @@ const CreatePost: React.FC = () => {
               }`}>
                 Create Post
               </h2>
-
             </div>
             
-            {/* Audience Selector */}
-            <motion.button
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all duration-300 ${
-                theme === 'dark' 
-                  ? 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white' 
-                  : 'bg-gray-50/50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-              onClick={() => setIsExpanded(true)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {audienceOptions.find(opt => opt.value === audience)?.icon && 
-                React.createElement(audienceOptions.find(opt => opt.value === audience)!.icon, { className: "w-4 h-4" })
-              }
-              <span className="text-sm font-medium">{audienceOptions.find(opt => opt.value === audience)?.label}</span>
-            </motion.button>
+            <div className="flex items-center space-x-3">
+              {/* Audience Selector */}
+              <motion.button
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all duration-300 ${
+                  theme === 'dark' 
+                    ? 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white' 
+                    : 'bg-gray-50/50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+                onClick={() => setIsExpanded(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {audienceOptions.find(opt => opt.value === audience)?.icon && 
+                  React.createElement(audienceOptions.find(opt => opt.value === audience)!.icon, { className: "w-4 h-4" })
+                }
+                <span className="text-sm font-medium">{audienceOptions.find(opt => opt.value === audience)?.label}</span>
+              </motion.button>
+
+              {/* Full Screen Toggle Button */}
+              <motion.button
+                onClick={toggleFullScreen}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                  isFullScreen
+                    ? theme === 'dark'
+                      ? 'bg-white/20 text-white border border-white/30'
+                      : 'bg-black/10 text-black border border-black/20'
+                    : theme === 'dark'
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                title={isFullScreen ? "Exit full screen" : "Enter full screen"}
+              >
+                {isFullScreen ? (
+                  <Minimize2 className="w-5 h-5" />
+                ) : (
+                  <Maximize2 className="w-5 h-5" />
+                )}
+              </motion.button>
+            </div>
           </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="px-4 py-3 w-full max-w-full">
-          <div className="flex space-x-4 w-full max-w-full">
-            {/* Enhanced Avatar */}
-            <div className="flex-shrink-0">
-              <div className="relative">
-                <img
-                  src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2"
-                  alt="Your avatar"
-                  className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-2xl object-cover ring-2 transition-all duration-300 ${
-                    theme === 'dark'
-                      ? 'ring-gray-700 hover:ring-gray-600'
-                      : 'ring-gray-200 hover:ring-gray-300'
-                  }`}
-                />
-                <div className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 ${
-                  theme === 'dark'
-                    ? 'bg-green-500 border-gray-900'
-                    : 'bg-green-500 border-white'
-                }`} />
-              </div>
-            </div>
-
+        <div className={`${isFullScreen ? 'px-6 py-2' : 'px-4 py-3'} w-full max-w-full`}>
+          <div className="w-full max-w-full">
             {/* Content Input Area */}
-            <div className="flex-1 min-w-0 w-full max-w-full">
+            <div className="w-full max-w-full">
               {/* Professional Text Area */}
               <div className="relative w-full max-w-full">
 
@@ -633,7 +687,7 @@ const CreatePost: React.FC = () => {
        
               <div className="w-full max-w-full">
                 <LexicalComposer initialConfig={editorConfig}>
-                  <div className="relative z-40">
+                  <div className="relative">
                     <HashtagPlugin/>
                     <ListPlugin/>
                     <LinkPlugin/>
@@ -645,15 +699,15 @@ const CreatePost: React.FC = () => {
                         <ContentEditable 
                           className="editor-input lexical-editor"
                           style={{
-                            minHeight: isExpanded ? '140px' : '80px',
-                            maxHeight: '300px',
+                            minHeight: isFullScreen ? '70dvh' : isExpanded ? '140px' : '80px',
+                            maxHeight: isFullScreen ? '70dvh' : '50dvh',
                             wordWrap: 'break-word',
                             overflowWrap: 'break-word'
                           }}
                         />
                       }
                       placeholder={
-                        <div className="editor-placeholder relative mt-[40px]">
+                        <div className="pt-[32px] editor-placeholder w-full h-full text-center flex justify-center items-center">
                           What's on your mind? Share your thoughts, experiences, or ask a question...
                         </div>
                       }
@@ -733,7 +787,7 @@ const CreatePost: React.FC = () => {
         </div>
 
         {/* Professional Attachments Section */}
-        <div className='w-full p-4'>
+        <div className={`w-full ${isFullScreen ? 'px-6 py-2' : 'p-4'}`}>
         <AnimatePresence>
           {(selectedImages.length > 0 || location || isPollActive || isEventActive || isEmojiPickerOpen || isLocationPickerOpen) && (
             <motion.div
@@ -1464,7 +1518,7 @@ const CreatePost: React.FC = () => {
         </div>
 
         {/* Professional Action Bar */}
-        <div className={`flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t w-full max-w-full ${
+        <div className={`flex items-center justify-between ${isFullScreen ? 'px-6 py-3' : 'px-4 sm:px-6 py-3 sm:py-4'} border-t w-full max-w-full ${
           theme === 'dark' ? 'border-gray-800/50' : 'border-gray-200/50'
         }`}>
           {/* Enhanced Action Buttons */}

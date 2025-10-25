@@ -337,6 +337,10 @@ export function formatStrikethrough(editor: LexicalEditor): void {
   editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough');
 }
 
+export function formatHighlight(editor: LexicalEditor): void {
+  editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'highlight');
+}
+
 export function formatUppercase(editor: LexicalEditor): void {
   editor.update(() => {
     const selection = $getSelection();

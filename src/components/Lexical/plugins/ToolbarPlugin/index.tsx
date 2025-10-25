@@ -79,7 +79,8 @@ import {
   CaseUpper,
   List,
   ListOrdered,
-  ListTree
+  ListTree,
+  PenTool
 } from 'lucide-react';
 
 import useModal from '../../hooks/useModal';
@@ -101,6 +102,7 @@ import {
   formatUppercase,
   formatLowercase,
   formatCapitalize,
+  formatHighlight,
 } from './utils';
 import {useToolbarState, blockTypeToBlockName as contextBlockTypeToBlockName} from '../../../../contexts/ToolbarContext';
 
@@ -231,43 +233,35 @@ function ColorPicker({
   title: string;
   icon: React.ComponentType<{ className?: string }>;
 }): JSX.Element {
-  // Pride flag colors organized by theme
+  // Pride flag colors from CSS variables
   const prideColors = [
     // Gay Pride Flag
-    { color: '#E40303', name: 'Red' },
-    { color: '#FF8C00', name: 'Orange' },
-    { color: '#FFED00', name: 'Yellow' },
-    { color: '#008026', name: 'Green' },
-    { color: '#004CFF', name: 'Blue' },
-    { color: '#732982', name: 'Purple' },
+    { color: '#d04b36', name: 'Gay Red' },
+    { color: '#e36511', name: 'Gay Orange' },
+    { color: '#ffba00', name: 'Gay Yellow' },
+    { color: '#00b180', name: 'Gay Green' },
+    { color: '#147aab', name: 'Gay Blue' },
+    { color: '#675997', name: 'Gay Indigo' },
     
     // Transgender Pride Flag
-    { color: '#5BCEFA', name: 'Light Blue' },
-    { color: '#F5A9B8', name: 'Pink' },
-    { color: '#FFFFFF', name: 'White' },
-    { color: '#F5A9B8', name: 'Pink' },
-    { color: '#5BCEFA', name: 'Light Blue' },
+    { color: '#4fa5c2', name: 'Trans Blue' },
+    { color: '#f587ac', name: 'Trans Pink' },
+    { color: '#f9fbfc', name: 'Trans White' },
     
-    // Additional Pride Colors
-    { color: '#000000', name: 'Black' },
-    { color: '#8B4513', name: 'Brown' },
-    { color: '#FF69B4', name: 'Hot Pink' },
-    { color: '#00CED1', name: 'Dark Turquoise' },
-    { color: '#FFD700', name: 'Gold' },
-    { color: '#C0C0C0', name: 'Silver' },
+    // Bisexual Pride Flag
+    { color: '#c1357e', name: 'Bi Pink' },
+    { color: '#675997', name: 'Bi Purple' },
+    { color: '#0655a9', name: 'Bi Blue' },
     
-    // Classic Colors
-    { color: '#FF0000', name: 'Classic Red' },
-    { color: '#00FF00', name: 'Classic Green' },
-    { color: '#0000FF', name: 'Classic Blue' },
-    { color: '#FFFF00', name: 'Classic Yellow' },
-    { color: '#FF00FF', name: 'Magenta' },
-    { color: '#00FFFF', name: 'Cyan' },
-    { color: '#FFA500', name: 'Orange' },
-    { color: '#800080', name: 'Purple' },
-    { color: '#808080', name: 'Gray' },
+    // Pansexual Pride Flag
+    { color: '#fa5e5b', name: 'Pan Magenta' },
+    { color: '#ffba00', name: 'Pan Yellow' },
+    { color: '#4fa5c2', name: 'Pan Blue' },
+    
+    // Additional Colors
     { color: '#000000', name: 'Black' },
-    { color: '#FFFFFF', name: 'White' }
+    { color: '#ffffff', name: 'White' },
+    { color: '#808080', name: 'Gray' }
   ];
 
   return (
@@ -289,7 +283,7 @@ function ColorPicker({
         />
         
         {/* Pride Colors */}
-        {prideColors.slice(0, 8).map((colorObj) => (
+        {prideColors.slice(0, 12).map((colorObj) => (
           <motion.button
             key={colorObj.color}
             onClick={() => onChange(colorObj.color)}
@@ -919,6 +913,21 @@ export default function ToolbarPlugin({
               title="Capitalize"
             >
               <CaseSensitive className="w-5 h-5" />
+            </motion.button>
+
+            <motion.button
+            disabled={!isEditable}
+            onClick={() => formatHighlight(activeEditor)}
+              className={`p-2 rounded-lg transition-all duration-200 h-10 ${
+                toolbarState.isHighlight
+                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-lg'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg'
+              }`}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.88 }}
+              title="Highlight"
+            >
+              <PenTool className="w-5 h-5" />
             </motion.button>
           </div>
 

@@ -621,3 +621,8 @@ body,
   @apply text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200;
 }
 
+/* Highlight styles */
+.lexical-editor mark {
+  @apply bg-yellow-200 dark:bg-yellow-800 px-1 py-0.5 rounded;
+}
+

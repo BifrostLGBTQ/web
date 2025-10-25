@@ -164,7 +164,7 @@ const HomeScreen: React.FC = () => {
 
           {/* Main Content Area */}
           <div className="lg:col-span-6">
-            <div className="space-y-6">
+            <div className="w-full">
               {/* Create Post */}
               <CreatePost />
 
