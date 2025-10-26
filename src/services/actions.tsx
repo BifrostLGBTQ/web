@@ -16,6 +16,9 @@ export const Actions = {
   // USER
   USER_UPDATE_PROFILE: "user.update_profile",
   USER_FETCH_PROFILE: "user.fetch_profile",
+
+  POST_CREATE : "post.create",
+
 } as const;
 
 export type ActionType = typeof Actions[keyof typeof Actions];

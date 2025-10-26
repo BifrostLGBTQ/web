@@ -21,6 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { ToolbarContext } from '../contexts/ToolbarContext';
+import { api } from '../services/api';
 import L from 'leaflet';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -40,15 +41,21 @@ import {LinkNode, AutoLinkNode} from '@lexical/link';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import ToolbarPlugin from './Lexical/plugins/ToolbarPlugin';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
+import { $getRoot } from 'lexical';
 
 // ToolbarPlugin wrapper component
-const ToolbarPluginWrapper = () => {
+const ToolbarPluginWrapper = ({ setEditorInstance }: { setEditorInstance: (editor: any) => void }) => {
   const [editor] = useLexicalComposerContext();
   const [activeEditor, setActiveEditor] = useState(editor);
   const [isLinkEditMode, setIsLinkEditMode] = useState(false);
 
-  // Use isLinkEditMode to avoid warning
-  console.log('Link edit mode:', isLinkEditMode);
+  // Set editor instance when available
+  React.useEffect(() => {
+    if (editor && setEditorInstance) {
+      setEditorInstance(editor);
+    }
+  }, [editor, setEditorInstance]);
 
   return (
     <ToolbarContext>
@@ -152,6 +159,9 @@ const popularLocations = [
 
 const CreatePost: React.FC = () => {
   const [postText, setPostText] = useState('');
+  const [editorContent, setEditorContent] = useState('');
+  const [hasEditorContent, setHasEditorContent] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [audience] = useState<'public' | 'community' | 'private'>('public');
@@ -197,25 +207,122 @@ const CreatePost: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!postText.trim() && selectedImages.length === 0) return;
+    // Check if there's any content to post
+    if (!hasEditorContent && selectedImages.length === 0) return;
     
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Reset form
-    setPostText('');
-    setSelectedImages([]);
-    setIsExpanded(false);
-    setIsPollActive(false);
-    setIsEventActive(false);
-    setEventTitle('');
-    setEventDescription('');
-    setEventDate('');
-    setEventTime('');
-    setPollOptions(['', '']);
-    setCharCount(0);
-    setLocation(null);
-    setIsSubmitting(false);
+    // Get HTML content, hashtags, and mentions from editor if available
+    let htmlContent = '';
+    let hashtags: string[] = [];
+    let mentions: string[] = [];
+    
+    if (editorInstance) {
+      editorInstance.getEditorState().read(() => {
+        const root = $getRoot();
+        htmlContent = $generateHtmlFromNodes(editorInstance, null);
+        
+        // Extract hashtags and mentions from the editor
+        const extractHashtags = (node: any): string[] => {
+          const tags: string[] = [];
+          
+          if (node.getType && node.getType() === 'hashtag') {
+            const textContent = node.getTextContent();
+            if (textContent && textContent.startsWith('#')) {
+              tags.push(textContent);
+            }
+          }
+          
+          // Recursively search for hashtags in children
+          if (node.getChildren) {
+            for (const child of node.getChildren()) {
+              tags.push(...extractHashtags(child));
+            }
+          }
+          
+          return tags;
+        };
+        
+        const extractMentions = (node: any): string[] => {
+          const mentions: string[] = [];
+          
+          if (node.getType && node.getType() === 'mention') {
+            const mentionName = (node as any).__mention || node.getTextContent();
+            if (mentionName) {
+              mentions.push(mentionName);
+            }
+          }
+          
+          // Recursively search for mentions in children
+          if (node.getChildren) {
+            for (const child of node.getChildren()) {
+              mentions.push(...extractMentions(child));
+            }
+          }
+          
+          return mentions;
+        };
+        
+        hashtags = extractHashtags(root);
+        mentions = extractMentions(root);
+      });
+    }
+    
+    // Prepare post data
+    const postData = {
+      content: htmlContent || editorContent,
+      hashtags: hashtags,
+      mentions: mentions,
+      images: selectedImages,
+      audience: audience,
+      poll: isPollActive ? {
+        options: pollOptions,
+        duration: pollDuration
+      } : null,
+      event: isEventActive ? {
+        title: eventTitle,
+        description: eventDescription,
+        date: eventDate,
+        time: eventTime
+      } : null,
+      location: location
+    };
+    
+    try {
+      // Call API to create post
+      console.log('Posting data:', postData);
+      
+      // Call actual API
+      await api.handleCreatePost(postData);
+      
+      // Reset form
+      setPostText('');
+      setEditorContent('');
+      setHasEditorContent(false);
+      setSelectedImages([]);
+      setIsExpanded(false);
+      setIsPollActive(false);
+      setIsEventActive(false);
+      setEventTitle('');
+      setEventDescription('');
+      setEventDate('');
+      setEventTime('');
+      setPollOptions(['', '']);
+      setCharCount(0);
+      setLocation(null);
+      
+      // Clear editor content
+      if (editorInstance) {
+        editorInstance.update(() => {
+          const root = $getRoot();
+          root.clear();
+        });
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Location functionality
@@ -545,8 +652,13 @@ const CreatePost: React.FC = () => {
 
   const onChange = (editorState: any) => {
     editorState.read(() => {
-      const text = editorState.toJSON();
-      console.log('Editor content:', text);
+      const root = $getRoot();
+      const plainText = root.getTextContent();
+      
+      setEditorContent(plainText);
+      setHasEditorContent(plainText.trim().length > 0);
+      
+      console.log('Editor content:', plainText);
     });
   };
   
@@ -692,7 +804,7 @@ const CreatePost: React.FC = () => {
                     <ListPlugin/>
                     <LinkPlugin/>
                   
-                    <ToolbarPluginWrapper />
+                    <ToolbarPluginWrapper setEditorInstance={setEditorInstance} />
 
                     <RichTextPlugin
                       contentEditable={
@@ -1640,9 +1752,9 @@ const CreatePost: React.FC = () => {
 
           {/* Post Button */}
           <motion.button
-            disabled={(!postText.trim() && selectedImages.length === 0) || isSubmitting || charCount > maxChars}
+            disabled={(!hasEditorContent && selectedImages.length === 0) || isSubmitting || charCount > maxChars}
             className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm transition-all duration-300 flex-shrink-0 ${
-              postText.trim() || selectedImages.length > 0
+              hasEditorContent || selectedImages.length > 0
                 ? theme === 'dark'
                   ? 'bg-white text-black hover:bg-gray-100 shadow-lg hover:shadow-xl'
                   : 'bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl'
@@ -1650,8 +1762,8 @@ const CreatePost: React.FC = () => {
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             } ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
-            whileHover={(!postText.trim() && selectedImages.length === 0) || isSubmitting ? {} : { scale: 1.02 }}
-            whileTap={(!postText.trim() && selectedImages.length === 0) || isSubmitting ? {} : { scale: 0.98 }}
+            whileHover={(!hasEditorContent && selectedImages.length === 0) || isSubmitting ? {} : { scale: 1.02 }}
+            whileTap={(!hasEditorContent && selectedImages.length === 0) || isSubmitting ? {} : { scale: 0.98 }}
             onClick={handleSubmit}
           >
             {isSubmitting ? (

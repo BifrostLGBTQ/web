@@ -22,6 +22,7 @@ import { UserFantasy } from '../interfaces/user';
 
 const ProfileScreen: React.FC = () => {
   const { theme } = useTheme();
+  const [showProfile, setShowProfile] = useState(true);
   const [activeTab, setActiveTab] = useState('about');
   const [isEditing, setIsEditing] = useState(false);
   const [imageType, setImageType] = useState<'avatar' | 'cover' | 'public' | 'private'>('public');
@@ -179,9 +180,9 @@ const ProfileScreen: React.FC = () => {
   ];
 
   return (
-    <div className={`max-w-2xl mx-auto min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
+    <div className={`w-full min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
       <motion.div
-        className={`max-w-2xl mx-auto min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+        className={`w-full mx-auto min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'
           }`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -189,7 +190,7 @@ const ProfileScreen: React.FC = () => {
       >
         {/* Header */}
         <motion.div
-          className="relative h-96 rounded-2xl overflow-hidden shadow-2xl"
+          className="relative h-96 overflow-hidden shadow-2xl"
           initial={{ scale: 1.05 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}

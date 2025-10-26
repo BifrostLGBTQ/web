@@ -9,17 +9,19 @@ import MessagesScreen from './components/MessagesScreen';
 import { useTheme } from './contexts/ThemeContext';
 import { useAuth } from './contexts/AuthContext.tsx';
 import AuthWizard from './components/AuthWizard';
-import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon, Languages, Sparkles, TrendingUp, Users, MoreHorizontal } from 'lucide-react';
+import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon, Languages, Sparkles, TrendingUp, Users, MoreHorizontal, Star, Activity, Flame, TrendingDown, FileText } from 'lucide-react';
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
 import CreatePost from './components/CreatePost.tsx';
+import ClassifiedsScreen from './components/ClassifiedsScreen';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthWizardOpen, setIsAuthWizardOpen] = useState(false);
   const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
@@ -41,6 +43,7 @@ function App() {
     { id: 'match', label: 'Match', icon: Heart },
     { id: 'places', label: 'Places', icon: Building2 },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
+    { id: 'classifieds', label: 'Classifieds', icon: FileText },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 
@@ -77,6 +80,7 @@ function App() {
                 { id: 'match', label: 'Matches', icon: Heart },
                 { id: 'messages', label: 'Messages', icon: MessageCircle },
                 { id: 'places', label: 'Places', icon: Building2 },
+                { id: 'classifieds', label: 'Classifieds', icon: FileText },
                 { id: 'profile', label: 'Profile', icon: User },
               ].map((item) => {
                 const Icon = item.icon;
@@ -190,128 +194,157 @@ function App() {
           {activeScreen === 'profile' && <ProfileScreen />}
           {activeScreen === 'places' && <PlacesScreen />}
           {activeScreen === 'messages' && <MessagesScreen />}
+          {activeScreen === 'classifieds' && <ClassifiedsScreen />}
         </main>
 
         {/* Right Sidebar - Fixed */}
-        <aside className={`hidden xl:flex flex-col w-[350px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-          <div className="p-6 sticky top-0 h-screen overflow-y-auto space-y-6">
+        <aside className={`hidden xl:flex scrollbar-hide flex-col w-[380px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+          <div className="p-5 sticky top-0 h-screen scrollbar-hide overflow-y-auto space-y-4">
             
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-              <input
-                type="text"
-                placeholder="Search"
-                className={`w-full pl-12 pr-4 py-3 rounded-full ${theme === 'dark' ? 'bg-gray-900 text-white placeholder-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-900 placeholder-gray-500 border border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all`}
-              />
-            </div>
-
-            {/* Trending Section */}
+            {/* Discover Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-100'}`}
+              transition={{ delay: 0.1 }}
+              className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-white border border-gray-200'}`}
             >
-              <div className="p-5">
-                <h2 className={`font-bold text-xl mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Trending Now
-                </h2>
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-red-500" />
+                    <h2 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      New Matches
+                    </h2>
+                  </div>
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${theme === 'dark' ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'}`}>
+                    3
+                  </span>
+                </div>
                 
-                <div className="space-y-1">
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
                   {[
-                    { category: 'Technology', tag: 'AI Revolution', posts: '12.5K', trending: true },
-                    { category: 'Entertainment', tag: '#MovieNight', posts: '8.9K', trending: false },
-                    { category: 'Lifestyle', tag: 'Healthy Living', posts: '5.2K', trending: true },
-                    { category: 'Trending', tag: '#NewYear', posts: '45.8K', trending: false },
-                  ].map((trend, index) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded-xl cursor-pointer transition-colors ${
-                        theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5' : 'hover:bg-gray-100'
-                      }`}
+                    { name: 'Alex', age: 28, avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', isNew: true, mutual: 'New York' },
+                    { name: 'Jordan', age: 25, avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', isNew: true, mutual: 'Los Angeles' },
+                    { name: 'Sam', age: 30, avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', isNew: true, mutual: 'San Francisco' },
+                  ].map((match, index) => (
+                    <div 
+                      key={index} 
+                      className="flex-shrink-0 w-28 cursor-pointer group"
+                      onClick={() => {
+                        setSelectedUser(match.name.toLowerCase());
+                        setActiveScreen('profile');
+                      }}
                     >
-                      <div className="flex items-start justify-between mb-1">
-                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {trend.category}
-                        </p>
-                        <button className={`p-1 rounded-full transition-colors ${
-                          theme === 'dark' ? 'hover:bg-white hover:bg-opacity-10' : 'hover:bg-gray-200'
-                        }`}>
-                          <MoreHorizontal className="w-3 h-3" />
-                        </button>
+                      <div className="relative">
+                        <div className={`w-full aspect-square rounded-2xl overflow-hidden transition-all duration-200 ${match.isNew ? 'ring-2 ring-red-500' : 'ring-2 ring-transparent'} group-hover:ring-2 group-hover:ring-opacity-50 ${match.isNew ? 'group-hover:ring-red-500' : 'group-hover:ring-gray-400'}`}>
+                          <img
+                            src={match.avatar}
+                            alt={match.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        {match.isNew && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white dark:border-gray-950"></div>
+                        )}
+                        <div className="absolute bottom-1 left-1 right-1">
+                          <div className="backdrop-blur-sm bg-black/70 rounded-lg px-2 py-1">
+                            <p className="text-white text-[10px] font-bold">New</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-start justify-between">
-                        <p className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {trend.trending && <Sparkles className="inline w-3 h-3 mr-1 text-blue-500" />}
-                          {trend.tag}
+                      <div className="text-center mt-2">
+                        <p className={`text-sm font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {match.name}, {match.age}
                         </p>
                       </div>
-                      <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {trend.posts} posts
-                      </p>
                     </div>
                   ))}
                 </div>
-
-                <button className={`w-full py-2.5 px-4 mt-3 rounded-xl text-sm font-medium transition-colors ${
-                  theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5 text-blue-400' : 'hover:bg-gray-100 text-blue-600'
-                }`}>
-                  Show more
-                </button>
               </div>
             </motion.div>
 
-            {/* Who to Follow */}
+            {/* Suggested Matches */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-100'}`}
+              transition={{ delay: 0.15 }}
+              className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-white border border-gray-200'}`}
             >
-              <div className="p-5">
-                <h2 className={`font-bold text-xl mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Who to Follow
-                </h2>
+              <div className="p-4">
+                <div className="mb-3">
+                  <h2 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Suggested Matches
+                  </h2>
+                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Based on your preferences
+                  </p>
+                </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {[
-                    { name: 'Alex Rivera', username: 'alexr', avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 8 },
-                    { name: 'Jordan Smith', username: 'jordansmith', avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 12 },
-                    { name: 'Taylor Davis', username: 'taylord', avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 15 },
+                    { name: 'Alex Rivera', age: 28, username: 'alexr', avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: '8 mutual friends', isOnline: true, location: 'New York, NY', verified: true },
+                    { name: 'Jordan Smith', age: 25, username: 'jordansmith', avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: '12 mutual friends', isOnline: false, location: 'Los Angeles, CA', verified: false },
+                    { name: 'Taylor Davis', age: 30, username: 'taylord', avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: '15 mutual friends', isOnline: true, location: 'San Francisco, CA', verified: true },
                   ].map((user, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={user.avatar}
-                          alt={user.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            {user.name}
-                          </p>
-                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            @{user.username} · {user.mutual} mutual
-                          </p>
+                    <div 
+                      key={index} 
+                      className="group cursor-pointer rounded-xl p-2 transition-all duration-200"
+                      style={{ backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)';
+                      }}
+                      onClick={() => {
+                        setSelectedUser(user.username);
+                        setActiveScreen('profile');
+                      }}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center space-x-2.5 flex-1 min-w-0">
+                          <div className="relative flex-shrink-0">
+                            <div className={`w-12 h-12 rounded-xl overflow-hidden ${user.isOnline ? 'ring-2 ring-green-500/50' : ''}`}>
+                              <img
+                                src={user.avatar}
+                                alt={user.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            {user.isOnline && (
+                              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-950"></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <p className={`font-bold text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {user.name}
+                              </p>
+                              {user.verified && (
+                                <svg className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 2.96 8.6 1.54 6.71 4.72l-3.61.82.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21.04l3.4 1.42 1.89-3.18 3.61-.82-.34-3.68L23 12zm-10.29 4.8l-4.5-4.31 1.39-1.32 3.11 2.97 5.98-6.03 1.39 1.37-7.37 7.32z"/>
+                                </svg>
+                              )}
+                            </div>
+                            <p className={`text-xs truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {user.age} · {user.location}
+                            </p>
+                          </div>
                         </div>
+                        <button 
+                          onClick={(e) => e.stopPropagation()}
+                          className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                            theme === 'dark'
+                              ? 'bg-white text-black hover:bg-gray-200'
+                              : 'bg-black text-white hover:bg-gray-900'
+                          }`}
+                        >
+                          Connect
+                        </button>
                       </div>
-                      <button className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                        theme === 'dark'
-                          ? 'bg-white text-black hover:bg-gray-200'
-                          : 'bg-black text-white hover:bg-gray-900'
-                      }`}>
-                        Follow
-                      </button>
                     </div>
                   ))}
                 </div>
-
-                <button className={`w-full py-2.5 px-4 mt-3 rounded-xl text-sm font-medium transition-colors ${
-                  theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5 text-blue-400' : 'hover:bg-gray-100 text-blue-600'
-                }`}>
-                  Show more
-                </button>
               </div>
             </motion.div>
 
@@ -449,7 +482,7 @@ function App() {
 
 
       {/* Footer - Only show on home screen */}
-      {activeScreen === 'home' && <Footer />}
+      {activeScreen === 'xxhome' && <Footer />}
 
       {/* Auth Wizard */}
       <AuthWizard

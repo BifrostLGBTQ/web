@@ -19,6 +19,17 @@ class ApiService {
     });
   }
 
+  async handleCreatePost(data: Record<string, any>){
+
+    return this.call(Actions.POST_CREATE, {
+      method: "POST",
+      body: data,
+    });
+    console.log("handleCreatePost",data)
+    
+
+  }
+
   async handleLogin(credentials: { nickname: string; password: string }) {
     return this.call(Actions.AUTH_LOGIN, {
       method: "POST",
