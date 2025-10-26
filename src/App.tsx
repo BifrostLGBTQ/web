@@ -424,7 +424,6 @@ function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <CreatePost/>
             {renderScreen()}
           </motion.div>
         </AnimatePresence>

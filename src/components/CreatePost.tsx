@@ -707,7 +707,7 @@ const CreatePost: React.FC = () => {
                         />
                       }
                       placeholder={
-                        <div className="pt-[32px] editor-placeholder w-full h-full text-center flex justify-center items-center">
+                        <div className="pt-[32px] ml-[-10px] editor-placeholder w-full h-full text-center flex justify-center items-center">
                           What's on your mind? Share your thoughts, experiences, or ask a question...
                         </div>
                       }
