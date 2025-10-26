@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Sparkles, TrendingUp, Users, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Sparkles, TrendingUp, Users, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
 import Stories from './Stories';
@@ -80,109 +80,179 @@ const HomeScreen: React.FC = () => {
     { name: 'Taylor Davis', username: 'taylord', avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 15 },
   ];
 
+  const [activeTab, setActiveTab] = useState('foryou');
+  const [selectedPost, setSelectedPost] = useState<number | null>(null);
+
+  const selectedPostData = selectedPost ? samplePosts.find(p => p.id === selectedPost) : null;
+
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-      <div className="max-w-[1400px] mx-auto">
+      
+      {/* Stories Above Tabs */}
+      <div className={`${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}  p-4`}>
+        <Stories />
+      </div>
+
+      {/* Header - Show Post Detail or Tabs */}
+      <div className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}`}>
+        {selectedPost ? (
+          // Post Detail Header
+          <div className="flex items-center px-4 py-3">
+            <button
+              onClick={() => setSelectedPost(null)}
+              className={`p-2 rounded-full transition-all duration-200 mr-3 ${
+                theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+              }`}
+            >
+              <ArrowLeft className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+            </button>
+            <div>
+              <h2 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Post
+              </h2>
+            </div>
+          </div>
+        ) : (
+          // Tab Navigation
+          <div className="flex relative">
+            <motion.button
+              onClick={() => setActiveTab('foryou')}
+              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+              whileTap={{ scale: 0.99 }}
+              className={`flex-1 py-4 font-semibold text-[15px] relative transition-all duration-200 ${
+                activeTab === 'foryou'
+                  ? theme === 'dark' ? 'text-white' : 'text-black'
+                  : theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span className="relative z-10">For You</span>
+              {activeTab === 'foryou' && (
+                <motion.div
+                  className={`absolute bottom-0 left-0 right-0 h-1 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                  layoutId="activeTabIndicator"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+            <motion.button
+              onClick={() => setActiveTab('following')}
+              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+              whileTap={{ scale: 0.99 }}
+              className={`flex-1 py-4 font-semibold text-[15px] relative transition-all duration-200 ${
+                activeTab === 'following'
+                  ? theme === 'dark' ? 'text-white' : 'text-black'
+                  : theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <span className="relative z-10">Following</span>
+              {activeTab === 'following' && (
+                <motion.div
+                  className={`absolute bottom-0 left-0 right-0 h-1 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                  layoutId="activeTabIndicator"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          </div>
+        )}
+      </div>
+
+      <div className="max-w-[1380px] mx-auto">
         
-        {/* Ultra Professional Layout - Award Winning */}
-        <div className="flex justify-center gap-0">
-          
-          {/* Left Sidebar - Desktop Only */}
-          <aside className="hidden xl:block w-[290px] pt-6 pr-4">
-            <div className="sticky top-20 space-y-5">
-              
-              {/* Profile Card - Premium Design */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className={`rounded-2xl p-6 ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
-              >
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="relative">
-                    <img
-                      src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
-                      alt="Profile"
-                      className="w-14 h-14 rounded-full object-cover"
-                    />
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 ${theme === 'dark' ? 'bg-green-500 border-black' : 'bg-green-500 border-white'}`} />
-                  </div>
+ 
+      <main className={`flex-1 w-full min-w-0 ${theme === 'dark' ? 'border-x border-black' : 'border-x border-gray-100'}`}>
+        {selectedPost ? (
+          // Post Detail View
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className={`${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
+          >
+            {selectedPostData && (
+              <div className="p-6">
+                {/* Post Header */}
+                <div className="flex items-start space-x-3 mb-4">
+                  <img
+                    src={selectedPostData.author.avatar}
+                    alt={selectedPostData.author.name}
+                    className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
-                    <h3 className={`font-bold text-base truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      Alex Rivera
-                    </h3>
-                    <p className={`text-sm truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      @alexr_pride
-                    </p>
+                    <div className="flex items-center space-x-1.5 mb-1">
+                      <h3 className={`font-bold text-[16px] ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        {selectedPostData.author.name}
+                      </h3>
+                      {selectedPostData.author.verified && (
+                        <svg className="w-5 h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 2.96 8.6 1.54 6.71 4.72l-3.61.82.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21.04l3.4 1.42 1.89-3.18 3.61-.82-.34-3.68L23 12zm-10.29 4.8l-4.5-4.31 1.39-1.32 3.11 2.97 5.98-6.03 1.39 1.37-7.37 7.32z"/>
+                        </svg>
+                      )}
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                        @{selectedPostData.author.username}
+                      </span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-700' : 'text-gray-400'}`}>·</span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                        {selectedPostData.timestamp}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-900">
-                  <div className="text-center">
-                    <p className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>248</p>
-                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Following</p>
+
+                {/* Post Content */}
+                <p className={`text-[16px] leading-relaxed mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+                  {selectedPostData.content.text}
+                </p>
+
+                {/* Post Image */}
+                {selectedPostData.content.image && (
+                  <div className="mb-6 rounded-2xl overflow-hidden">
+                    <img
+                      src={selectedPostData.content.image}
+                      alt="Post"
+                      className="w-full h-auto object-cover"
+                    />
                   </div>
-                  <div className="text-center">
-                    <p className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>12.5K</p>
-                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Followers</p>
-                  </div>
-                  <div className="text-center">
-                    <p className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>847</p>
-                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Posts</p>
+                )}
+
+                {/* Engagement Bar */}
+                <div className="border-t border-b py-4 my-4" style={theme === 'dark' ? { borderColor: '#1a1a1a' } : { borderColor: '#e5e7eb' }}>
+                  <div className="flex items-center justify-around">
+                    
+                    {/* Comment */}
+                    <button className={`flex items-center space-x-2 group transition-colors ${
+                      theme === 'dark' ? 'text-gray-500 hover:text-blue-500' : 'text-gray-500 hover:text-blue-600'
+                    }`}>
+                      <MessageCircle className="w-5 h-5" />
+                      <span className="text-sm font-medium">{selectedPostData.engagement.comments}</span>
+                    </button>
+
+                    {/* Share */}
+                    <button className={`flex items-center space-x-2 group transition-colors ${
+                      theme === 'dark' ? 'text-gray-500 hover:text-green-500' : 'text-gray-500 hover:text-green-600'
+                    }`}>
+                      <Share className="w-5 h-5" />
+                      <span className="text-sm font-medium">{selectedPostData.engagement.shares}</span>
+                    </button>
+
+                    {/* Like */}
+                    <button className={`flex items-center space-x-2 group transition-colors ${
+                      theme === 'dark' ? 'text-gray-500 hover:text-red-500' : 'text-gray-500 hover:text-red-600'
+                    }`}>
+                      <Heart className="w-5 h-5" />
+                      <span className="text-sm font-medium">{selectedPostData.engagement.likes}</span>
+                    </button>
+
                   </div>
                 </div>
-              </motion.div>
-
-              {/* Quick Actions */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className={`rounded-2xl p-5 ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
-              >
-                <h2 className={`font-bold text-base mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Quick Actions
-                </h2>
-                
-                <div className="space-y-1.5">
-                  {[
-                    { icon: Sparkles, label: 'Create Post' },
-                    { icon: Users, label: 'Find Friends' },
-                    { icon: TrendingUp, label: 'Trending Now' },
-                  ].map((item, index) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={index}
-                        className={`w-full flex items-center space-x-3 p-2.5 rounded-xl transition-all ${
-                          theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5' : 'hover:bg-gray-100'
-                        }`}
-                      >
-                        <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white bg-opacity-5' : 'bg-gray-200'}`}>
-                          <Icon className={`w-4 h-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-                        </div>
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {item.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-
-            </div>
-          </aside>
-
-          {/* Center Feed - Main Content */}
-          <main className={`flex-1 max-w-[598px] min-w-0 ${theme === 'dark' ? 'border-l border-r border-black' : 'border-l border-r border-gray-200'}`}>
-            
-            {/* Stories Section */}
-            <div className={`border-b ${theme === 'dark' ? 'border-black bg-black' : 'border-gray-200 bg-white'}`}>
-              <Stories />
-            </div>
-
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          // Posts Feed
+          <>
             {/* Create Post */}
-            <div className={`border-b ${theme === 'dark' ? 'border-black bg-black' : 'border-gray-200 bg-white'}`}>
+            <div className={`${theme === 'dark' ? 'bg-black border-b border-black' : 'bg-white border-b border-gray-100'}`}>
               <CreatePost />
             </div>
 
@@ -194,8 +264,11 @@ const HomeScreen: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`border-b ${theme === 'dark' ? 'border-black' : 'border-gray-200'} transition-colors ${
-                    theme === 'dark' ? 'hover:bg-white hover:bg-opacity-[0.01]' : 'hover:bg-gray-50'
+                  onClick={() => setSelectedPost(post.id)}
+                  whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}
+                  whileTap={{ scale: 0.999 }}
+                  className={`border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'} transition-colors cursor-pointer ${
+                    theme === 'dark' ? 'bg-black' : 'bg-white'
                   }`}
                 >
                   <div className="p-4">
@@ -301,117 +374,9 @@ const HomeScreen: React.FC = () => {
                 </motion.div>
               ))}
             </div>
-
-          </main>
-
-          {/* Right Sidebar - Trending & Suggestions */}
-          <aside className="hidden lg:block w-[340px] pt-6 pl-4">
-            <div className="sticky top-20 space-y-5">
-              
-              {/* Trending Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
-              >
-                <div className="p-5">
-                  <h2 className={`font-bold text-lg mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    What's Happening
-                  </h2>
-                  
-                  <div className="space-y-0">
-                    {trends.map((trend, index) => (
-                      <div
-                        key={index}
-                        className={`px-4 py-3 cursor-pointer transition-colors ${
-                          theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5' : 'hover:bg-gray-100'
-                        } ${index !== 0 ? 'border-t ' + (theme === 'dark' ? 'border-gray-900' : 'border-gray-200') : ''}`}
-                      >
-                        <div className="flex items-start justify-between mb-1">
-                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {trend.category}
-                          </p>
-                          <button className={`p-1 rounded-full transition-colors ${
-                            theme === 'dark' ? 'hover:bg-white hover:bg-opacity-10' : 'hover:bg-gray-200'
-                          }`}>
-                            <MoreHorizontal className="w-3 h-3" />
-                          </button>
-                        </div>
-                        <div className="flex items-start justify-between">
-                          <p className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            {trend.trending && <Sparkles className="inline w-3 h-3 mr-1" />}
-                            {trend.tag}
-                          </p>
-                        </div>
-                        <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {trend.posts} posts
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button className={`w-full py-2.5 px-4 mt-3 rounded-xl text-sm font-medium transition-colors ${
-                    theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5 text-blue-500' : 'hover:bg-gray-100 text-blue-600'
-                  }`}>
-                    Show more
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* Who to Follow */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-                className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
-              >
-                <div className="p-5">
-                  <h2 className={`font-bold text-lg mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    Who to Follow
-                  </h2>
-                  
-                  <div className="space-y-3">
-                    {suggestedUsers.map((user, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                          <div>
-                            <p className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                              {user.name}
-                            </p>
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                              @{user.username} · {user.mutual} mutual
-                            </p>
-                          </div>
-                        </div>
-                        <button className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          theme === 'dark'
-                            ? 'bg-white text-black hover:bg-gray-200'
-                            : 'bg-black text-white hover:bg-gray-900'
-                        }`}>
-                          Follow
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button className={`w-full py-2.5 px-4 mt-3 rounded-xl text-sm font-medium transition-colors ${
-                    theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5 text-blue-500' : 'hover:bg-gray-100 text-blue-600'
-                  }`}>
-                    Show more
-                  </button>
-                </div>
-              </motion.div>
-
-            </div>
-          </aside>
-
-        </div>
+          </>
+        )}
+      </main>
       </div>
     </div>
   );
