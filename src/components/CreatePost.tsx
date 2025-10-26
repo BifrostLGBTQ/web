@@ -570,7 +570,7 @@ const CreatePost: React.FC = () => {
 
       {/* Ultra-Professional Create Post Component */}
       <motion.div
-        className={`w-full rounded-3xl shadow-lg transition-all duration-500 ${
+        className={`w-full   transition-all duration-500 ${
           isFullScreen 
             ? 'fixed inset-0 z-50 max-w-none max-h-none rounded-none mb-0'
             : 'w-full max-w-full mb-6'

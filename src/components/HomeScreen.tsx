@@ -1,23 +1,14 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Sparkles, TrendingUp, Users, ChevronRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { motion } from 'framer-motion';
 import Stories from './Stories';
 import CreatePost from './CreatePost';
-import Post from './Post';
 
 const HomeScreen: React.FC = () => {
   const { theme } = useTheme();
 
-  const stories = [
-    { id: 1, name: 'Your Story', avatar: null, cover: null, isOwn: true },
-    { id: 2, name: 'Alex', avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', cover: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&dpr=2', hasStory: true },
-    { id: 3, name: 'Jordan', avatar: 'https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', cover: 'https://images.pexels.com/photos/1559486/pexels-photo-1559486.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&dpr=2', hasStory: true },
-    { id: 4, name: 'Sam', avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', cover: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&dpr=2', hasStory: true },
-    { id: 5, name: 'Casey', avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', cover: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&dpr=2', hasStory: true },
-    { id: 6, name: 'Riley', avatar: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', cover: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&dpr=2', hasStory: true },
-  ];
-
-    const samplePosts = [
+  const samplePosts = [
     {
       id: 1,
       author: {
@@ -76,224 +67,350 @@ const HomeScreen: React.FC = () => {
     },
   ];
 
+  const trends = [
+    { category: 'Trending in LGBTQ+', tag: 'PrideMonth', posts: '52.3K', trending: true },
+    { category: 'Trending', tag: 'LoveWins', posts: '34.1K', trending: false },
+    { category: 'Culture', tag: 'BeYourself', posts: '28.7K', trending: false },
+    { category: 'Community', tag: 'CommunitySupport', posts: '19.4K', trending: false },
+  ];
+
+  const suggestedUsers = [
+    { name: 'Casey Morgan', username: 'caseymorgan', avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 12 },
+    { name: 'Riley Thompson', username: 'rileyt', avatar: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 8 },
+    { name: 'Taylor Davis', username: 'taylord', avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2', mutual: 15 },
+  ];
+
   return (
-    <div className="min-h-screen">
-      {/* Ultra Professional Layout */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12">
-
-        {/* Stories Section - Full Width */}
-        <div className="mb-6 sm:mb-8">
-          <Stories />
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-
-          {/* Left Sidebar - Hidden on Mobile */}
-          <div className="hidden lg:block lg:col-span-3">
-            <div className="sticky top-24 space-y-6">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+      <div className="max-w-[1400px] mx-auto">
+        
+        {/* Ultra Professional Layout - Award Winning */}
+        <div className="flex justify-center gap-0">
+          
+          {/* Left Sidebar - Desktop Only */}
+          <aside className="hidden xl:block w-[290px] pt-6 pr-4">
+            <div className="sticky top-20 space-y-5">
+              
+              {/* Profile Card - Premium Design */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className={`rounded-2xl p-6 ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
+              >
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="relative">
+                    <img
+                      src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
+                      alt="Profile"
+                      className="w-14 h-14 rounded-full object-cover"
+                    />
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 ${theme === 'dark' ? 'bg-green-500 border-black' : 'bg-green-500 border-white'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-bold text-base truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Alex Rivera
+                    </h3>
+                    <p className={`text-sm truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      @alexr_pride
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-900">
+                  <div className="text-center">
+                    <p className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>248</p>
+                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Following</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>12.5K</p>
+                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Followers</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>847</p>
+                    <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Posts</p>
+                  </div>
+                </div>
+              </motion.div>
 
               {/* Quick Actions */}
-              <div className={`rounded-2xl shadow-sm border p-6 ${
-                theme === 'dark'
-                  ? 'bg-gray-900/50 border-gray-800 backdrop-blur-xl'
-                  : 'bg-white/50 border-gray-200 backdrop-blur-xl'
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className={`rounded-2xl p-5 ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
+              >
+                <h2 className={`font-bold text-base mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   Quick Actions
-                </h3>
-                <div className="space-y-3">
-                  <button className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                  }`}>
-                    🏳️‍🌈 Find Events
-                  </button>
-                  <button className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                  }`}>
-                    💬 Join Groups
-                  </button>
-                  <button className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                  }`}>
-                    📍 Nearby Places
-                  </button>
-                </div>
-              </div>
-
-              {/* Trending Topics */}
-              <div className={`rounded-2xl shadow-sm border p-6 ${
-                theme === 'dark'
-                  ? 'bg-gray-900/50 border-gray-800 backdrop-blur-xl'
-                  : 'bg-white/50 border-gray-200 backdrop-blur-xl'
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Trending
-                </h3>
-                <div className="space-y-3">
-                  {['#PrideMonth', '#LoveWins', '#BeYourself', '#Community'].map((tag, index) => (
-                    <div key={index} className={`p-3 rounded-xl ${
-                      theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100/50'
-                    }`}>
-                      <span className={`font-medium ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        {tag}
-                      </span>
-                      <p className={`text-sm mt-1 ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        {Math.floor(Math.random() * 50) + 10}k posts
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="lg:col-span-6">
-            <div className="w-full">
-              {/* Create Post */}
-              <CreatePost />
-
-              {/* Posts Feed */}
-              <div className="space-y-6">
-                {samplePosts.map((post) => (
-                  <Post key={post.id} {...post} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Sidebar - Hidden on Mobile */}
-          <div className="hidden lg:block lg:col-span-3">
-            <div className="sticky top-24 space-y-6">
-
-              {/* Suggested Connections */}
-              <div className={`rounded-2xl shadow-sm border p-6 ${
-                theme === 'dark'
-                  ? 'bg-gray-900/50 border-gray-800 backdrop-blur-xl'
-                  : 'bg-white/50 border-gray-200 backdrop-blur-xl'
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Suggested Connections
-                </h3>
-                <div className="space-y-4">
+                </h2>
+                
+                <div className="space-y-1.5">
                   {[
-                    { name: 'Casey Morgan', username: 'caseymorgan', avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2' },
-                    { name: 'Riley Thompson', username: 'rileyt', avatar: 'https://images.pexels.com/photos/1674752/pexels-photo-1674752.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2' },
-                    { name: 'Taylor Davis', username: 'taylord', avatar: 'https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2' },
-                  ].map((person, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={person.avatar}
-                          alt={person.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className={`font-medium text-sm ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}>
-                            {person.name}
-                          </p>
-                          <p className={`text-xs ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            @{person.username}
-                          </p>
+                    { icon: Sparkles, label: 'Create Post' },
+                    { icon: Users, label: 'Find Friends' },
+                    { icon: TrendingUp, label: 'Trending Now' },
+                  ].map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={index}
+                        className={`w-full flex items-center space-x-3 p-2.5 rounded-xl transition-all ${
+                          theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5' : 'hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white bg-opacity-5' : 'bg-gray-200'}`}>
+                          <Icon className={`w-4 h-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
                         </div>
+                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {item.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+            </div>
+          </aside>
+
+          {/* Center Feed - Main Content */}
+          <main className={`flex-1 max-w-[598px] min-w-0 ${theme === 'dark' ? 'border-l border-r border-black' : 'border-l border-r border-gray-200'}`}>
+            
+            {/* Stories Section */}
+            <div className={`border-b ${theme === 'dark' ? 'border-black bg-black' : 'border-gray-200 bg-white'}`}>
+              <Stories />
+            </div>
+
+            {/* Create Post */}
+            <div className={`border-b ${theme === 'dark' ? 'border-black bg-black' : 'border-gray-200 bg-white'}`}>
+              <CreatePost />
+            </div>
+
+            {/* Posts Feed */}
+            <div>
+              {samplePosts.map((post, index) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`border-b ${theme === 'dark' ? 'border-black' : 'border-gray-200'} transition-colors ${
+                    theme === 'dark' ? 'hover:bg-white hover:bg-opacity-[0.01]' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="p-4">
+                    
+                    {/* Post Header */}
+                    <div className="flex items-start space-x-3 mb-3">
+                      <img
+                        src={post.author.avatar}
+                        alt={post.author.name}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-1.5 mb-1">
+                          <h3 className={`font-bold text-[15px] ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {post.author.name}
+                          </h3>
+                          {post.author.verified && (
+                            <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 2.96 8.6 1.54 6.71 4.72l-3.61.82.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21.04l3.4 1.42 1.89-3.18 3.61-.82-.34-3.68L23 12zm-10.29 4.8l-4.5-4.31 1.39-1.32 3.11 2.97 5.98-6.03 1.39 1.37-7.37 7.32z"/>
+                            </svg>
+                          )}
+                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                            @{post.author.username}
+                          </span>
+                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-700' : 'text-gray-400'}`}>·</span>
+                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                            {post.timestamp}
+                          </span>
+                        </div>
+                        <p className={`text-[15px] leading-relaxed ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+                          {post.content.text}
+                        </p>
                       </div>
-                      <button className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        theme === 'dark'
-                          ? 'bg-white text-gray-900 hover:bg-gray-100'
-                          : 'bg-gray-900 text-white hover:bg-gray-800'
+                      <button className={`p-1.5 rounded-full transition-colors flex-shrink-0 ml-1 ${
+                        theme === 'dark' ? 'hover:bg-white hover:bg-opacity-10 text-gray-500' : 'hover:bg-gray-100 text-gray-500'
                       }`}>
-                        Follow
+                        <MoreHorizontal className="w-5 h-5" />
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Community Stats */}
-              <div className={`rounded-2xl shadow-sm border p-6 ${
-                theme === 'dark'
-                  ? 'bg-gray-900/50 border-gray-800 backdrop-blur-xl'
-                  : 'bg-white/50 border-gray-200 backdrop-blur-xl'
-              }`}>
-                <h3 className={`font-bold text-lg mb-4 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Community Stats
-                </h3>
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-xl ${
-                    theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100/50'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    {/* Post Image */}
+                    {post.content.image && (
+                      <div className="my-3 rounded-2xl overflow-hidden">
+                        <img
+                          src={post.content.image}
+                          alt="Post"
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Engagement Bar */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center space-x-0">
+                        
+                        {/* Comment */}
+                        <button className={`flex items-center space-x-2 group transition-colors p-2 -ml-2 rounded-full ${
+                          theme === 'dark' ? 'text-gray-500 hover:text-blue-500' : 'text-gray-500 hover:text-blue-600'
+                        }`}>
+                          <div className={`p-1.5 rounded-full transition-colors ${
+                            theme === 'dark' ? 'group-hover:bg-blue-500 group-hover:bg-opacity-10' : 'group-hover:bg-blue-500 group-hover:bg-opacity-10'
+                          }`}>
+                            <MessageCircle className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-medium">{post.engagement.comments}</span>
+                        </button>
+
+                        {/* Retweet/Share */}
+                        <button className={`flex items-center space-x-2 group transition-colors p-2 rounded-full ${
+                          theme === 'dark' ? 'text-gray-500 hover:text-green-500' : 'text-gray-500 hover:text-green-600'
+                        }`}>
+                          <div className={`p-1.5 rounded-full transition-colors ${
+                            theme === 'dark' ? 'group-hover:bg-green-500 group-hover:bg-opacity-10' : 'group-hover:bg-green-500 group-hover:bg-opacity-10'
+                          }`}>
+                            <Share className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-medium">{post.engagement.shares}</span>
+                        </button>
+
+                        {/* Like */}
+                        <button className={`flex items-center space-x-2 group transition-colors p-2 rounded-full ${
+                          theme === 'dark' ? 'text-gray-500 hover:text-red-500' : 'text-gray-500 hover:text-red-600'
+                        }`}>
+                          <div className={`p-1.5 rounded-full transition-colors ${
+                            theme === 'dark' ? 'group-hover:bg-red-500 group-hover:bg-opacity-10' : 'group-hover:bg-red-500 group-hover:bg-opacity-10'
+                          }`}>
+                            <Heart className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-medium">{post.engagement.likes}</span>
+                        </button>
+
+                      </div>
+                      
+                      {/* Save */}
+                      <button className={`p-2 rounded-full transition-colors ${
+                        theme === 'dark' ? 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500 hover:bg-opacity-10' : 'text-gray-500 hover:text-yellow-600 hover:bg-yellow-500 hover:bg-opacity-10'
                       }`}>
-                        Active Members
-                      </span>
-                      <span className={`font-bold ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        12.5K
-                      </span>
+                        <Bookmark className="w-5 h-5" />
+                      </button>
                     </div>
+
                   </div>
-                  <div className={`p-4 rounded-xl ${
-                    theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100/50'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        Posts Today
-                      </span>
-                      <span className={`font-bold ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        847
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`p-4 rounded-xl ${
-                    theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100/50'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        Events This Week
-                      </span>
-                      <span className={`font-bold ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        23
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
+
+          </main>
+
+          {/* Right Sidebar - Trending & Suggestions */}
+          <aside className="hidden lg:block w-[340px] pt-6 pl-4">
+            <div className="sticky top-20 space-y-5">
+              
+              {/* Trending Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
+              >
+                <div className="p-5">
+                  <h2 className={`font-bold text-lg mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    What's Happening
+                  </h2>
+                  
+                  <div className="space-y-0">
+                    {trends.map((trend, index) => (
+                      <div
+                        key={index}
+                        className={`px-4 py-3 cursor-pointer transition-colors ${
+                          theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5' : 'hover:bg-gray-100'
+                        } ${index !== 0 ? 'border-t ' + (theme === 'dark' ? 'border-gray-900' : 'border-gray-200') : ''}`}
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {trend.category}
+                          </p>
+                          <button className={`p-1 rounded-full transition-colors ${
+                            theme === 'dark' ? 'hover:bg-white hover:bg-opacity-10' : 'hover:bg-gray-200'
+                          }`}>
+                            <MoreHorizontal className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div className="flex items-start justify-between">
+                          <p className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {trend.trending && <Sparkles className="inline w-3 h-3 mr-1" />}
+                            {trend.tag}
+                          </p>
+                        </div>
+                        <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {trend.posts} posts
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button className={`w-full py-2.5 px-4 mt-3 rounded-xl text-sm font-medium transition-colors ${
+                    theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5 text-blue-500' : 'hover:bg-gray-100 text-blue-600'
+                  }`}>
+                    Show more
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* Who to Follow */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className={`rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-gray-950 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}
+              >
+                <div className="p-5">
+                  <h2 className={`font-bold text-lg mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Who to Follow
+                  </h2>
+                  
+                  <div className="space-y-3">
+                    {suggestedUsers.map((user, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                          <div>
+                            <p className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {user.name}
+                            </p>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                              @{user.username} · {user.mutual} mutual
+                            </p>
+                          </div>
+                        </div>
+                        <button className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          theme === 'dark'
+                            ? 'bg-white text-black hover:bg-gray-200'
+                            : 'bg-black text-white hover:bg-gray-900'
+                        }`}>
+                          Follow
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button className={`w-full py-2.5 px-4 mt-3 rounded-xl text-sm font-medium transition-colors ${
+                    theme === 'dark' ? 'hover:bg-white hover:bg-opacity-5 text-blue-500' : 'hover:bg-gray-100 text-blue-600'
+                  }`}>
+                    Show more
+                  </button>
+                </div>
+              </motion.div>
+
+            </div>
+          </aside>
+
         </div>
       </div>
     </div>

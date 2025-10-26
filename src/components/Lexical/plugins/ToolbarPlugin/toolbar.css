@@ -110,7 +110,6 @@
 .poll::before { content: "📊"; }
 .columns::before { content: "⫸"; }
 .equation::before { content: "∑"; }
-.sticky::before { content: "📝"; }
 .caret-right::before { content: "▶"; }
 .calendar::before { content: "📅"; }
 
