@@ -249,9 +249,9 @@ const HomeScreen: React.FC = () => {
       
       {/* Stories Above Tabs - Only show when not in post detail view */}
       {!selectedPost && (
-        <div className={`${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}  p-4`}>
-          <Stories />
-        </div>
+      <div className={`${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}  p-4`}>
+        <Stories />
+      </div>
       )}
 
       {/* Header - Show Post Detail or Tabs */}
@@ -335,6 +335,23 @@ const HomeScreen: React.FC = () => {
                 post={selectedPostData} 
                 onProfileClick={handleProfileClick}
                 isDetailView={true}
+                onRefreshParent={() => {
+                  // Refresh the specific post when a reply is posted
+                  const refreshPost = async () => {
+                    try {
+                      const response = await api.fetchPost(selectedPostData.id);
+                      // Update the post in the posts array
+                      setPosts(prevPosts => 
+                        prevPosts.map(p => 
+                          p.id === selectedPostData.id ? response : p
+                        )
+                      );
+                    } catch (err) {
+                      console.error('Error refreshing post:', err);
+                    }
+                  };
+                  refreshPost();
+                }}
               />
             )}
           </motion.div>
@@ -343,7 +360,22 @@ const HomeScreen: React.FC = () => {
           <>
             {/* Create Post */}
             <div className={`${theme === 'dark' ? 'bg-black border-b border-black' : 'bg-white border-b border-gray-100'}`}>
-              <CreatePost />
+              <CreatePost 
+                onPostCreated={() => {
+                  // Refresh the timeline when a new post is created
+                  const fetchPosts = async () => {
+                    try {
+                      const response: TimelineResponse = await api.fetchTimeline({ limit: 10, cursor: "" });
+                      setPosts(response.posts);
+                      setNextCursor(response.next_cursor?.toString() || '');
+                      setHasMore(response.posts.length > 0);
+                    } catch (err) {
+                      console.error('Error refreshing posts:', err);
+                    }
+                  };
+                  fetchPosts();
+                }}
+              />
             </div>
 
             {/* Posts Feed */}
@@ -362,17 +394,31 @@ const HomeScreen: React.FC = () => {
                 </div>
               ) : (
                 posts.map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                     className={`${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
                   >
                     <Post 
                       post={post} 
                       onPostClick={(postId) => handlePostClick(postId, post.author.username)}
                       onProfileClick={handleProfileClick}
+                      onRefreshParent={() => {
+                        // Refresh the entire timeline when a reply is posted
+                        const fetchPosts = async () => {
+                          try {
+                            const response: TimelineResponse = await api.fetchTimeline({ limit: 10, cursor: "" });
+                            setPosts(response.posts);
+                            setNextCursor(response.next_cursor?.toString() || '');
+                            setHasMore(response.posts.length > 0);
+                          } catch (err) {
+                            console.error('Error refreshing posts:', err);
+                          }
+                        };
+                        fetchPosts();
+                      }}
                     />
                   </motion.div>
                 ))
@@ -383,14 +429,14 @@ const HomeScreen: React.FC = () => {
                   <div className={`inline-flex items-center space-x-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
                     <span>Loading more posts...</span>
-                  </div>
-                </div>
+                        </div>
+                      </div>
               )}
               {!hasMore && posts.length > 0 && (
                 <div className={`p-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   No more posts to load
-                </div>
-              )}
+                      </div>
+                    )}
             </div>
           </>
         )}

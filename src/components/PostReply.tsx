@@ -2,12 +2,13 @@ import React from 'react';
 import CreatePost from './CreatePost';
 
 interface PostReplyProps {
-  onReply?: (content: string) => void;
+  onReply?: (content: string, parentPostId?: string) => void;
   isOpen: boolean;
   onClose?: () => void;
+  parentPostId?: string;
 }
 
-const PostReply: React.FC<PostReplyProps> = ({ onReply, isOpen, onClose }) => {
+const PostReply: React.FC<PostReplyProps> = ({ onReply, isOpen, onClose, parentPostId }) => {
   if (!isOpen) return null;
 
   return (
@@ -17,6 +18,8 @@ const PostReply: React.FC<PostReplyProps> = ({ onReply, isOpen, onClose }) => {
       onClose={onClose}
       placeholder="Write a reply..."
       buttonText="Reply"
+      parentPostId={parentPostId}
+      onReply={onReply}
     />
   );
 };

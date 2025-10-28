@@ -42,6 +42,13 @@ export class ApiService {
       body: { limit, cursor }, // doğru değişkenler gönderiliyor
     });
   }
+
+  async fetchPost(postId: string) {
+    return this.call(Actions.POST_FETCH, {
+      method: "GET",
+      params: { id: postId },
+    });
+  }
  
  
   async call<T = any>(

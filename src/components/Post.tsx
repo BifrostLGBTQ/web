@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, MapPin, Calendar } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import PostReply from './PostReply';
+import { api } from '../services/api';
 
 // API data structure interfaces
 interface ApiPost {
@@ -16,6 +17,8 @@ interface ApiPost {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  parent_id?: string;
+  children?: ApiPost[];
   author: {
     id: string;
     public_id: number;
@@ -61,7 +64,7 @@ interface ApiPost {
     created_at: string;
     updated_at: string;
   }>;
-  poll?: {
+  poll?: Array<{
     id: string;
     post_id: string;
     contentable_id: string;
@@ -69,7 +72,7 @@ interface ApiPost {
     question: {
       en: string;
     };
-    duration: number;
+    duration: string;
     created_at: string;
     updated_at: string;
     choices: Array<{
@@ -85,7 +88,7 @@ interface ApiPost {
         displayname: string;
       }>;
     }>;
-  };
+  }>;
   event?: {
     id: string;
     post_id: string; 
@@ -147,15 +150,38 @@ interface PostProps {
   onPostClick?: (postId: string) => void;
   onProfileClick?: (username: string) => void;
   isDetailView?: boolean;
+  showChildren?: boolean;
+  onRefreshParent?: () => void;
 }
 
-const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetailView }) => {
+const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetailView, showChildren = false, onRefreshParent }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [selectedPollChoice, setSelectedPollChoice] = useState<string | null>(null);
+  const [selectedPollChoices, setSelectedPollChoices] = useState<Record<string, string>>({});
   const [eventStatus, setEventStatus] = useState<'going' | 'not_going' | 'maybe' | null>(null);
   const [showReply, setShowReply] = useState(isDetailView || false);
+  const [children, setChildren] = useState<ApiPost[]>([]);
+  const [loadingChildren, setLoadingChildren] = useState(false);
   const { theme } = useTheme();
+
+  // Fetch children (replies) when in detail view
+  useEffect(() => {
+    if (isDetailView && post.id) {
+      setLoadingChildren(true);
+      api.fetchPost(post.id)
+        .then((response) => {
+          if (response.children) {
+            setChildren(response.children);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching post children:', error);
+        })
+        .finally(() => {
+          setLoadingChildren(false);
+        });
+    }
+  }, [isDetailView, post.id]);
 
   // Handle profile click
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -182,23 +208,26 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
     return eventDate.toLocaleString();
   };
 
-  // Calculate total votes for poll
-  const getTotalVotes = () => {
-    if (!post.poll) return 0;
-    return post.poll.choices.reduce((total, choice) => total + choice.vote_count, 0);
+  // Calculate total votes for a specific poll
+  const getTotalVotes = (poll: NonNullable<typeof post.poll>[0]) => {
+    if (!poll) return 0;
+    return poll.choices.reduce((total: number, choice: any) => total + choice.vote_count, 0);
   };
 
   // Calculate percentage for poll choice
-  const getChoicePercentage = (voteCount: number) => {
-    const total = getTotalVotes();
+  const getChoicePercentage = (voteCount: number, poll: NonNullable<typeof post.poll>[0]) => {
+    const total = getTotalVotes(poll);
     if (total === 0) return 0;
     return Math.round((voteCount / total) * 100);
   };
 
-  const handlePollVote = (choiceId: string, e: React.MouseEvent) => {
+  const handlePollVote = (pollId: string, choiceId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent post click
-    if (selectedPollChoice) return; // Already voted
-    setSelectedPollChoice(choiceId);
+    if (selectedPollChoices[pollId]) return; // Already voted in this poll
+    setSelectedPollChoices(prev => ({
+      ...prev,
+      [pollId]: choiceId
+    }));
     // TODO: Send vote to API
   };
 
@@ -312,108 +341,125 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
         </div>
       )}
 
-      {/* Poll Section */}
-      {post.poll && (
+      {/* Polls Section */}
+      {post.poll && post.poll.length > 0 && (
         <div className="px-4 py-3">
-          <div className="py-4">
-            <h4 className={`font-bold mb-4 text-base ${
-              theme === 'dark' ? 'text-white' : 'text-gray-900'
-            }`}>
-              {post.poll.question.en}
-            </h4>
-            <div className="space-y-3">
-              {post.poll.choices.map((choice) => {
-                const percentage = getChoicePercentage(choice.vote_count);
-                const isSelected = selectedPollChoice === choice.id;
-                
-                return (
-                  <div
-                    key={choice.id}
-                    className={`relative p-3 rounded-xl border transition-all duration-200 ${
-                      isSelected 
-                        ? theme === 'dark' 
-                          ? 'border-white bg-white/10' 
-                          : 'border-gray-900 bg-gray-50'
-                        : theme === 'dark' 
-                          ? 'border-gray-700 hover:border-gray-600 hover:bg-white/5' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    } ${selectedPollChoice !== null ? 'cursor-default' : 'cursor-pointer'}`}
-                    onClick={(e) => handlePollVote(choice.id, e)}
-                  >
-                    {isSelected && (
-                      <div className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                        theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
-                      }`}>
-                        ✓
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center mb-2">
-                      <span className={`font-medium text-sm ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        {choice.label.en}
-                      </span>
-                    </div>
-                    <div className={`w-full h-2 rounded-full ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+          <div className="py-4 space-y-6">
+            {post.poll.map((poll) => (
+              <div key={poll.id} className="border-b border-gray-200 dark:border-gray-800 pb-6 last:border-b-0 last:pb-0">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                    theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                  }`}>
+                    <span className={`text-xs font-bold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-700 ${
+                      📊
+                    </span>
+                  </div>
+                  <h4 className={`font-bold text-lg ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    {poll.question?.en && poll.question.en !== 'Pool Question' 
+                      ? poll.question.en 
+                      : 'Poll'}
+                  </h4>
+                </div>
+                <div className="space-y-3">
+                  {poll.choices.map((choice) => {
+                    const percentage = getChoicePercentage(choice.vote_count, poll);
+                    const isSelected = selectedPollChoices[poll.id] === choice.id;
+                    
+                    return (
+                      <div
+                        key={choice.id}
+                        className={`relative p-3 rounded-xl border transition-all duration-200 ${
                           isSelected 
-                            ? theme === 'dark' ? 'bg-white' : 'bg-gray-900'
-                            : theme === 'dark' ? 'bg-gray-500' : 'bg-gray-400'
-                        }`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    {/* Voters Avatars */}
-                    {choice.voters && choice.voters.length > 0 && (
-                      <div className="flex items-center -space-x-2 mt-2">
-                        {choice.voters.slice(0, 5).map((voter, idx) => (
-                          <div 
-                            key={voter.id} 
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-                              theme === 'dark' ? 'border-black bg-gray-800 text-white' : 'border-white bg-gray-100 text-gray-900'
-                            }`}
-                            style={{ zIndex: 5 - idx }}
-                            title={voter.displayname}
-                          >
-                            {voter.displayname.charAt(0).toUpperCase()}
-                          </div>
-                        ))}
-                        {choice.voters.length > 5 && (
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-                            theme === 'dark' ? 'border-black bg-gray-700 text-gray-300' : 'border-white bg-gray-200 text-gray-600'
+                            ? theme === 'dark' 
+                              ? 'border-white bg-white/10' 
+                              : 'border-gray-900 bg-gray-50'
+                            : theme === 'dark' 
+                              ? 'border-gray-700 hover:border-gray-600 hover:bg-white/5' 
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        } ${selectedPollChoices[poll.id] ? 'cursor-default' : 'cursor-pointer'}`}
+                        onClick={(e) => handlePollVote(poll.id, choice.id, e)}
+                      >
+                        {isSelected && (
+                          <div className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                            theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
                           }`}>
-                            +{choice.voters.length - 5}
+                            ✓
                           </div>
                         )}
+                        <div className="flex justify-between items-center mb-2">
+                          <span className={`font-medium text-sm ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            {choice.label.en}
+                          </span>
+                        </div>
+                        <div className={`w-full h-2 rounded-full ${
+                          theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                        }`}>
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-700 ${
+                              isSelected 
+                                ? theme === 'dark' ? 'bg-white' : 'bg-gray-900'
+                                : theme === 'dark' ? 'bg-gray-500' : 'bg-gray-400'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        {/* Voters Avatars */}
+                        {choice.voters && choice.voters.length > 0 && (
+                          <div className="flex items-center -space-x-2 mt-2">
+                            {choice.voters.slice(0, 5).map((voter, idx) => (
+                              <div 
+                                key={voter.id} 
+                                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
+                                  theme === 'dark' ? 'border-black bg-gray-800 text-white' : 'border-white bg-gray-100 text-gray-900'
+                                }`}
+                                style={{ zIndex: 5 - idx }}
+                                title={voter.displayname}
+                              >
+                                {voter.displayname.charAt(0).toUpperCase()}
+                              </div>
+                            ))}
+                            {choice.voters.length > 5 && (
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
+                                theme === 'dark' ? 'border-black bg-gray-700 text-gray-300' : 'border-white bg-gray-200 text-gray-600'
+                              }`}>
+                                +{choice.voters.length - 5}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {/* Vote count and percentage on same line */}
+                        <div className={`flex justify-between items-center mt-2 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          <span className="text-xs">
+                            {choice.vote_count} vote{choice.vote_count !== 1 ? 's' : ''}
+                          </span>
+                          <span className={`text-xs font-bold ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
+                            {percentage}%
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    {/* Vote count and percentage on same line */}
-                    <div className={`flex justify-between items-center mt-2 ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                      <span className="text-xs">
-                        {choice.vote_count} vote{choice.vote_count !== 1 ? 's' : ''}
-                      </span>
-                      <span className={`text-xs font-bold ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        {percentage}%
-                      </span>
-                    </div>
+                    );
+                  })}
+                </div>
+                {getTotalVotes(poll) > 0 && (
+                  <div className={`text-sm mt-6 pt-4 border-t text-center ${
+                    theme === 'dark' ? 'text-gray-400 border-gray-800' : 'text-gray-500 border-gray-100'
+                  }`}>
+                    {getTotalVotes(poll)} total vote{getTotalVotes(poll) !== 1 ? 's' : ''}
                   </div>
-                );
-              })}
-            </div>
-            {getTotalVotes() > 0 && (
-              <div className={`text-sm mt-6 pt-4 border-t text-center ${
-                theme === 'dark' ? 'text-gray-400 border-gray-800' : 'text-gray-500 border-gray-100'
-              }`}>
-                {getTotalVotes()} total vote{getTotalVotes() !== 1 ? 's' : ''}
+                )}
               </div>
-            )}
+            ))}
           </div>
         </div>
       )}
@@ -621,11 +667,60 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
         <PostReply 
           isOpen={true}
           onClose={() => setShowReply(false)}
-          onReply={(content) => {
-            console.log('Reply posted:', content);
+          parentPostId={`${post.id}`}
+          onReply={(content, parentPostId) => {
+            console.log('Reply posted:', content, 'Parent ID:', parentPostId);
             setShowReply(false);
+            
+            // Refresh parent post (top-level post) to get updated children
+            if (onRefreshParent) {
+              onRefreshParent();
+            }
+            
+            // Also refresh local children if in detail view
+            if (isDetailView) {
+              api.fetchPost(post.id)
+                .then((response) => {
+                  if (response.children) {
+                    setChildren(response.children);
+                  }
+                })
+                .catch((error) => {
+                  console.error('Error refreshing children:', error);
+                });
+            }
           }}
         />
+      )}
+
+      {/* Children (Replies) Section - Show in detail view or when showChildren is true */}
+      {(isDetailView || showChildren) && (
+        <div className="px-4 py-3">
+          {loadingChildren ? (
+            <div className={`text-center py-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Loading replies...
+            </div>
+          ) : (children.length > 0 || (post.children && post.children.length > 0)) ? (
+            <div className="space-y-4">
+              <div className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Replies ({children.length || post.children?.length || 0})
+              </div>
+              {(children.length > 0 ? children : post.children || []).map((child) => (
+                <div key={child.id} className={`border-l-2 pl-4 ${
+                  theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                }`}>
+                  <Post
+                    post={child}
+                    onProfileClick={onProfileClick}
+                    isDetailView={false}
+                    showChildren={true}
+                    onRefreshParent={onRefreshParent}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
+      </div>
       )}
     </div>
   );

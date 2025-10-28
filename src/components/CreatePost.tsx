@@ -163,6 +163,9 @@ interface CreatePostProps {
   onClose?: () => void;
   placeholder?: string;
   buttonText?: string;
+  parentPostId?: string;
+  onReply?: (content: string, parentPostId?: string) => void;
+  onPostCreated?: () => void;
 }
 
 const CreatePost: React.FC<CreatePostProps> = ({ 
@@ -170,7 +173,10 @@ const CreatePost: React.FC<CreatePostProps> = ({
   canClose = false, 
   onClose,
   placeholder = "What's on your mind? Share your thoughts, experiences, or ask a question...",
-  buttonText = "Post"
+  buttonText = "Post",
+  parentPostId,
+  onReply,
+  onPostCreated
 }) => {
   const [postText, setPostText] = useState('');
   const [editorContent, setEditorContent] = useState('');
@@ -180,9 +186,8 @@ const CreatePost: React.FC<CreatePostProps> = ({
   const [selectedVideos, setSelectedVideos] = useState<File[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [audience] = useState<'public' | 'community' | 'private'>('public');
+  const [polls, setPolls] = useState<Array<{id: string, question: string, options: string[], duration: string}>>([]);
   const [isPollActive, setIsPollActive] = useState(false);
-  const [pollOptions, setPollOptions] = useState(['', '']);
-  const [pollDuration, setPollDuration] = useState('1');
   const [isEventActive, setIsEventActive] = useState(false);
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
@@ -293,7 +298,7 @@ const CreatePost: React.FC<CreatePostProps> = ({
       });
     }
     
-    // Prepare post data
+    // Prepare post data with dot notation for polls
     const postData = {
       content: htmlContent || editorContent,
       hashtags: hashtags,
@@ -301,10 +306,15 @@ const CreatePost: React.FC<CreatePostProps> = ({
       images: selectedImages,
       videos: selectedVideos,
       audience: audience,
-      poll: isPollActive ? {
-        options: pollOptions,
-        duration: pollDuration
-      } : null,
+      ...(parentPostId && { parentPostId }),
+      ...(polls.length > 0 && polls.reduce((acc, poll, pollIndex) => {
+        acc[`polls[${pollIndex}].question`] = poll.question;
+        acc[`polls[${pollIndex}].duration`] = poll.duration;
+        poll.options.forEach((option, optionIndex) => {
+          acc[`polls[${pollIndex}].options[${optionIndex}]`] = option;
+        });
+        return acc;
+      }, {} as Record<string, any>)),
       event: isEventActive ? {
         title: eventTitle,
         description: eventDescription,
@@ -321,6 +331,16 @@ const CreatePost: React.FC<CreatePostProps> = ({
       // Call actual API
       await api.handleCreatePost(postData);
       
+      // Call onReply callback if it's a reply
+      if (onReply && parentPostId) {
+        onReply(htmlContent || editorContent, parentPostId);
+      }
+      
+      // Call onPostCreated callback if it's a new post (not a reply)
+      if (onPostCreated && !parentPostId) {
+        onPostCreated();
+      }
+      
       // Reset form
       setPostText('');
       setEditorContent('');
@@ -334,7 +354,7 @@ const CreatePost: React.FC<CreatePostProps> = ({
       setEventDescription('');
       setEventDate('');
       setEventTime('');
-      setPollOptions(['', '']);
+      setPolls([]);
       setCharCount(0);
       setLocation(null);
       
@@ -445,22 +465,68 @@ const CreatePost: React.FC<CreatePostProps> = ({
   };
 
   // Poll helper functions
-  const addPollOption = () => {
-    if (pollOptions.length < 4) {
-      setPollOptions([...pollOptions, '']);
-    }
+  const addPoll = () => {
+    const newPoll = {
+      id: Date.now().toString(),
+      question: '',
+      options: ['', ''],
+      duration: '0'
+    };
+    setPolls([...polls, newPoll]);
   };
 
-  const removePollOption = (index: number) => {
-    if (pollOptions.length > 2) {
-      setPollOptions(pollOptions.filter((_, i) => i !== index));
-    }
+  const removePoll = (pollId: string) => {
+    setPolls(polls.filter(poll => poll.id !== pollId));
   };
 
-  const updatePollOption = (index: number, value: string) => {
-    const newOptions = [...pollOptions];
-    newOptions[index] = value;
-    setPollOptions(newOptions);
+  const addPollOption = (pollId: string) => {
+    setPolls(polls.map(poll => 
+      poll.id === pollId 
+        ? { ...poll, options: [...poll.options, ''] }
+        : poll
+    ));
+  };
+
+  const removePollOption = (pollId: string, optionIndex: number) => {
+    setPolls(polls.map(poll => 
+      poll.id === pollId 
+        ? { 
+            ...poll, 
+            options: poll.options.length > 2 
+              ? poll.options.filter((_, i) => i !== optionIndex)
+              : poll.options
+          }
+        : poll
+    ));
+  };
+
+  const updatePollOption = (pollId: string, optionIndex: number, value: string) => {
+    setPolls(polls.map(poll => 
+      poll.id === pollId 
+        ? { 
+            ...poll, 
+            options: poll.options.map((option, i) => 
+              i === optionIndex ? value : option
+            )
+          }
+        : poll
+    ));
+  };
+
+  const updatePollDuration = (pollId: string, duration: string) => {
+    setPolls(polls.map(poll => 
+      poll.id === pollId 
+        ? { ...poll, duration }
+        : poll
+    ));
+  };
+
+  const updatePollQuestion = (pollId: string, question: string) => {
+    setPolls(polls.map(poll => 
+      poll.id === pollId 
+        ? { ...poll, question }
+        : poll
+    ));
   };
 
   // Initialize Leaflet map when location is set
@@ -922,7 +988,7 @@ const CreatePost: React.FC<CreatePostProps> = ({
         {/* Professional Attachments Section */}
         <div className={`w-full ${isFullScreen ? 'px-6 py-2' : 'p-4'}`}>
         <AnimatePresence>
-          {(selectedImages.length > 0 || selectedVideos.length > 0 || location || isPollActive || isEventActive || isEmojiPickerOpen || isLocationPickerOpen) && (
+          {(selectedImages.length > 0 || selectedVideos.length > 0 || location || polls.length > 0 || isEventActive || isEmojiPickerOpen || isLocationPickerOpen) && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -1147,138 +1213,207 @@ const CreatePost: React.FC<CreatePostProps> = ({
                 </motion.div>
               )}
 
-              {/* Poll Section */}
-              {isPollActive && (
+              {/* Ultra-Professional Polls Section */}
+              {polls.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-6"
                 >
-                  <div className={`px-6 py-5 rounded-2xl border ${
-                    theme === 'dark'
-                      ? 'bg-gray-800/50 border-gray-700'
-                      : 'bg-white border-gray-200'
-                  }`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                          theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                        }`}>
-                          <BarChart3 className={`w-5 h-5 ${
-                            theme === 'dark' ? 'text-green-400' : 'text-green-600'
-                          }`} />
-                        </div>
-                        <div>
-                          <h3 className={`font-bold text-base ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}>
-                            Create Poll
-                          </h3>
-                          <p className={`text-sm ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            Ask your community a question
-                          </p>
-                        </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                      }`}>
+                        <BarChart3 className={`w-4 h-4 ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`} />
                       </div>
-                      <button
-                        onClick={() => setIsPollActive(false)}
-                        className={`p-2 rounded-lg transition-colors ${
+                      <div>
+                        <h3 className={`font-bold text-base ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          Polls
+                        </h3>
+                        <p className={`text-xs ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          {polls.length} poll{polls.length > 1 ? 's' : ''} • Community engagement
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setPolls([])}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        theme === 'dark'
+                          ? 'text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-700 hover:border-gray-600'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {polls.map((poll, pollIndex) => (
+                      <motion.div
+                        key={poll.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: pollIndex * 0.05 }}
+                        className={`rounded-xl border overflow-hidden ${
                           theme === 'dark'
-                            ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                            : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                            ? 'bg-gray-800/50 border-gray-700'
+                            : 'bg-white border-gray-200'
                         }`}
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-3 sm:space-y-4 w-full max-w-full">
-                      {pollOptions.map((option, index) => (
-                        <div key={index} className="flex items-center space-x-2 sm:space-x-3 w-full max-w-full">
-                          <input
-                            type="text"
-                            placeholder={`Option ${index + 1}`}
-                            value={option}
-                            onChange={(e) => updatePollOption(index, e.target.value)}
-                            className={`flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 text-sm sm:text-base ${
-                              theme === 'dark'
-                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500'
-                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-gray-400 focus:ring-gray-400'
-                            }`}
-                          />
-                          {pollOptions.length > 2 && (
+                        {/* Ultra-Professional Poll Header */}
+                        <div className={`px-4 py-3 border-b ${
+                          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                        }`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
+                                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                                }`}>
+                                  <BarChart3 className={`w-3 h-3 ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                  }`} />
+                                </div>
+                                <span className={`text-xs font-semibold ${
+                                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                  Poll {pollIndex + 1}
+                                </span>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="What would you like to ask your community?"
+                                value={poll.question}
+                                onChange={(e) => updatePollQuestion(poll.id, e.target.value)}
+                                className={`w-full px-3 py-2 text-sm font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                                  theme === 'dark'
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-white focus:ring-white/30'
+                                    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-black focus:ring-black/30'
+                                }`}
+                              />
+                            </div>
                             <button
-                              onClick={() => removePollOption(index)}
-                              className={`p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0 ${
+                              onClick={() => removePoll(poll.id)}
+                              className={`p-1.5 ml-2 rounded-lg transition-colors flex-shrink-0 ${
                                 theme === 'dark'
-                                  ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                                  : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                               }`}
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                        </div>
-                      ))}
-
-                      <div className="flex flex-col space-y-4 pt-3 w-full max-w-full">
-                        {pollOptions.length < 100 && (
-                          <button
-                            onClick={addPollOption}
-                            className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 rounded-xl border transition-all duration-200 w-full sm:w-auto ${
-                              theme === 'dark'
-                                ? 'border-gray-600 text-gray-400 hover:text-white hover:bg-gray-700 hover:border-gray-500'
-                                : 'border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-400'
-                            }`}
-                          >
-                            <Plus className="w-4 h-4" />
-                            <span className="text-sm font-medium">Add option</span>
-                          </button>
-                        )}
-
-                        <div className="w-full max-w-full">
-                          <div className="flex items-center space-x-2 mb-3">
-                            <Clock className={`w-4 h-4 ${
-                              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                            }`} />
-                            <span className={`text-sm font-medium ${
-                              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                            }`}>
-                              Poll Duration
-                            </span>
                           </div>
+                        </div>
 
-                          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full max-w-full">
-                            {[
-                              { value: '1', label: '1 day', icon: '📅' },
-                              { value: '3', label: '3 days', icon: '📆' },
-                              { value: '7', label: '1 week', icon: '🗓️' },
-                              { value: '30', label: '1 month', icon: '📋' }
-                            ].map((duration) => (
-                              <motion.button
-                                key={duration.value}
-                                onClick={() => setPollDuration(duration.value)}
-                                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-lg sm:rounded-xl text-xs font-semibold transition-all duration-300 min-w-0 ${
-                                  pollDuration === duration.value
-                                    ? theme === 'dark'
-                                      ? 'bg-white text-black shadow-lg'
-                                      : 'bg-black text-white shadow-lg'
-                                    : theme === 'dark'
-                                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-                                }`}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                              >
-                                <span className="text-xs">{duration.icon}</span>
-                                <span className="text-xs whitespace-nowrap">{duration.label}</span>
-                              </motion.button>
+                        {/* Ultra-Professional Poll Options */}
+                        <div className="px-4 py-3">
+                          <div className="space-y-2">
+                            {poll.options.map((option, optionIndex) => (
+                              <div key={optionIndex} className="flex items-center space-x-2">
+                                <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${
+                                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                                }`}>
+                                  <span className={`text-xs font-bold ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                  }`}>
+                                    {optionIndex + 1}
+                                  </span>
+                                </div>
+                                <input
+                                  type="text"
+                                  placeholder={`Option ${optionIndex + 1}`}
+                                  value={option}
+                                  onChange={(e) => updatePollOption(poll.id, optionIndex, e.target.value)}
+                                  className={`flex-1 px-2.5 py-1.5 text-sm rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                                    theme === 'dark'
+                                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-white focus:ring-white/30'
+                                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-black focus:ring-black/30'
+                                  }`}
+                                />
+                                {poll.options.length > 2 && (
+                                  <button
+                                    onClick={() => removePollOption(poll.id, optionIndex)}
+                                    className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
+                                      theme === 'dark'
+                                        ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
                             ))}
+
+                            {/* Ultra-Professional Add Option Button */}
+                            <button
+                              onClick={() => addPollOption(poll.id)}
+                              className={`w-full flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg border transition-all duration-200 ${
+                                theme === 'dark'
+                                  ? 'border-gray-600 text-gray-400 hover:text-white hover:bg-gray-700 hover:border-gray-500'
+                                  : 'border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-400'
+                              }`}
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span className="text-xs font-medium">Add option</span>
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
+
+                        {/* Ultra-Professional Poll Duration */}
+                        <div className={`px-4 py-2.5 border-t ${
+                          theme === 'dark' ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-50/50'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-1.5">
+                              <Clock className={`w-3.5 h-3.5 ${
+                                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                              }`} />
+                              <span className={`text-xs font-medium ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                Duration
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1.5">
+                              {[
+                                { value: '0', icon: '♾️', label: '∞' },
+                                { value: '1', icon: '📅', label: '1d' },
+                                { value: '3', icon: '📆', label: '3d' },
+                                { value: '7', icon: '🗓️', label: '1w' },
+                                { value: '30', icon: '📋', label: '1m' }
+                              ].map((duration) => (
+                                <motion.button
+                                  key={duration.value}
+                                  onClick={() => updatePollDuration(poll.id, duration.value)}
+                                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center space-x-1 ${
+                                    poll.duration === duration.value
+                                      ? theme === 'dark'
+                                        ? 'bg-white text-black shadow-lg'
+                                        : 'bg-black text-white shadow-lg'
+                                      : theme === 'dark'
+                                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                                  }`}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  <span className="text-xs">{duration.icon}</span>
+                                  <span className="text-xs font-bold">{duration.label}</span>
+                                </motion.button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -1785,19 +1920,19 @@ const CreatePost: React.FC<CreatePostProps> = ({
 
             {/* Poll */}
             <motion.button
-              onClick={() => setIsPollActive(!isPollActive)}
+              onClick={addPoll}
               className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
-                isPollActive
+                polls.length > 0
                   ? theme === 'dark'
-                    ? 'bg-green-500/15 text-green-400'
-                    : 'bg-green-50 text-green-600'
+                    ? 'bg-white/15 text-white'
+                    : 'bg-black/10 text-black'
                   : theme === 'dark'
                   ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              title="Create a poll"
+              title="Add a poll"
             >
               <BarChart3 className="w-4 h-4" />
             </motion.button>
