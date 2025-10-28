@@ -1739,153 +1739,153 @@ const CreatePost: React.FC<CreatePostProps> = ({
         </AnimatePresence>
         </div>
 
-        {/* Professional Action Bar */}
-        <div className={`flex items-center justify-between ${isFullScreen ? 'px-6 py-3' : 'px-4 sm:px-6 py-3 sm:py-4'} border-t w-full max-w-full ${
-          theme === 'dark' ? 'border-gray-800/50' : 'border-gray-200/50'
+        {/* Compact Action Bar */}
+        <div className={`flex items-center justify-between ${isFullScreen ? 'px-6 py-2' : 'px-4 py-2.5'} border-t w-full max-w-full ${
+          theme === 'dark' ? 'border-gray-800/30' : 'border-gray-200/30'
         }`}>
-          {/* Enhanced Action Buttons */}
-          <div className="flex items-center space-x-1 flex-shrink-0">
+          {/* Compact Action Buttons */}
+          <div className="flex items-center space-x-0.5 flex-shrink-0">
             {/* Photo Upload */}
             <motion.button
               onClick={() => fileInputRef.current?.click()}
-              className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
                 selectedImages.some(f => f.type.startsWith('image/'))
                   ? theme === 'dark'
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                    : 'bg-blue-50 text-blue-600 border border-blue-200'
+                    ? 'bg-blue-500/15 text-blue-400'
+                    : 'bg-blue-50 text-blue-600'
                   : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               title="Add photos"
             >
-              <Image className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Image className="w-4 h-4" />
             </motion.button>
 
             {/* Video Upload */}
             <motion.button
               onClick={() => videoInputRef.current?.click()}
-              className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
                 selectedVideos.length > 0
                   ? theme === 'dark'
-                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                    : 'bg-purple-50 text-purple-600 border border-purple-200'
+                    ? 'bg-purple-500/15 text-purple-400'
+                    : 'bg-purple-50 text-purple-600'
                   : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               title="Add videos"
             >
-              <Video className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Video className="w-4 h-4" />
             </motion.button>
 
             {/* Poll */}
             <motion.button
               onClick={() => setIsPollActive(!isPollActive)}
-              className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
                 isPollActive
                   ? theme === 'dark'
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                    : 'bg-green-50 text-green-600 border border-green-200'
+                    ? 'bg-green-500/15 text-green-400'
+                    : 'bg-green-50 text-green-600'
                   : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               title="Create a poll"
             >
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <BarChart3 className="w-4 h-4" />
             </motion.button>
 
             {/* Emoji */}
             <motion.button
               onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-              className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
                 isEmojiPickerOpen
                   ? theme === 'dark'
-                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                    : 'bg-yellow-50 text-yellow-600 border border-yellow-200'
+                    ? 'bg-yellow-500/15 text-yellow-400'
+                    : 'bg-yellow-50 text-yellow-600'
                   : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               title="Add emoji"
             >
-              <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Smile className="w-4 h-4" />
             </motion.button>
 
             {/* Event */}
             <motion.button
               onClick={() => setIsEventActive(!isEventActive)}
-              className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
                 isEventActive
                   ? theme === 'dark'
-                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                    : 'bg-purple-50 text-purple-600 border border-purple-200'
+                    ? 'bg-purple-500/15 text-purple-400'
+                    : 'bg-purple-50 text-purple-600'
                   : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               title="Create event"
             >
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Calendar className="w-4 h-4" />
             </motion.button>
 
             {/* Location */}
             <motion.button
               onClick={() => setIsLocationPickerOpen(!isLocationPickerOpen)}
-              className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 flex-shrink-0 ${
                 location || isLocationPickerOpen
                   ? theme === 'dark'
-                    ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                    : 'bg-orange-50 text-orange-600 border border-orange-200'
+                    ? 'bg-orange-500/15 text-orange-400'
+                    : 'bg-orange-50 text-orange-600'
                   : theme === 'dark'
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               title="Add location"
             >
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
+              <MapPin className="w-4 h-4" />
             </motion.button>
           </div>
 
-          {/* Post Button */}
+          {/* Compact Post Button */}
           <motion.button
             disabled={(!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) || isSubmitting || charCount > maxChars}
-            className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm transition-all duration-300 flex-shrink-0 ${
+            className={`px-5 py-2 rounded-lg font-semibold text-sm transition-all duration-200 flex-shrink-0 ${
               hasEditorContent || selectedImages.length > 0 || selectedVideos.length > 0
                 ? theme === 'dark'
-                  ? 'bg-white text-black hover:bg-gray-100 shadow-lg hover:shadow-xl'
-                  : 'bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl'
+                  ? 'bg-white text-black hover:bg-gray-100'
+                  : 'bg-black text-white hover:bg-gray-800'
                 : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-200/50 text-gray-400 cursor-not-allowed'
             } ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
             whileHover={(!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) || isSubmitting ? {} : { scale: 1.02 }}
             whileTap={(!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) || isSubmitting ? {} : { scale: 0.98 }}
             onClick={handleSubmit}
           >
             {isSubmitting ? (
-              <div className="flex items-center space-x-2">
-                <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${
+              <div className="flex items-center space-x-1.5">
+                <div className={`w-3 h-3 border-2 border-t-transparent rounded-full animate-spin ${
                   theme === 'dark' ? 'border-black' : 'border-white'
                 }`} />
                 <span>Publishing...</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4" />
+              <div className="flex items-center space-x-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>{buttonText}</span>
               </div>
             )}
