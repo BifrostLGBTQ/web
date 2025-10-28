@@ -163,6 +163,7 @@ const CreatePost: React.FC = () => {
   const [hasEditorContent, setHasEditorContent] = useState(false);
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [selectedVideos, setSelectedVideos] = useState<File[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [audience] = useState<'public' | 'community' | 'private'>('public');
   const [isPollActive, setIsPollActive] = useState(false);
@@ -194,12 +195,22 @@ const CreatePost: React.FC = () => {
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const imageFiles = files.filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'));
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
     setSelectedImages(prev => [...prev, ...imageFiles]);
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const videoFiles = files.filter(file => file.type.startsWith('video/'));
+    setSelectedVideos(prev => [...prev, ...videoFiles]);
   };
 
   const removeImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeVideo = (index: number) => {
+    setSelectedVideos(prev => prev.filter((_, i) => i !== index));
   };
 
   const toggleFullScreen = () => {
@@ -208,7 +219,7 @@ const CreatePost: React.FC = () => {
 
   const handleSubmit = async () => {
     // Check if there's any content to post
-    if (!hasEditorContent && selectedImages.length === 0) return;
+    if (!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) return;
     
     setIsSubmitting(true);
     
@@ -274,6 +285,7 @@ const CreatePost: React.FC = () => {
       hashtags: hashtags,
       mentions: mentions,
       images: selectedImages,
+      videos: selectedVideos,
       audience: audience,
       poll: isPollActive ? {
         options: pollOptions,
@@ -300,6 +312,7 @@ const CreatePost: React.FC = () => {
       setEditorContent('');
       setHasEditorContent(false);
       setSelectedImages([]);
+      setSelectedVideos([]);
       setIsExpanded(false);
       setIsPollActive(false);
       setIsEventActive(false);
@@ -812,7 +825,7 @@ const CreatePost: React.FC = () => {
                           className="editor-input lexical-editor"
                           style={{
                             minHeight: isFullScreen ? '70dvh' : isExpanded ? '140px' : '80px',
-                            maxHeight: isFullScreen ? '70dvh' : '50dvh',
+                            maxHeight: isFullScreen ? '100%' : '100%',
                             wordWrap: 'break-word',
                             overflowWrap: 'break-word'
                           }}
@@ -901,14 +914,14 @@ const CreatePost: React.FC = () => {
         {/* Professional Attachments Section */}
         <div className={`w-full ${isFullScreen ? 'px-6 py-2' : 'p-4'}`}>
         <AnimatePresence>
-          {(selectedImages.length > 0 || location || isPollActive || isEventActive || isEmojiPickerOpen || isLocationPickerOpen) && (
+          {(selectedImages.length > 0 || selectedVideos.length > 0 || location || isPollActive || isEventActive || isEmojiPickerOpen || isLocationPickerOpen) && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className={`w-full max-w-full`}
             >
-              {/* Professional Media Preview */}
+              {/* Professional Image Preview */}
               {selectedImages.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -928,12 +941,12 @@ const CreatePost: React.FC = () => {
                         <h3 className={`font-bold text-base ${
                           theme === 'dark' ? 'text-white' : 'text-gray-900'
                         }`}>
-                          Media Files
+                          Images
                         </h3>
                         <p className={`text-sm ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                         }`}>
-                          {selectedImages.length} file{selectedImages.length > 1 ? 's' : ''} selected
+                          {selectedImages.length} image{selectedImages.length > 1 ? 's' : ''} selected
                         </p>
                       </div>
                     </div>
@@ -967,44 +980,16 @@ const CreatePost: React.FC = () => {
                         <div className={`relative rounded-2xl overflow-hidden ${
                           selectedImages.length === 1 ? 'h-48' : 'h-32'
                         } ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                          {file.type.startsWith('image/') ? (
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center space-y-2">
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
-                              }`}>
-                                <Video className={`w-6 h-6 ${
-                                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                                }`} />
-                              </div>
-                              <div className="text-center px-2">
-                                <p className={`text-xs font-medium truncate ${
-                                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                }`}>
-                                  {file.name}
-                                </p>
-                                <p className={`text-xs ${
-                                  theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
-                                }`}>
-                                  {(file.size / (1024 * 1024)).toFixed(1)} MB
-                                </p>
-                              </div>
-                            </div>
-                          )}
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
 
                           {/* File Type Badge */}
                           <div className="absolute top-2 left-2">
-                            <div className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                              file.type.startsWith('image/')
-                                ? 'bg-blue-500/80 text-white'
-                                : 'bg-purple-500/80 text-white'
-                            }`}>
-                              {file.type.startsWith('image/') ? 'IMG' : 'VID'}
+                            <div className={`px-2 py-1 rounded-lg text-xs font-bold bg-blue-500/80 text-white`}>
+                              IMG
                             </div>
                           </div>
 
@@ -1025,6 +1010,123 @@ const CreatePost: React.FC = () => {
                                 <Plus className="w-8 h-8 text-white mx-auto mb-1" />
                                 <span className="text-white font-bold text-lg">
                                   +{selectedImages.length - 6}
+                                </span>
+                                <p className="text-white/80 text-xs">more files</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Professional Video Preview */}
+              {selectedVideos.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                      }`}>
+                        <Video className={`w-5 h-5 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <h3 className={`font-bold text-base ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          Videos
+                        </h3>
+                        <p className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          {selectedVideos.length} video{selectedVideos.length > 1 ? 's' : ''} selected
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedVideos([])}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        theme === 'dark'
+                          ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-gray-700 hover:border-red-500/30'
+                          : 'text-gray-600 hover:text-red-500 hover:bg-red-50 border border-gray-200 hover:border-red-200'
+                      }`}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+
+                  {/* Video Grid */}
+                  <div className={`grid gap-2 sm:gap-3 w-full max-w-full overflow-hidden ${
+                    selectedVideos.length === 1 ? 'grid-cols-1' :
+                    selectedVideos.length === 2 ? 'grid-cols-2' :
+                    selectedVideos.length === 3 ? 'grid-cols-2 sm:grid-cols-3' :
+                    'grid-cols-2 sm:grid-cols-3'
+                  }`}>
+                    {selectedVideos.map((file, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="relative group"
+                      >
+                        <div className={`relative rounded-2xl overflow-hidden ${
+                          selectedVideos.length === 1 ? 'h-48' : 'h-32'
+                        } ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                          <div className="w-full h-full flex flex-col items-center justify-center space-y-2">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                            }`}>
+                              <Video className={`w-6 h-6 ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                              }`} />
+                            </div>
+                            <div className="text-center px-2">
+                              <p className={`text-xs font-medium truncate ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                              }`}>
+                                {file.name}
+                              </p>
+                              <p className={`text-xs ${
+                                theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                              }`}>
+                                {(file.size / (1024 * 1024)).toFixed(1)} MB
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* File Type Badge */}
+                          <div className="absolute top-2 left-2">
+                            <div className={`px-2 py-1 rounded-lg text-xs font-bold bg-purple-500/80 text-white`}>
+                              VID
+                            </div>
+                          </div>
+
+                          {/* Remove Button */}
+                          <motion.button
+                            onClick={() => removeVideo(index)}
+                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white hover:bg-red-600 flex items-center justify-center shadow-lg transition-all duration-200"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <X className="w-4 h-4" />
+                          </motion.button>
+
+                          {/* Overlay for extra files */}
+                          {selectedVideos.length > 6 && index === 5 && (
+                            <div className="absolute inset-0 bg-black/70 rounded-2xl flex items-center justify-center">
+                              <div className="text-center">
+                                <Plus className="w-8 h-8 text-white mx-auto mb-1" />
+                                <span className="text-white font-bold text-lg">
+                                  +{selectedVideos.length - 6}
                                 </span>
                                 <p className="text-white/80 text-xs">more files</p>
                               </div>
@@ -1658,7 +1760,7 @@ const CreatePost: React.FC = () => {
             <motion.button
               onClick={() => videoInputRef.current?.click()}
               className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl transition-all duration-300 flex-shrink-0 ${
-                selectedImages.some(f => f.type.startsWith('video/'))
+                selectedVideos.length > 0
                   ? theme === 'dark'
                     ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                     : 'bg-purple-50 text-purple-600 border border-purple-200'
@@ -1752,9 +1854,9 @@ const CreatePost: React.FC = () => {
 
           {/* Post Button */}
           <motion.button
-            disabled={(!hasEditorContent && selectedImages.length === 0) || isSubmitting || charCount > maxChars}
+            disabled={(!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) || isSubmitting || charCount > maxChars}
             className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm transition-all duration-300 flex-shrink-0 ${
-              hasEditorContent || selectedImages.length > 0
+              hasEditorContent || selectedImages.length > 0 || selectedVideos.length > 0
                 ? theme === 'dark'
                   ? 'bg-white text-black hover:bg-gray-100 shadow-lg hover:shadow-xl'
                   : 'bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl'
@@ -1762,8 +1864,8 @@ const CreatePost: React.FC = () => {
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             } ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
-            whileHover={(!hasEditorContent && selectedImages.length === 0) || isSubmitting ? {} : { scale: 1.02 }}
-            whileTap={(!hasEditorContent && selectedImages.length === 0) || isSubmitting ? {} : { scale: 0.98 }}
+            whileHover={(!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) || isSubmitting ? {} : { scale: 1.02 }}
+            whileTap={(!hasEditorContent && selectedImages.length === 0 && selectedVideos.length === 0) || isSubmitting ? {} : { scale: 0.98 }}
             onClick={handleSubmit}
           >
             {isSubmitting ? (
@@ -1798,7 +1900,7 @@ const CreatePost: React.FC = () => {
         type="file"
         multiple
         accept="video/*"
-        onChange={handleImageUpload}
+        onChange={handleVideoUpload}
         className="hidden"
       />
 

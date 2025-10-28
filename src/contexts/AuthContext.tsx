@@ -20,11 +20,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = (token:string, userData: User) => {
     setToken(token)
     setUser(userData);
+    localStorage.setItem("authToken", token);
   };
 
   const logout = () => {
     setUser(null);
     setToken("")
+    localStorage.removeItem("authToken");
   };
 
   const updateUser = (userData: Partial<User>) => {

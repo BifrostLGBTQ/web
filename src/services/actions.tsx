@@ -18,6 +18,10 @@ export const Actions = {
   USER_FETCH_PROFILE: "user.fetch_profile",
 
   POST_CREATE : "post.create",
+  POST_FETCH : "post.fetch",
+  POST_TIMELINE: "post.timeline",
+
+
 
 } as const;
 
