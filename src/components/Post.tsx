@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, MapPin, Calendar } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import PostReply from './PostReply';
 
 // API data structure interfaces
 interface ApiPost {
@@ -87,7 +88,7 @@ interface ApiPost {
   };
   event?: {
     id: string;
-    post_id: string;
+    post_id: string; 
     title: {
       en: string;
     };
@@ -148,11 +149,12 @@ interface PostProps {
   isDetailView?: boolean;
 }
 
-const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick }) => {
+const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetailView }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [selectedPollChoice, setSelectedPollChoice] = useState<string | null>(null);
   const [eventStatus, setEventStatus] = useState<'going' | 'not_going' | 'maybe' | null>(null);
+  const [showReply, setShowReply] = useState(isDetailView || false);
   const { theme } = useTheme();
 
   // Handle profile click
@@ -205,7 +207,11 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick }) => {
       className={`overflow-hidden ${
         theme === 'dark' ? 'bg-black' : 'bg-white'
       } ${onPostClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:shadow-sm' : ''} transition-all duration-300 ease-out`}
-      onClick={() => onPostClick?.(post.id)}
+      onClick={() => {
+        if (onPostClick) {
+          onPostClick(post.id);
+        }
+      }}
     >
       {/* Post Header */}
       <div className="px-4 py-3 flex items-center justify-between">
@@ -264,8 +270,20 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick }) => {
       <div className="px-4 py-3">
         <div className={`leading-relaxed text-[15px] ${
           theme === 'dark' ? 'text-white' : 'text-gray-900'
-        }`}>
-          <div dangerouslySetInnerHTML={{ __html: post.content.en }} />
+        }`} style={{
+          color: theme === 'dark' ? '#ffffff' : '#111827'
+        }}>
+          <div 
+            dangerouslySetInnerHTML={{ __html: post.content.en }} 
+            style={{
+              color: theme === 'dark' ? '#ffffff' : '#111827'
+            }}
+            className={`prose prose-sm max-w-none ${
+              theme === 'dark' 
+                ? 'prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white prose-a:text-blue-400 prose-code:text-white' 
+                : 'prose-headings:text-gray-900 prose-p:text-gray-900 prose-strong:text-gray-900 prose-em:text-gray-900 prose-a:text-blue-600 prose-code:text-gray-900'
+            }`}
+          />
         </div>
       </div>
 
@@ -562,7 +580,10 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick }) => {
               </span>
             </button>
             <button 
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowReply(!showReply);
+              }}
               className={`flex items-center space-x-1 px-3 py-2 rounded-full transition-colors duration-200 hover:bg-opacity-10 ${
                 theme === 'dark' ? 'text-gray-400 hover:text-blue-500 hover:bg-blue-500/10' : 'text-gray-500 hover:text-blue-500 hover:bg-blue-500/10'
               }`}
@@ -581,19 +602,31 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick }) => {
             </button>
           </div>
           <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsBookmarked(!isBookmarked);
-          }}
-          className={`flex items-center space-x-1 px-3 py-2 rounded-full transition-colors duration-200 hover:bg-opacity-10 ${
-            isBookmarked 
-              ? theme === 'dark' ? 'text-yellow-500 hover:bg-yellow-500/10' : 'text-yellow-600 hover:bg-yellow-500/10'
-              : theme === 'dark' ? 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10'
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsBookmarked(!isBookmarked);
+            }}
+            className={`flex items-center space-x-1 px-3 py-2 rounded-full transition-colors duration-200 hover:bg-opacity-10 ${
+              isBookmarked 
+                ? theme === 'dark' ? 'text-yellow-500 hover:bg-yellow-500/10' : 'text-yellow-600 hover:bg-yellow-500/10'
+                : theme === 'dark' ? 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10'
             }`}
           >
             <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
           </button>
-      </div>
+        </div>
+
+      {/* Reply Section */}
+      {showReply && (
+        <PostReply 
+          isOpen={true}
+          onClose={() => setShowReply(false)}
+          onReply={(content) => {
+            console.log('Reply posted:', content);
+            setShowReply(false);
+          }}
+        />
+      )}
     </div>
   );
 };

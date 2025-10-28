@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from './components/Footer';
 import MatchScreen from './components/MatchScreen';
@@ -27,6 +27,28 @@ function App() {
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Update activeScreen based on current URL
+  React.useEffect(() => {
+    const path = location.pathname;
+    if (path === '/' || path === '/home') {
+      setActiveScreen('home');
+    } else if (path === '/search') {
+      setActiveScreen('search');
+    } else if (path === '/match') {
+      setActiveScreen('match');
+    } else if (path === '/messages') {
+      setActiveScreen('messages');
+    } else if (path === '/places') {
+      setActiveScreen('places');
+    } else if (path === '/classifieds') {
+      setActiveScreen('classifieds');
+    } else if (path.startsWith('/') && path.split('/').length === 2) {
+      // Profile route like /username
+      setActiveScreen('profile');
+    }
+  }, [location.pathname]);
 
 
   const navigationItems = [
@@ -92,11 +114,11 @@ function App() {
                     key={item.id}
                     onClick={() => {
                       if (item.id === 'home') {
-                        window.location.href = '/';
+                        navigate('/');
                       } else if (item.id === 'profile') {
-                        window.location.href = `/${user?.username || 'profile'}`;
+                        navigate(`/${user?.username || 'profile'}`);
                       } else {
-                        window.location.href = `/${item.id}`;
+                        navigate(`/${item.id}`);
                       }
                     }}
                     className={`w-full flex items-center space-x-4 px-5 py-3.5 rounded-full transition-all duration-200 group ${
@@ -122,7 +144,7 @@ function App() {
               {/* User Profile Card */}
               {isAuthenticated ? (
                 <button
-                  onClick={() => setActiveScreen('profile')}
+                  onClick={() => navigate(`/${user?.username || 'profile'}`)}
                   className={`w-full p-3 rounded-2xl transition-all duration-200 border border-transparent hover:border-opacity-30 ${
                     theme === 'dark' 
                       ? 'hover:bg-white/5 hover:border-white/30' 
@@ -251,8 +273,7 @@ function App() {
                       key={index} 
                       className="flex-shrink-0 w-28 cursor-pointer group"
                       onClick={() => {
-                        setSelectedUser(match.name.toLowerCase());
-                        setActiveScreen('profile');
+                        navigate(`/${match.name.toLowerCase()}`);
                       }}
                     >
                       <div className="relative">
@@ -317,8 +338,7 @@ function App() {
                         e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)';
                       }}
                       onClick={() => {
-                        setSelectedUser(user.username);
-                        setActiveScreen('profile');
+                        navigate(`/${user.username}`);
                       }}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -450,7 +470,13 @@ function App() {
                               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                           }`}
                         onClick={() => {
-                          setActiveScreen(item.id);
+                          if (item.id === 'home') {
+                            navigate('/');
+                          } else if (item.id === 'profile') {
+                            navigate(`/${user?.username || 'profile'}`);
+                          } else {
+                            navigate(`/${item.id}`);
+                          }
                           setIsMobileMenuOpen(false);
                         }}
                         initial={{ opacity: 0, x: -20 }}

@@ -247,10 +247,12 @@ const HomeScreen: React.FC = () => {
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       
-      {/* Stories Above Tabs */}
-      <div className={`${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}  p-4`}>
-        <Stories />
-      </div>
+      {/* Stories Above Tabs - Only show when not in post detail view */}
+      {!selectedPost && (
+        <div className={`${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}  p-4`}>
+          <Stories />
+        </div>
+      )}
 
       {/* Header - Show Post Detail or Tabs */}
       <div className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}`}>
@@ -332,6 +334,7 @@ const HomeScreen: React.FC = () => {
               <Post 
                 post={selectedPostData} 
                 onProfileClick={handleProfileClick}
+                isDetailView={true}
               />
             )}
           </motion.div>
