@@ -696,7 +696,7 @@ export default function ToolbarPlugin({
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
       {/* Single Row Scrollable for All Screens */}
-      <div className="p-3 relative">
+      <div className="relative">
         {/* Left Scroll Arrow */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20">
           <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-1">

@@ -809,14 +809,12 @@ const CreatePost: React.FC<CreatePostProps> = ({
         </div>
 
         {/* Main Content Area */}
-        <div className={`${isFullScreen ? 'px-6 py-2' : 'px-4 py-3'} w-full max-w-full`}>
+        <div className={`${isFullScreen ? 'px-6 py-1' : 'px-4 py-2'} w-full max-w-full`}>
           <div className="w-full max-w-full">
             {/* Content Input Area */}
             <div className="w-full max-w-full">
               {/* Professional Text Area */}
               <div className="relative w-full max-w-full">
-
-
        
               <div className="w-full max-w-full">
                 <LexicalComposer initialConfig={editorConfig}>
@@ -825,7 +823,9 @@ const CreatePost: React.FC<CreatePostProps> = ({
                     <ListPlugin/>
                     <LinkPlugin/>
                   
-                    <ToolbarPluginWrapper setEditorInstance={setEditorInstance} />
+                    <div className="-mx-2 -mt-1">
+                      <ToolbarPluginWrapper setEditorInstance={setEditorInstance} />
+                    </div>
 
                     <RichTextPlugin
                       contentEditable={
