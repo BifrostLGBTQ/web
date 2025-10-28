@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
@@ -142,15 +143,38 @@ interface TimelineResponse {
 
 const HomeScreen: React.FC = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [posts, setPosts] = useState<ApiPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [hasMore, setHasMore] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string>('');
 
   const [activeTab, setActiveTab] = useState('foryou');
-  const [selectedPost, setSelectedPost] = useState<string | null>(null);
+  
+  // Get selected post from URL or null
+  const selectedPost = location.pathname.includes('/status/') 
+    ? location.pathname.split('/status/')[1] 
+    : null;
 
-  const selectedPostData = selectedPost ? posts.find(p => p.id === selectedPost) : null;
+  const selectedPostData = selectedPost ? posts.find(p => p.id === selectedPost || p.public_id.toString() === selectedPost) : null;
+
+  // Handle post click - update URL
+  const handlePostClick = (postId: string, username: string) => {
+    navigate(`/${username}/status/${postId}`, { replace: true });
+  };
+
+  // Handle back button click
+  const handleBackClick = () => {
+    navigate('/', { replace: true });
+  };
+
+  // Handle profile click - navigate to profile page
+  const handleProfileClick = (username: string) => {
+    navigate(`/${username}`, { replace: true });
+  };
 
   // Fetch posts from API
   useEffect(() => {
@@ -160,6 +184,8 @@ const HomeScreen: React.FC = () => {
         setError(null);
         const response: TimelineResponse = await api.fetchTimeline({ limit: 10, cursor: "" });
         setPosts(response.posts);
+        setNextCursor(response.next_cursor?.toString() || '');
+        setHasMore(response.posts.length > 0);
       } catch (err) {
         console.error('Error fetching posts:', err);
         setError('Failed to load posts. Please try again.');
@@ -170,6 +196,53 @@ const HomeScreen: React.FC = () => {
 
     fetchPosts();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load more posts function
+  const loadMorePosts = useCallback(async () => {
+    if (!nextCursor || loadingMore) {
+      console.log('Load more skipped:', { nextCursor, loadingMore });
+      return;
+    }
+
+    try {
+      console.log('Loading more posts with cursor:', nextCursor);
+      setLoadingMore(true);
+      const response: TimelineResponse = await api.fetchTimeline({ limit: 10, cursor: nextCursor });
+      
+      console.log('Load more response:', response);
+      
+      if (response.posts.length > 0) {
+        setPosts(prevPosts => [...prevPosts, ...response.posts]);
+        setNextCursor(response.next_cursor?.toString() || '');
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more posts:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextCursor, loadingMore]);
+
+  // Load more posts when scrolling to bottom
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollHeight = document.documentElement.scrollHeight;
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      const clientHeight = document.documentElement.clientHeight;
+
+      const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+      
+      // Load more when 200px from bottom
+      if (distanceFromBottom <= 200 && hasMore && !loadingMore && !loading && !selectedPost) {
+        console.log('Triggering load more:', { distanceFromBottom, hasMore, loadingMore, loading, selectedPost });
+        loadMorePosts();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, loadingMore, loading, selectedPost, loadMorePosts]);
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
@@ -185,7 +258,7 @@ const HomeScreen: React.FC = () => {
           // Post Detail Header
           <div className="flex items-center px-4 py-3">
             <button
-              onClick={() => setSelectedPost(null)}
+              onClick={handleBackClick}
               className={`p-2 rounded-full transition-all duration-200 mr-3 ${
                 theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'
               }`}
@@ -258,6 +331,7 @@ const HomeScreen: React.FC = () => {
             {selectedPostData && (
               <Post 
                 post={selectedPostData} 
+                onProfileClick={handleProfileClick}
               />
             )}
           </motion.div>
@@ -294,10 +368,25 @@ const HomeScreen: React.FC = () => {
                   >
                     <Post 
                       post={post} 
-                      onPostClick={setSelectedPost}
+                      onPostClick={(postId) => handlePostClick(postId, post.author.username)}
+                      onProfileClick={handleProfileClick}
                     />
                   </motion.div>
                 ))
+              )}
+              {/* Loading More Indicator */}
+              {loadingMore && (
+                <div className={`p-8 text-center border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+                  <div className={`inline-flex items-center space-x-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
+                    <span>Loading more posts...</span>
+                  </div>
+                </div>
+              )}
+              {!hasMore && posts.length > 0 && (
+                <div className={`p-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  No more posts to load
+                </div>
               )}
             </div>
           </>

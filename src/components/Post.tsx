@@ -144,15 +144,22 @@ interface ApiPost {
 interface PostProps {
   post: ApiPost;
   onPostClick?: (postId: string) => void;
+  onProfileClick?: (username: string) => void;
   isDetailView?: boolean;
 }
 
-const Post: React.FC<PostProps> = ({ post, onPostClick }) => {
+const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [selectedPollChoice, setSelectedPollChoice] = useState<string | null>(null);
   const [eventStatus, setEventStatus] = useState<'going' | 'not_going' | 'maybe' | null>(null);
   const { theme } = useTheme();
+
+  // Handle profile click
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent post click
+    onProfileClick?.(post.author.username);
+  };
 
   // Helper function to format timestamp
   const formatTimestamp = (timestamp: string) => {
@@ -203,23 +210,36 @@ const Post: React.FC<PostProps> = ({ post, onPostClick }) => {
       {/* Post Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
-          }`}>
+          <button 
+            onClick={handleProfileClick}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 ${
+              theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
             <span className={`font-bold text-sm ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               {post.author.displayname.charAt(0).toUpperCase()}
             </span>
-          </div>
+          </button>
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className={`font-semibold ${
-                theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>{post.author.displayname}</h3>
-              <span className={`text-sm ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`}>@{post.author.username}</span>
+              <button 
+                onClick={handleProfileClick}
+                className={`font-semibold hover:underline transition-colors duration-200 ${
+                  theme === 'dark' ? 'text-white hover:text-gray-300' : 'text-gray-900 hover:text-gray-600'
+                }`}
+              >
+                {post.author.displayname}
+              </button>
+              <button 
+                onClick={handleProfileClick}
+                className={`text-sm hover:underline transition-colors duration-200 ${
+                  theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'
+                }`}
+              >
+                @{post.author.username}
+              </button>
               <span className={`text-sm ${
                 theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
               }`}>·</span>

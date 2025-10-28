@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from './components/Footer';
 import MatchScreen from './components/MatchScreen';
@@ -25,6 +26,7 @@ function App() {
 
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
 
 
   const navigationItems = [
@@ -88,7 +90,15 @@ function App() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveScreen(item.id)}
+                    onClick={() => {
+                      if (item.id === 'home') {
+                        window.location.href = '/';
+                      } else if (item.id === 'profile') {
+                        window.location.href = `/${user?.username || 'profile'}`;
+                      } else {
+                        window.location.href = `/${item.id}`;
+                      }
+                    }}
                     className={`w-full flex items-center space-x-4 px-5 py-3.5 rounded-full transition-all duration-200 group ${
                       isActive
                         ? theme === 'dark'
@@ -185,16 +195,26 @@ function App() {
 
         {/* Middle Section - Scrollable */}
         <main className={`flex-1 min-w-0 ${theme === 'dark' ? 'border-l border-r border-black' : 'border-l border-r border-gray-100'}`}>
-          {/* Render Content */}
-          {activeScreen === 'home' && <HomeScreen />}
-          {activeScreen === 'following' && <HomeScreen />}
-          {activeScreen === 'search' && <SearchScreen />}
-          {activeScreen === 'match' && <MatchScreen />}
-          {activeScreen === 'nearby' && <NearbyScreen />}
-          {activeScreen === 'profile' && <ProfileScreen />}
-          {activeScreen === 'places' && <PlacesScreen />}
-          {activeScreen === 'messages' && <MessagesScreen />}
-          {activeScreen === 'classifieds' && <ClassifiedsScreen />}
+          <Routes>
+            {/* Home Routes */}
+            <Route path="/" element={<HomeScreen />} />
+            <Route path="/home" element={<HomeScreen />} />
+            
+            {/* Profile Routes */}
+            <Route path="/:username" element={<ProfileScreen />} />
+            <Route path="/:username/status/:postId" element={<HomeScreen />} />
+            
+            {/* Other Routes */}
+            <Route path="/search" element={<SearchScreen />} />
+            <Route path="/match" element={<MatchScreen />} />
+            <Route path="/nearby" element={<NearbyScreen />} />
+            <Route path="/places" element={<PlacesScreen />} />
+            <Route path="/messages" element={<MessagesScreen />} />
+            <Route path="/classifieds" element={<ClassifiedsScreen />} />
+            
+            {/* Fallback */}
+            <Route path="*" element={<HomeScreen />} />
+          </Routes>
         </main>
 
         {/* Right Sidebar - Fixed */}
