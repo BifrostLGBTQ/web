@@ -232,19 +232,14 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
   };
 
   return (
-    <div 
-      className={`overflow-hidden border-b ${
-        theme === 'dark' 
-          ? 'bg-black border-gray-800/40' 
-          : 'bg-white border-gray-100'
-      } ${onPostClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:shadow-sm' : ''} transition-all duration-300 ease-out`}
-      onClick={(e) => {
-        e.stopPropagation(); // Prevent event bubbling
-        if (onPostClick) {
-          onPostClick(post.id, post.author.username);
-        }
-      }}
-    >
+    <>
+      <div 
+        className={`overflow-hidden border-b ${
+          theme === 'dark' 
+            ? 'bg-black border-gray-800/40' 
+            : 'bg-white border-gray-100'
+        } ${onPostClick ? 'hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:shadow-sm' : ''} transition-all duration-300 ease-out`}
+      >
       {/* Post Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -299,7 +294,15 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
       </div>
 
       {/* Post Content */}
-      <div className="px-4 py-3">
+      <div 
+        className={`px-4 py-3 ${onPostClick ? 'cursor-pointer' : ''}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onPostClick) {
+            onPostClick(post.id, post.author.username);
+          }
+        }}
+      >
         <div className={`leading-relaxed text-[15px] ${
           theme === 'dark' ? 'text-white' : 'text-gray-900'
         }`} style={{
@@ -631,6 +634,7 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
             <button 
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 setShowReply(!showReply);
               }}
               className={`flex items-center space-x-1 px-3 py-2 rounded-full transition-colors duration-200 hover:bg-opacity-10 ${
@@ -665,39 +669,46 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
           </button>
         </div>
 
-      {/* Reply Section */}
-      {showReply && (
-        <PostReply 
-          isOpen={true}
-          onClose={() => setShowReply(false)}
-          parentPostId={`${post.id}`}
-          onReply={(content, parentPostId) => {
-            console.log('Reply posted:', content, 'Parent ID:', parentPostId);
-            setShowReply(false);
-            
-            // Refresh parent post (top-level post) to get updated children
-            if (onRefreshParent) {
-              onRefreshParent();
-            }
-            
-            // Also refresh local children if in detail view
-            if (isDetailView) {
-              api.fetchPost(post.id)
-                .then((response) => {
-                  if (response.children) {
-                    setChildren(response.children);
-                  }
-                })
-                .catch((error) => {
-                  console.error('Error refreshing children:', error);
-                });
-            }
-          }}
-        />
-      )}
+    </div>
 
-      {/* Children (Replies) Section - Show in detail view or when showChildren is true */}
-      {(isDetailView || showChildren) && (
+    {/* PostReply Component - Outside main post div */}
+    {showReply && (
+      <PostReply 
+        isOpen={true}
+        onClose={() => setShowReply(false)}
+        parentPostId={`${post.id}`}
+        onReply={(content, parentPostId) => {
+          console.log('Reply posted:', content, 'Parent ID:', parentPostId);
+          setShowReply(false);
+          
+          // Refresh parent post (top-level post) to get updated children
+          if (onRefreshParent) {
+            onRefreshParent();
+          }
+          
+          // Also refresh local children if in detail view
+          if (isDetailView) {
+            api.fetchPost(post.id)
+              .then((response) => {
+                if (response.children) {
+                  setChildren(response.children);
+                }
+              })
+              .catch((error) => {
+                console.error('Error refreshing children:', error);
+              });
+          }
+        }}
+      />
+    )}
+
+    {/* Children (Replies) Section - Outside main post div */}
+    {(isDetailView || showChildren) && (
+      <div className={`overflow-hidden border-b ${
+        theme === 'dark' 
+          ? 'bg-black border-gray-800/40' 
+          : 'bg-white border-gray-100'
+      }`}>
         <div className="px-4 py-3">
           {loadingChildren ? (
             <div className={`text-center py-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -709,24 +720,27 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                 Replies ({children.length || post.children?.length || 0})
               </div>
               {(children.length > 0 ? children : post.children || []).map((child) => (
-                <div key={child.id} className={`border-l-2 pl-4 ${
+                <div key={child.id} className={`border-l-2 pl-4 pointer-events-none ${
                   theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                 }`}>
-                  <Post
-                    post={child}
-                    onPostClick={onPostClick}
-                    onProfileClick={onProfileClick}
-                    isDetailView={false}
-                    showChildren={true}
-                    onRefreshParent={onRefreshParent}
-                  />
+                  <div className="pointer-events-auto">
+                    <Post
+                      post={child}
+                      onPostClick={onPostClick}
+                      onProfileClick={onProfileClick}
+                      isDetailView={false}
+                      showChildren={true}
+                      onRefreshParent={onRefreshParent}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           ) : null}
+        </div>
       </div>
-      )}
-    </div>
+    )}
+    </>
   );
 };
 
