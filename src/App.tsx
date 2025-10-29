@@ -36,6 +36,8 @@ function App() {
       setActiveScreen('home');
     } else if (path === '/search') {
       setActiveScreen('search');
+    } else if (path === '/nearby') {
+      setActiveScreen('nearby');
     } else if (path === '/match') {
       setActiveScreen('match');
     } else if (path === '/messages') {
@@ -133,6 +135,7 @@ function App() {
             <nav className="space-y-1 flex-1">
               {[
                 { id: 'home', label: 'Home', icon: Home },
+                { id: 'nearby', label: 'NearBy', icon: MapPin },
                 { id: 'search', label: 'Explore', icon: Search },
                 { id: 'match', label: 'Matches', icon: Heart },
                 { id: 'messages', label: 'Messages', icon: MessageCircle },
@@ -603,19 +606,6 @@ function App() {
                       >
                         <Icon className="w-6 h-6 flex-shrink-0" />
                         <span className="text-base">{item.label}</span>
-                        {isActive && (
-                          <motion.div
-                            className={`ml-auto w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-white'
-                              }`}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{
-                              type: 'spring',
-                              stiffness: 500,
-                              damping: 25
-                            }}
-                          />
-                        )}
                       </motion.button>
                     );
                   })}
@@ -623,7 +613,7 @@ function App() {
               </nav>
 
               {/* Footer */}
-              <div className={`px-6 py-6 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+              <div className={`px-6 py-6 border-t space-y-3 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
                 }`}>
                 <motion.button
                   onClick={toggleTheme}
@@ -636,6 +626,21 @@ function App() {
                 >
                   {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                   <span>Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
+                </motion.button>
+                <motion.button
+                  onClick={() => {
+                    setIsLanguageSelectorOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-2xl font-semibold transition-colors duration-200 ${theme === 'dark'
+                      ? 'bg-gray-800 text-white hover:bg-gray-700'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                    }`}
+                  whileTap={{ scale: 0.97 }}
+                  style={{ willChange: 'transform' }}
+                >
+                  <Languages className="w-5 h-5" />
+                  <span>Language</span>
                 </motion.button>
               </div>
             </motion.div>

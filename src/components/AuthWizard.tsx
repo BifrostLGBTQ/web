@@ -380,11 +380,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     switch (currentStepData.type) {
       case 'auth-mode':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <motion.button
                 onClick={() => setAuthMode('login')}
-                className={`p-6 rounded-2xl border-2 text-center transition-all ${
+                className={`p-4 sm:p-6 rounded-2xl border-2 text-center transition-all w-full ${
                   authMode === 'login'
                     ? theme === 'dark'
                       ? 'bg-white text-gray-900 border-white shadow-md'
@@ -396,14 +396,14 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <User className="w-8 h-8 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold mb-2">I have an account</h3>
-                <p className="text-sm opacity-80">Sign in with your existing credentials</p>
+                <User className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3" />
+                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">I have an account</h3>
+                <p className="text-xs sm:text-sm opacity-80">Sign in with your existing credentials</p>
               </motion.button>
 
               <motion.button
                 onClick={() => setAuthMode('register')}
-                className={`p-6 rounded-2xl border-2 text-center transition-all ${
+                className={`p-4 sm:p-6 rounded-2xl border-2 text-center transition-all w-full ${
                   authMode === 'register'
                     ? theme === 'dark'
                       ? 'bg-white text-gray-900 border-white shadow-md'
@@ -415,9 +415,9 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Heart className="w-8 h-8 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold mb-2">Create account</h3>
-                <p className="text-sm opacity-80">Join our community and find matches</p>
+                <Heart className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3" />
+                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Create account</h3>
+                <p className="text-xs sm:text-sm opacity-80">Join our community and find matches</p>
               </motion.button>
             </div>
           </div>
@@ -951,7 +951,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+        className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -963,14 +963,14 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             }`}
         >
 
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between p-4 sm:p-6 pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-800">
 
             {/* Progress Bar */}
-            <div className="flex-1 flex space-x-2 mr-6">
+            <div className="flex-1 flex space-x-1 sm:space-x-2 mr-3 sm:mr-6">
               {Array.from({ length: getTotalSteps() }, (_, index) => (
                 <div
                   key={index}
-                  className={`h-2 flex-1 rounded-full transition-all duration-300 ${index <= getCurrentStepIndex()
+                  className={`h-1.5 sm:h-2 flex-1 rounded-full transition-all duration-300 ${index <= getCurrentStepIndex()
                     ? theme === 'dark' ? 'bg-white shadow-sm' : 'bg-gray-900 shadow-sm'
                     : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
                     }`}
@@ -981,12 +981,12 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             {/* X Button */}
             <button
               onClick={onClose}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${theme === 'dark' 
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0 ${theme === 'dark' 
                 ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300' 
                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                 }`}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
           </div>
@@ -996,49 +996,49 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             key={currentStep}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-center px-8 py-6"
+            className="text-center px-4 sm:px-8 py-4 sm:py-6"
           >
-            <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center ${theme === 'dark' 
+            <div className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 rounded-2xl flex items-center justify-center ${theme === 'dark' 
               ? 'bg-gray-800' 
               : 'bg-gray-100'
               }`}>
-              <currentStepData.icon className={`w-8 h-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+              <currentStepData.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`} />
             </div>
-            <h2 className={`text-2xl font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+            <h2 className={`text-xl sm:text-2xl font-bold mb-2 sm:mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
               {currentStepData.title}
             </h2>
-            <p className={`text-base leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            <p className={`text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               }`}>
               {currentStepData.subtitle}
             </p>
           </motion.div>
 
           {/* Form */}
-          <div className="px-8 pb-8">
+          <div className="px-4 sm:px-8 pb-6 sm:pb-8">
             <motion.div
               key={currentStep}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="mb-8"
+              className="mb-6 sm:mb-8"
             >
               {renderFormField()}
             </motion.div>
 
             {/* Actions */}
-            <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
               {currentStep > 0 && (
                 <motion.button
                   onClick={handleBack}
-                  className={`flex items-center justify-center px-6 py-4 rounded-2xl font-semibold transition-all duration-200 ${theme === 'dark'
+                  className={`flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 ${theme === 'dark'
                     ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                     }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <ArrowLeft className="w-5 h-5 mr-2" />
+                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Back
                 </motion.button>
               )}
@@ -1046,7 +1046,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               <motion.button
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
-                className={`flex-1 flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${canProceed() && !isLoading
+                className={`flex-1 flex items-center justify-center px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-200 ${canProceed() && !isLoading
                   ? theme === 'dark'
                     ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-white/25'
                     : 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-gray-900/25'
@@ -1057,14 +1057,14 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <div className={`w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2`} />
-                    {authMode === 'login' ? 'Signing in...' : 'Creating account...'}
+                    <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2`} />
+                    <span className="text-sm sm:text-base">{authMode === 'login' ? 'Signing in...' : 'Creating account...'}</span>
                   </div>
                 ) : (
                   <>
-                    {currentStep === 2 && authMode === 'login' ? 'Sign In' : 
-                     isLastStep() ? 'Complete Registration' : 'Continue'}
-                    <ArrowRight className="w-5 h-5 ml-2" />
+                    <span className="text-sm sm:text-base">{currentStep === 2 && authMode === 'login' ? 'Sign In' : 
+                     isLastStep() ? 'Complete Registration' : 'Continue'}</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                   </>
                 )}
               </motion.button>
@@ -1072,7 +1072,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               {currentStepData.field === 'preferences' && !isLastStep() && (
                 <motion.button
                   onClick={handleSkip}
-                  className={`px-6 py-4 rounded-2xl font-semibold transition-all duration-200 ${theme === 'dark'
+                  className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 ${theme === 'dark'
                     ? 'text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-700'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
                     }`}
