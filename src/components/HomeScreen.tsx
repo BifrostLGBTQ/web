@@ -285,13 +285,13 @@ const HomeScreen: React.FC = () => {
       
       {/* Stories Above Tabs - Only show when not in post detail view */}
       {!selectedPost && (
-      <div className={`${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}  p-4`}>
+      <div className={`hidden lg:block ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'} p-4`}>
         <Stories />
       </div>
       )}
 
       {/* Header - Show Post Detail or Tabs */}
-      <div className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-black' : 'border-gray-100'}`}>
+      <div className={`sticky top-[56px] lg:top-0 z-40 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} border-b ${theme === 'dark' ? 'border-gray-800/50' : 'border-gray-100/50'}`}>
         {selectedPost ? (
           // Post Detail Header
           <div className="flex items-center px-4 py-3">
@@ -354,10 +354,10 @@ const HomeScreen: React.FC = () => {
         )}
       </div>
 
-      <div className="max-w-[1380px] mx-auto">
+      <div className="w-full lg:max-w-[1380px] lg:mx-auto">
         
  
-      <main className={`flex-1 w-full min-w-0 ${theme === 'dark' ? 'border-x border-black' : 'border-x border-gray-100'}`}>
+      <main className={`flex-1 w-full min-w-0 lg:border-x ${theme === 'dark' ? 'lg:border-black' : 'lg:border-gray-100'}`}>
         {selectedPost ? (
           // Post Detail View
           <motion.div

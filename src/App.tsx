@@ -78,6 +78,39 @@ function App() {
       {/* Twitter Style Layout - 3 Columns */}
       <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
         
+        {/* Mobile Header - Top Navigation */}
+        <header className={`lg:hidden fixed top-0 left-0 right-0 z-50 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl border-b border-gray-800/50' : 'bg-white/95 backdrop-blur-xl border-b border-gray-100/50'}`}>
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className={`p-2 rounded-full transition-colors ${
+                theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10'
+              }`}
+            >
+              <Menu className={`w-6 h-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
+            </button>
+            <div className="flex items-center space-x-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${theme === 'dark'
+                ? 'bg-gradient-to-br from-white to-gray-300 text-black'
+                : 'bg-gradient-to-br from-black to-gray-700 text-white'
+              }`}>
+                <span className="text-sm font-bold">P</span>
+              </div>
+              <h1 className={`text-lg font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                SOCIAL
+              </h1>
+            </div>
+            <button
+              onClick={() => setIsAuthWizardOpen(true)}
+              className={`p-2 rounded-full transition-colors ${
+                theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10'
+              }`}
+            >
+              <User className={`w-6 h-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
+            </button>
+          </div>
+        </header>
+        
         {/* Left Sidebar - Fixed */}
         <aside className={`hidden lg:flex flex-col w-[280px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
           <div className="p-4 sticky top-0 h-screen overflow-y-auto flex flex-col">
@@ -216,7 +249,7 @@ function App() {
         </aside>
 
         {/* Middle Section - Scrollable */}
-        <main className={`flex-1 min-w-0 ${theme === 'dark' ? 'border-l border-r border-gray-800/30' : 'border-l border-r border-gray-100/50'}`}>
+        <main className={`flex-1 min-w-0 lg:border-l lg:border-r ${theme === 'dark' ? 'lg:border-gray-800/30' : 'lg:border-gray-100/50'} pt-[56px] lg:pt-0 pb-[70px] lg:pb-0`}>
           <Routes>
             {/* Home Routes */}
             <Route path="/" element={<HomeScreen />} />
@@ -391,6 +424,62 @@ function App() {
           </div>
         </aside>
       </div>
+
+      {/* Mobile Bottom Navigation Bar - Twitter Style */}
+      <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl border-t border-gray-800/50' : 'bg-white/95 backdrop-blur-xl border-t border-gray-100/50'} safe-area-inset-bottom`}>
+        <div className="flex items-center justify-around px-2 py-2">
+          {[
+            { id: 'home', icon: Home, label: 'Home' },
+            { id: 'search', icon: Search, label: 'Explore' },
+            { id: 'match', icon: Heart, label: 'Matches' },
+            { id: 'messages', icon: MessageCircle, label: 'Messages' },
+            { id: 'profile', icon: User, label: 'Profile' },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeScreen === item.id;
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => {
+                  if (item.id === 'home') {
+                    navigate('/');
+                  } else if (item.id === 'profile') {
+                    navigate(`/${user?.username || 'profile'}`);
+                  } else {
+                    navigate(`/${item.id}`);
+                  }
+                }}
+                whileTap={{ scale: 0.9 }}
+                className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? theme === 'dark'
+                      ? 'text-white'
+                      : 'text-black'
+                    : theme === 'dark'
+                      ? 'text-gray-500'
+                      : 'text-gray-500'
+                }`}
+              >
+                <div className={`relative ${isActive ? 'scale-110' : 'scale-100'} transition-transform duration-200`}>
+                  <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobileBottomNavIndicator"
+                      className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    />
+                  )}
+                </div>
+                <span className={`text-[10px] font-medium mt-0.5 ${isActive ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
+                  {item.label}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+      </nav>
 
       {/* Professional Mobile Menu */}
       <AnimatePresence>
