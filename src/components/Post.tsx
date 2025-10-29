@@ -1117,20 +1117,20 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
           onTouchEnd={handleTouchEnd}
         >
           {/* Top Bar - Close Button and Image Counter - Absolute positioned */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 sm:p-6 z-[60]">
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 sm:p-4 md:p-6 z-[60]">
             <div className="flex-1" />
-            {/* Image Counter - Prominent Display */}
+            {/* Image Counter - Prominent Display - Optimized for mobile */}
             {imageAttachments.length > 1 && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`px-6 py-3 rounded-full backdrop-blur-xl border ${
+                className={`px-3 py-1.5 sm:px-5 sm:py-2 md:px-6 md:py-3 rounded-full backdrop-blur-xl border ${
                   theme === 'dark' 
                     ? 'bg-black/40 border-gray-700/50 text-white' 
                     : 'bg-white/40 border-gray-300/50 text-gray-900'
                 }`}
               >
-                <span className="text-base font-semibold tracking-wide">
+                <span className="text-sm sm:text-base font-semibold tracking-wide">
                   {selectedImageIndex + 1} / {imageAttachments.length}
                 </span>
               </motion.div>
@@ -1143,20 +1143,20 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                 }}
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.05 }}
-                className={`p-3 rounded-full backdrop-blur-xl border transition-all ${
+                className={`p-2 sm:p-2.5 md:p-3 rounded-full backdrop-blur-xl border transition-all ${
                   theme === 'dark' 
                     ? 'bg-black/40 hover:bg-black/50 border-gray-700/50 text-white' 
                     : 'bg-white/40 hover:bg-white/50 border-gray-300/50 text-gray-900'
                 }`}
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </motion.button>
     </div>
           </div>
 
-          {/* Main Image Container - Centered with equal padding on all sides */}
+          {/* Main Image Container - Centered with equal padding on all sides - Optimized for mobile */}
           <div 
-            className="relative w-full h-full flex items-center justify-center p-6 sm:p-8 md:p-12 lg:p-16"
+            className="relative w-full h-full flex items-center justify-center p-3 sm:p-6 md:p-8 lg:p-12 xl:p-16"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Blurred background - full size cover */}
@@ -1173,44 +1173,38 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
               }}
             />
             
-            {/* Image wrapper - Professional constraints with equal spacing */}
+            {/* Image wrapper - Professional constraints with equal spacing - Mobile optimized */}
             <motion.div 
               key={selectedImageIndex}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
               className="relative z-10 w-full h-full flex items-center justify-center"
-              style={{
-                maxWidth: 'calc(100vw - 3rem)',
-                maxHeight: 'calc(100vh - 3rem)'
-              }}
             >
-              {/* Responsive max constraints */}
+              {/* Responsive max constraints - Mobile first approach */}
               <div className="relative w-full h-full flex items-center justify-center" style={{
-                maxWidth: 'min(95vw, 1400px)',
-                maxHeight: 'min(85vh, 900px)'
+                maxWidth: 'min(calc(100vw - 1.5rem), 1400px)',
+                maxHeight: 'min(calc(100vh - 1.5rem), 900px)'
               }}>
-                {/* Edge blur overlay - creates soft fade on edges */}
+                {/* Edge blur overlay - creates soft fade on edges - Mobile optimized */}
                 <div 
-                  className="absolute -inset-12 pointer-events-none"
+                  className="absolute -inset-6 sm:-inset-8 md:-inset-12 pointer-events-none blur-[20px] sm:blur-[25px] md:blur-[30px] rounded-xl sm:rounded-2xl"
                   style={{
                     background: `radial-gradient(ellipse at center, transparent 0%, transparent 40%, ${
                       theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
                     } 70%, ${
                       theme === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)'
                     } 100%)`,
-                    filter: 'blur(30px)',
-                    borderRadius: '2rem',
                     zIndex: -1
                   }}
                 />
-                {/* Foreground image */}
+                {/* Foreground image - Mobile optimized */}
                 <img
                   src={currentImage.file.url}
                   alt={`Gallery image ${selectedImageIndex + 1} of ${imageAttachments.length}`}
-                  className="relative max-w-full max-h-full object-contain rounded-2xl shadow-2xl select-none"
+                  className="relative max-w-full max-h-full object-contain rounded-xl sm:rounded-2xl shadow-2xl select-none"
                   style={{
-                    filter: 'drop-shadow(0 0 60px rgba(0,0,0,0.2))'
+                    filter: 'drop-shadow(0 0 40px rgba(0,0,0,0.15))'
                   }}
                   draggable={false}
                   onError={(e) => {
@@ -1220,7 +1214,7 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
               </div>
             </motion.div>
 
-            {/* Navigation Buttons - Positioned on sides, outside image */}
+            {/* Navigation Buttons - Positioned on sides, outside image - Mobile optimized */}
             {imageAttachments.length > 1 && (
               <>
                 <motion.button
@@ -1230,13 +1224,13 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                   }}
                   whileTap={{ scale: 0.9 }}
                   whileHover={{ scale: 1.05 }}
-                  className={`absolute left-4 sm:left-6 md:left-8 z-[60] p-4 rounded-full backdrop-blur-xl border transition-all ${
+                  className={`absolute left-2 sm:left-4 md:left-6 lg:left-8 z-[60] p-2.5 sm:p-3 md:p-4 rounded-full backdrop-blur-xl border transition-all ${
                     theme === 'dark' 
                       ? 'bg-black/40 hover:bg-black/50 border-gray-700/50 text-white' 
                       : 'bg-white/40 hover:bg-white/50 border-gray-300/50 text-gray-900'
                   }`}
                 >
-                  <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 </motion.button>
                 <motion.button
                   onClick={(e) => {
@@ -1245,13 +1239,13 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                   }}
                   whileTap={{ scale: 0.9 }}
                   whileHover={{ scale: 1.05 }}
-                  className={`absolute right-4 sm:right-6 md:right-8 z-[60] p-4 rounded-full backdrop-blur-xl border transition-all ${
+                  className={`absolute right-2 sm:right-4 md:right-6 lg:right-8 z-[60] p-2.5 sm:p-3 md:p-4 rounded-full backdrop-blur-xl border transition-all ${
                     theme === 'dark' 
                       ? 'bg-black/40 hover:bg-black/50 border-gray-700/50 text-white' 
                       : 'bg-white/40 hover:bg-white/50 border-gray-300/50 text-gray-900'
                   }`}
                 >
-                  <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 </motion.button>
               </>
             )}
