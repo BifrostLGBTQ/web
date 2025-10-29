@@ -20,16 +20,24 @@ import {
 import { DEFAULT_SETTINGS, INITIAL_SETTINGS, SettingName } from '../appSettings';
 
 
+type ViewMode = 'grid' | 'list' | 'card';
+
 type SettingsContextShape = {
   setOption: (name: SettingName, value: boolean) => void;
   settings: Record<SettingName, boolean>;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
 };
 
 const Context: React.Context<SettingsContextShape> = createContext({
-  setOption: (name: SettingName, value: boolean) => {
+  setOption: (_name: SettingName, _value: boolean) => {
     return;
   },
   settings: INITIAL_SETTINGS,
+  viewMode: 'grid' as ViewMode,
+  setViewMode: (_mode: ViewMode) => {
+    return;
+  },
 });
 
 export const SettingsContext = ({
@@ -38,6 +46,7 @@ export const SettingsContext = ({
   children: ReactNode;
 }): JSX.Element => {
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
+  const [viewMode, setViewModeState] = useState<ViewMode>('grid');
 
   const setOption = useCallback((setting: SettingName, value: boolean) => {
     setSettings((options) => ({
@@ -47,9 +56,22 @@ export const SettingsContext = ({
     setURLParam(setting, value);
   }, []);
 
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    localStorage.setItem('viewMode', mode);
+  }, []);
+
+  // Load viewMode from localStorage on mount
+  React.useEffect(() => {
+    const savedViewMode = localStorage.getItem('viewMode') as ViewMode | null;
+    if (savedViewMode && ['grid', 'list', 'card'].includes(savedViewMode)) {
+      setViewModeState(savedViewMode);
+    }
+  }, []);
+
   const contextValue = useMemo(() => {
-    return {setOption, settings};
-  }, [setOption, settings]);
+    return {setOption, settings, viewMode, setViewMode};
+  }, [setOption, settings, viewMode, setViewMode]);
 
   return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 };
