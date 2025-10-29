@@ -6,7 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Stories: React.FC = () => {
   const { theme } = useTheme();
   const [selectedStory, setSelectedStory] = useState<number | null>(null);
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [showAddStoryModal, setShowAddStoryModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const stories = [
     { id: 1, name: 'Your Story', avatar: null, cover: null, isOwn: true },
@@ -42,15 +44,49 @@ const Stories: React.FC = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+        setShowAddStoryModal(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleShareStory = () => {
+    // Here you would upload the story to your backend
+    console.log('Sharing story:', selectedImage);
+    setShowAddStoryModal(false);
+    setSelectedImage(null);
+  };
+
   return (
     <>
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*,video/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       {/* Stories List */}
       <div className={`rounded-2xl`}>
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
           {stories.map((story) => (
             <div key={story.id} className="flex-shrink-0 w-32 relative">
               <button
-                onClick={() => !story.isOwn && story.hasStory && setSelectedStory(story.id)}
+                onClick={() => {
+                  if (story.isOwn) {
+                    fileInputRef.current?.click();
+                  } else if (story.hasStory) {
+                    setSelectedStory(story.id);
+                  }
+                }}
                 className="w-full h-[172px] rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 relative flex items-end justify-center transition-transform hover:scale-105 cursor-pointer"
               >
                 {story.cover ? (
@@ -192,6 +228,96 @@ const Stories: React.FC = () => {
                       <span className="text-white text-xs">Share</span>
                     </button>
                   </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Add Story Modal */}
+      <AnimatePresence>
+        {showAddStoryModal && selectedImage && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className={`fixed inset-0 z-[200] ${
+                theme === 'dark' ? 'bg-black/80' : 'bg-white/80'
+              } backdrop-blur-xl`}
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 z-[201] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`relative w-full max-w-lg rounded-2xl overflow-hidden backdrop-blur-2xl ${
+                  theme === 'dark' 
+                    ? 'bg-gray-900/40 border border-white/10' 
+                    : 'bg-white/40 border border-black/10'
+                } shadow-2xl`}
+              >
+                {/* Close Button */}
+                <motion.button
+                  onClick={() => {
+                    setShowAddStoryModal(false);
+                    setSelectedImage(null);
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-full backdrop-blur-xl flex items-center justify-center ${
+                    theme === 'dark' 
+                      ? 'bg-black/50 text-white' 
+                      : 'bg-white/50 text-gray-900'
+                  } border border-white/20`}
+                >
+                  <X className="w-6 h-6" />
+                </motion.button>
+
+                {/* Image Preview */}
+                <div className="relative w-full h-[400px] bg-gray-900">
+                  <img
+                    src={selectedImage}
+                    alt="Story preview"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className={`p-4 flex gap-3 backdrop-blur-xl border-t ${
+                  theme === 'dark' 
+                    ? 'bg-gray-900/20 border-white/10' 
+                    : 'bg-white/20 border-black/10'
+                }`}>
+                  <motion.button
+                    onClick={handleShareStory}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-1 px-4 py-3 rounded-xl font-semibold bg-black text-white"
+                  >
+                    Share Story
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      setShowAddStoryModal(false);
+                      setSelectedImage(null);
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`px-4 py-3 rounded-xl font-semibold ${
+                      theme === 'dark' 
+                        ? 'bg-gray-800 text-white' 
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    Cancel
+                  </motion.button>
                 </div>
               </motion.div>
             </div>
