@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, MapPin, Calendar
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import PostReply from './PostReply';
+import VideoPlayer from './VideoPlayer';
 import { api } from '../services/api';
 
 // API data structure interfaces
@@ -439,22 +440,44 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
           {(() => {
             if (!post.attachments || !Array.isArray(post.attachments)) return null;
             const imageAttachments = post.attachments.filter(att => att?.file?.mime_type?.startsWith('image/'));
-            const nonImageAttachments = post.attachments.filter(att => !att?.file?.mime_type?.startsWith('image/'));
+            const videoAttachments = post.attachments.filter(att => att?.file?.mime_type?.startsWith('video/'));
+            const nonImageVideoAttachments = post.attachments.filter(att => 
+              !att?.file?.mime_type?.startsWith('image/') && !att?.file?.mime_type?.startsWith('video/')
+            );
             const imageCount = imageAttachments.length;
+            const videoCount = videoAttachments.length;
 
-            if (imageCount === 0 && nonImageAttachments.length > 0) {
-              // Only non-image attachments
-              return nonImageAttachments.map((attachment, index) => (
-                <div key={index} className="w-full overflow-hidden mb-2 last:mb-0">
-                  <div className={`w-full h-48 rounded-xl flex items-center justify-center ${
-                    theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
-                  }`}>
-                    <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {attachment.file.name}
-                    </span>
-                  </div>
-                </div>
-              ));
+            // Render video attachments first (YouTube quality)
+            const videoRender = videoCount > 0 && (
+              <div className="space-y-4 mb-4">
+                {videoAttachments.map((attachment, index) => (
+                  <VideoPlayer
+                    key={attachment.id || index}
+                  src={attachment.file.url}
+                    className="w-full"
+                  />
+                ))}
+              </div>
+            );
+
+            if (imageCount === 0 && videoCount === 0 && nonImageVideoAttachments.length > 0) {
+              // Only non-image/video attachments
+              return (
+                <>
+                  {videoRender}
+                  {nonImageVideoAttachments.map((attachment, index) => (
+                    <div key={index} className="w-full overflow-hidden mb-2 last:mb-0">
+                      <div className={`w-full h-48 rounded-xl flex items-center justify-center ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                      }`}>
+                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {attachment.file.name}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              );
             }
 
             // Pinterest-style image grid layouts - All images visible
@@ -463,38 +486,43 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
               const isLoaded = loadedImages.has(imageUrl);
               
               return (
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="w-full overflow-hidden rounded-2xl relative">
-                    {!isLoaded && <ImageShimmer className="absolute inset-0" />}
-                    <img
-                      src={imageUrl}
+                <>
+                  {videoRender}
+                  <div className="grid grid-cols-1 gap-2">
+                    <div className="w-full overflow-hidden rounded-2xl relative aspect-[16/9]">
+                      {!isLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
+                      <img
+                        src={imageUrl}
                   alt="Post attachment"
-                      className={`w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
-                      onLoad={() => handleImageLoad(imageUrl)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openGallery(0);
-                      }}
-                    />
+                        className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                        onLoad={() => handleImageLoad(imageUrl)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openGallery(0);
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                </>
               );
             }
 
             if (imageCount === 2) {
               return (
-                <div className="grid grid-cols-2 gap-2">
-                  {imageAttachments.map((attachment, index) => {
+                <>
+                  {videoRender}
+                  <div className="grid grid-cols-2 gap-2">
+                    {imageAttachments.map((attachment, index) => {
                     const imageUrl = attachment.file.url;
                     const isLoaded = loadedImages.has(imageUrl);
                     
                     return (
-                      <div key={index} className="w-full overflow-hidden rounded-2xl relative">
-                        {!isLoaded && <ImageShimmer className="absolute inset-0 h-[300px]" />}
+                      <div key={index} className="w-full overflow-hidden rounded-2xl relative h-[300px]">
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                         <img
                           src={imageUrl}
                           alt={`Post attachment ${index + 1}`}
-                          className={`w-full h-[300px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
                           onLoad={() => handleImageLoad(imageUrl)}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -504,7 +532,8 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                </>
               );
             }
 
@@ -517,13 +546,15 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
               const thirdLoaded = loadedImages.has(thirdImageUrl);
               
               return (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="row-span-2 overflow-hidden rounded-2xl relative">
-                    {!firstLoaded && <ImageShimmer className="absolute inset-0 h-[300px]" />}
+                <>
+                  {videoRender}
+                  <div className="grid grid-cols-2 gap-2">
+                  <div className="row-span-2 overflow-hidden rounded-2xl relative h-[300px]">
+                    {!firstLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                     <img
                       src={firstImageUrl}
                       alt="Post attachment 1"
-                      className={`w-full h-[300px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!firstLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!firstLoaded ? 'opacity-0' : 'opacity-100'}`}
                       onLoad={() => handleImageLoad(firstImageUrl)}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -531,12 +562,12 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                       }}
                     />
                   </div>
-                  <div className="overflow-hidden rounded-2xl relative">
-                    {!secondLoaded && <ImageShimmer className="absolute inset-0 h-[146px]" />}
+                  <div className="overflow-hidden rounded-2xl relative h-[146px]">
+                    {!secondLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                     <img
                       src={secondImageUrl}
                       alt="Post attachment 2"
-                      className={`w-full h-[146px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!secondLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!secondLoaded ? 'opacity-0' : 'opacity-100'}`}
                       onLoad={() => handleImageLoad(secondImageUrl)}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -544,12 +575,12 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                       }}
                     />
                   </div>
-                  <div className="overflow-hidden rounded-2xl relative">
-                    {!thirdLoaded && <ImageShimmer className="absolute inset-0 h-[146px]" />}
+                  <div className="overflow-hidden rounded-2xl relative h-[146px]">
+                    {!thirdLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                     <img
                       src={thirdImageUrl}
                       alt="Post attachment 3"
-                      className={`w-full h-[146px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!thirdLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!thirdLoaded ? 'opacity-0' : 'opacity-100'}`}
                       onLoad={() => handleImageLoad(thirdImageUrl)}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -557,24 +588,27 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                       }}
                     />
                   </div>
-                </div>
+                  </div>
+                </>
               );
             }
 
             if (imageCount === 4) {
               return (
-                <div className="grid grid-cols-2 gap-2">
+                <>
+                  {videoRender}
+                  <div className="grid grid-cols-2 gap-2">
                   {imageAttachments.map((attachment, index) => {
                     const imageUrl = attachment.file.url;
                     const isLoaded = loadedImages.has(imageUrl);
                     
                     return (
-                      <div key={index} className="w-full overflow-hidden rounded-2xl relative">
-                        {!isLoaded && <ImageShimmer className="absolute inset-0 h-[200px]" />}
+                      <div key={index} className="w-full overflow-hidden rounded-2xl relative h-[200px]">
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                         <img
                           src={imageUrl}
                           alt={`Post attachment ${index + 1}`}
-                          className={`w-full h-[200px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
                           onLoad={() => handleImageLoad(imageUrl)}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -584,7 +618,8 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                </>
               );
             }
 
@@ -594,13 +629,15 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
               const firstLoaded = loadedImages.has(firstImageUrl);
               
               return (
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2 row-span-2 overflow-hidden rounded-2xl relative">
-                    {!firstLoaded && <ImageShimmer className="absolute inset-0 h-[300px]" />}
+                <>
+                  {videoRender}
+                  <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2 row-span-2 overflow-hidden rounded-2xl relative h-[300px]">
+                    {!firstLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                     <img
                       src={firstImageUrl}
                       alt="Post attachment 1"
-                      className={`w-full h-[300px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!firstLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!firstLoaded ? 'opacity-0' : 'opacity-100'}`}
                       onLoad={() => handleImageLoad(firstImageUrl)}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -613,12 +650,12 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                     const isLoaded = loadedImages.has(imageUrl);
                     
                     return (
-                      <div key={idx + 1} className="overflow-hidden rounded-2xl relative">
-                        {!isLoaded && <ImageShimmer className="absolute inset-0 h-[146px]" />}
+                      <div key={idx + 1} className="overflow-hidden rounded-2xl relative h-[146px]">
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                         <img
                           src={imageUrl}
                           alt={`Post attachment ${idx + 2}`}
-                          className={`w-full h-[146px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          className={`w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
                           onLoad={() => handleImageLoad(imageUrl)}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -628,13 +665,15 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                </>
               );
             }
 
             // 6+ images: Pinterest-style masonry grid - All images visible
             return (
               <>
+                {videoRender}
                 <div className="grid grid-cols-3 gap-2 auto-rows-[146px]">
                   {imageAttachments.map((attachment, index) => {
                     // Pinterest-style alternating pattern
@@ -665,11 +704,10 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
 
                     const imageUrl = attachment.file.url;
                     const isLoaded = loadedImages.has(imageUrl);
-                    const shimmerHeight = index === 0 ? 'h-[292px]' : 'h-[146px]'; // 292px = 2 rows (146px * 2 + gap)
                     
                     return (
                       <div key={index} className={`overflow-hidden rounded-2xl relative ${gridClass}`}>
-                        {!isLoaded && <ImageShimmer className={`absolute inset-0 ${shimmerHeight}`} />}
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 w-full h-full" />}
                         <img
                           src={imageUrl}
                           alt={`Post attachment ${index + 1}`}
@@ -684,17 +722,17 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                     );
                   })}
                 </div>
-                {nonImageAttachments.map((attachment, index) => (
+                {nonImageVideoAttachments.map((attachment, index) => (
                   <div key={`non-image-${index}`} className="w-full overflow-hidden mb-2 mt-2 last:mb-0">
-                <div className={`w-full h-48 rounded-xl flex items-center justify-center ${
-                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
-                }`}>
-                  <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {attachment.file.name}
-                  </span>
-                </div>
-            </div>
-          ))}
+                    <div className={`w-full h-48 rounded-xl flex items-center justify-center ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                    }`}>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {attachment.file.name}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </>
             );
           })()}
@@ -1198,17 +1236,30 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                     zIndex: -1
                   }}
                 />
+                
+                {/* Shimmer loading effect for gallery image - Facebook style */}
+                {!loadedImages.has(currentImage.file.url) && (
+                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden z-20">
+                    <ImageShimmer className="absolute inset-0 w-full h-full" />
+                  </div>
+                )}
+                
                 {/* Foreground image - Mobile optimized */}
                 <img
                   src={currentImage.file.url}
                   alt={`Gallery image ${selectedImageIndex + 1} of ${imageAttachments.length}`}
-                  className="relative max-w-full max-h-full object-contain rounded-xl sm:rounded-2xl shadow-2xl select-none"
+                  className={`relative max-w-full max-h-full object-contain rounded-xl sm:rounded-2xl shadow-2xl select-none transition-opacity duration-300 ${
+                    loadedImages.has(currentImage.file.url) ? 'opacity-100' : 'opacity-0'
+                  }`}
                   style={{
-                    filter: 'drop-shadow(0 0 40px rgba(0,0,0,0.15))'
+                    filter: loadedImages.has(currentImage.file.url) ? 'drop-shadow(0 0 40px rgba(0,0,0,0.15))' : 'none'
                   }}
                   draggable={false}
+                  onLoad={() => handleImageLoad(currentImage.file.url)}
                   onError={(e) => {
                     console.error('Image load error:', e);
+                    // Mark as loaded even on error to hide shimmer
+                    handleImageLoad(currentImage.file.url);
                   }}
                 />
               </div>
