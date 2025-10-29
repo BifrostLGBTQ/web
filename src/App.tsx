@@ -481,8 +481,13 @@ function App() {
         </div>
       </nav>
 
-      {/* Professional Mobile Menu */}
-      <AnimatePresence>
+      {/* Professional Mobile Menu - Optimized */}
+      <AnimatePresence
+        mode="wait"
+        onExitComplete={() => {
+          document.body.style.overflow = '';
+        }}
+      >
         {isMobileMenuOpen && (
           <>
             {/* Backdrop */}
@@ -490,33 +495,51 @@ function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md"
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className={`fixed inset-0 z-[100]`}
               onClick={() => setIsMobileMenuOpen(false)}
+              style={{ willChange: 'opacity' }}
             />
 
             {/* Mobile Menu Panel */}
             <motion.div
-              initial={{ x: '-100%', opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: '-100%', opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className={`fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] z-[101] ${theme === 'dark'
-                  ? 'bg-gray-900/95 backdrop-blur-xl border-r border-gray-800'
-                  : 'bg-white/95 backdrop-blur-xl border-r border-gray-200'
-                } shadow-2xl flex flex-col`}
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 40,
+                mass: 0.8
+              }}
+              style={{
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden'
+              }}
+              className={`fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] z-[101] ${
+                theme === 'dark'
+                  ? 'bg-gray-900/50 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl'
+                  : 'bg-white/50 backdrop-blur-xl border-r border-gray-200/80 shadow-[4px_0_24px_rgba(0,0,0,0.08)]'
+              } flex flex-col`}
+              onAnimationStart={() => {
+                // Prevent body scroll when menu is opening
+                if (isMobileMenuOpen) {
+                  document.body.style.overflow = 'hidden';
+                }
+              }}
             >
               {/* Header */}
               <div className={`relative px-6 py-8 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
                 }`}>
                 <motion.button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${theme === 'dark'
+                  className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${theme === 'dark'
                       ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
                       : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
                     }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.9 }}
+                  style={{ willChange: 'transform' }}
                 >
                   <X className="w-5 h-5" />
                 </motion.button>
@@ -542,7 +565,7 @@ function App() {
               </div>
 
               {/* Navigation */}
-              <nav className="flex-1 px-6 py-6">
+              <nav className="flex-1 px-6 py-6 overflow-y-auto">
                 <div className="space-y-2">
                   {mobileNavItems.map((item, index) => {
                     const isActive = activeScreen === item.id;
@@ -550,7 +573,7 @@ function App() {
                     return (
                       <motion.button
                         key={item.id}
-                        className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 ${isActive
+                        className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl font-semibold transition-colors duration-200 ${isActive
                             ? theme === 'dark'
                               ? 'bg-white/10 text-white shadow-lg border border-gray-700'
                               : 'bg-gray-900 text-white shadow-lg'
@@ -568,21 +591,29 @@ function App() {
                           }
                           setIsMobileMenuOpen(false);
                         }}
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1, duration: 0.3 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        transition={{
+                          delay: index * 0.05,
+                          duration: 0.2,
+                          ease: 'easeOut'
+                        }}
+                        whileTap={{ scale: 0.97 }}
+                        style={{ willChange: 'transform, opacity' }}
                       >
-                        <Icon className="w-6 h-6" />
+                        <Icon className="w-6 h-6 flex-shrink-0" />
                         <span className="text-base">{item.label}</span>
                         {isActive && (
                           <motion.div
                             className={`ml-auto w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-white'
                               }`}
-                            layoutId="mobileActiveIndicator"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 500,
+                              damping: 25
+                            }}
                           />
                         )}
                       </motion.button>
@@ -596,12 +627,12 @@ function App() {
                 }`}>
                 <motion.button
                   onClick={toggleTheme}
-                  className={`w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 ${theme === 'dark'
+                  className={`w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-2xl font-semibold transition-colors duration-200 ${theme === 'dark'
                       ? 'bg-gray-800 text-white hover:bg-gray-700'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                     }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.97 }}
+                  style={{ willChange: 'transform' }}
                 >
                   {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                   <span>Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
