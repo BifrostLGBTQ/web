@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface VideoPlayerProps {
@@ -18,26 +18,48 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [buffered, setBuffered] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
   const { theme } = useTheme();
 
-  // Update current time
+  // Update current time and buffered progress
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const updateTime = () => setCurrentTime(video.currentTime);
+    const updateTime = () => {
+      setCurrentTime(video.currentTime);
+      // Calculate buffered progress
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        const bufferedProgress = (bufferedEnd / video.duration) * 100;
+        setBuffered(bufferedProgress);
+      }
+    };
     const updateDuration = () => setDuration(video.duration);
+    const handleLoadedData = () => setIsLoaded(true);
+    const handleProgress = () => {
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        const bufferedProgress = (bufferedEnd / video.duration) * 100;
+        setBuffered(bufferedProgress);
+      }
+    };
 
     video.addEventListener('timeupdate', updateTime);
     video.addEventListener('loadedmetadata', updateDuration);
-    video.addEventListener('loadeddata', () => setIsLoaded(true));
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('progress', handleProgress);
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
       video.removeEventListener('loadedmetadata', updateDuration);
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('progress', handleProgress);
     };
   }, []);
 
@@ -55,17 +77,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
   }, []);
 
   // Auto-hide controls
-  const resetControlsTimeout = () => {
+  const resetControlsTimeout = useCallback(() => {
     if (controlsTimeoutRef.current) {
       window.clearTimeout(controlsTimeoutRef.current);
     }
     setShowControls(true);
     controlsTimeoutRef.current = window.setTimeout(() => {
-      if (isPlaying) {
+      if (isPlaying && !isHovering) {
         setShowControls(false);
       }
     }, 3000);
-  };
+  }, [isPlaying, isHovering]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -76,30 +98,43 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
         window.clearTimeout(controlsTimeoutRef.current);
       }
     };
-  }, [isPlaying, currentTime]);
+  }, [isPlaying, currentTime, resetControlsTimeout]);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isPlaying) {
       video.pause();
+      setIsPlaying(false);
     } else {
-      video.play();
+      video.play().catch((err) => {
+        console.error('Error playing video:', err);
+      });
+      setIsPlaying(true);
     }
-    setIsPlaying(!isPlaying);
     resetControlsTimeout();
-  };
+  }, [isPlaying, resetControlsTimeout]);
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeekStart = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
     if (!video) return;
 
     const newTime = parseFloat(e.target.value);
-    video.currentTime = newTime;
-    setCurrentTime(newTime);
-    resetControlsTimeout();
-  };
+    if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+      video.currentTime = newTime;
+      setCurrentTime(newTime);
+      resetControlsTimeout();
+    }
+  }, [duration, resetControlsTimeout]);
+
+  const handleSeekEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
@@ -140,13 +175,87 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
     resetControlsTimeout();
   };
 
-  const skip = (seconds: number) => {
+  const skip = useCallback((seconds: number) => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !duration) return;
 
     video.currentTime = Math.max(0, Math.min(duration, video.currentTime + seconds));
     resetControlsTimeout();
-  };
+  }, [duration, resetControlsTimeout]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if the container or video is focused/visible
+      if (!isHovering && !isFullscreen) return;
+      
+      const video = videoRef.current;
+      if (!video) return;
+
+      switch (e.key) {
+        case ' ':
+        case 'k':
+          e.preventDefault();
+          if (isPlaying) {
+            video.pause();
+            setIsPlaying(false);
+          } else {
+            video.play().catch((err) => {
+              console.error('Error playing video:', err);
+            });
+            setIsPlaying(true);
+          }
+          resetControlsTimeout();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          skip(-10);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          skip(10);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setVolume(Math.min(1, volume + 0.1));
+          video.volume = Math.min(1, volume + 0.1);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          setVolume(Math.max(0, volume - 0.1));
+          video.volume = Math.max(0, volume - 0.1);
+          break;
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          toggleMute();
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          e.preventDefault();
+          const percent = parseInt(e.key) / 10;
+          video.currentTime = duration * percent;
+          setCurrentTime(duration * percent);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isHovering, isFullscreen, volume, duration, isPlaying, skip, resetControlsTimeout]);
 
   const formatTime = (time: number) => {
     if (isNaN(time)) return '0:00';
@@ -164,13 +273,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
         isFullscreen ? '!rounded-none flex items-center justify-center h-full' : ''
       }`}
       style={isFullscreen ? { height: '100%', width: '100%' } : undefined}
-      onMouseMove={resetControlsTimeout}
+      onMouseMove={() => {
+        setIsHovering(true);
+        resetControlsTimeout();
+      }}
       onMouseLeave={() => {
+        setIsHovering(false);
         if (isPlaying) {
           setShowControls(false);
         }
       }}
-      onMouseEnter={() => setShowControls(true)}
+      onMouseEnter={() => {
+        setIsHovering(true);
+        setShowControls(true);
+      }}
     >
       {/* Video Element */}
       <video
@@ -228,47 +344,124 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
         }}
       />
 
-      {/* Progress Bar and Controls Container */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
-        {/* Progress Bar - Professional YouTube Style */}
-        <div 
-          className="absolute bottom-[48px] left-0 right-0 px-0 pointer-events-auto z-20"
-          onMouseDown={(e) => e.stopPropagation()}
-          onMouseEnter={() => resetControlsTimeout()}
-        >
-          <div className="relative h-[4px] group/progress hover:h-[5px] transition-all duration-200 cursor-pointer">
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              value={currentTime}
-              onChange={handleSeek}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-            />
-            <div className={`absolute inset-0 h-full rounded-full overflow-hidden ${
-              theme === 'dark' 
-                ? 'bg-white/20 group-hover/progress:bg-white/25' 
-                : 'bg-black/20 group-hover/progress:bg-black/25'
-            } transition-colors`}>
-              <motion.div 
-                className="absolute left-0 top-0 h-full bg-[#ff0000] rounded-full"
-                initial={{ width: 0 }}
-                animate={{
-                  width: `${duration ? (currentTime / duration) * 100 : 0}%`
-                }}
-                transition={{ duration: 0.1, ease: 'linear' }}
-              />
-            </div>
-            <motion.div 
-              className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-[#ff0000] opacity-0 group-hover/progress:opacity-100 transition-opacity -translate-x-1/2 shadow-lg ring-2 ring-white/50"
-              style={{
-                left: `${duration ? (currentTime / duration) * 100 : 0}%`
+      {/* Center Play Button - Shows when paused */}
+      <AnimatePresence>
+        {!isPlaying && showControls && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+          >
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
               }}
-              whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              className={`p-4 rounded-full backdrop-blur-xl shadow-2xl pointer-events-auto ${
+                theme === 'dark' 
+                  ? 'bg-white/20 text-white hover:bg-white/30' 
+                  : 'bg-black/20 text-black hover:bg-black/30'
+              } transition-colors`}
+            >
+              <Play className="w-12 h-12 ml-1" fill="currentColor" />
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Progress Bar - Always Visible */}
+      <div 
+        className="absolute bottom-[48px] left-0 right-0 px-0 pointer-events-auto z-20"
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseEnter={() => {
+          setIsHovering(true);
+          setShowControls(true);
+          resetControlsTimeout();
+        }}
+      >
+        <div className="relative h-[4px] group/progress hover:h-[6px] transition-all duration-200 cursor-pointer">
+          <input
+            type="range"
+            min="0"
+            max={duration || 0}
+            step={0.1}
+            value={currentTime}
+            onChange={handleSeek}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleSeekStart();
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              handleSeekEnd();
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              handleSeekStart();
+              setIsHovering(true);
+              setShowControls(true);
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleSeekEnd();
+            }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          />
+          <div className={`absolute inset-0 h-full rounded-full overflow-hidden ${
+            theme === 'dark' 
+              ? 'bg-white/15 group-hover/progress:bg-white/25' 
+              : 'bg-black/15 group-hover/progress:bg-black/25'
+          } transition-colors`}>
+            {/* Buffered Progress */}
+            {buffered > 0 && (
+              <div 
+                className={`absolute left-0 top-0 h-full rounded-full transition-all ${
+                  theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
+                }`}
+                style={{ width: `${buffered}%` }}
+              />
+            )}
+            {/* Current Progress */}
+            <motion.div 
+              className="absolute left-0 top-0 h-full bg-[#ff0000] rounded-full"
+              initial={{ width: 0 }}
+              animate={{
+                width: `${duration ? (currentTime / duration) * 100 : 0}%`
+              }}
+              transition={{ 
+                duration: isDragging ? 0 : 0.1, 
+                ease: 'linear' 
+              }}
             />
           </div>
+          <motion.div 
+            className={`absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-[#ff0000] opacity-0 group-hover/progress:opacity-100 transition-opacity -translate-x-1/2 shadow-lg ring-2 z-20 ${
+              theme === 'dark' ? 'ring-white/50' : 'ring-black/50'
+            }`}
+            style={{
+              left: `${duration ? (currentTime / duration) * 100 : 0}%`
+            }}
+            whileHover={{ scale: 1.3 }}
+            whileTap={{ scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          />
         </div>
+      </div>
+
+      {/* Controls Container - Smooth Fade */}
+      <AnimatePresence>
+        {showControls && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-0 left-0 right-0 pointer-events-auto"
+          >
 
         {/* Control Bar - YouTube Style */}
         <div className="absolute bottom-0 left-0 right-0 px-2 py-1 pointer-events-auto">
@@ -281,8 +474,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
                   e.stopPropagation();
                   togglePlay();
                 }}
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.85 }}
+                whileHover={{ scale: 1.15 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                 className={`p-2 rounded-full transition-all duration-150 flex items-center justify-center ${
                   theme === 'dark' 
                     ? 'text-white hover:bg-white/10' 
@@ -303,14 +497,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
                     e.stopPropagation();
                     skip(-10);
                   }}
-                  whileTap={{ scale: 0.85 }}
-                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.8 }}
+                  whileHover={{ scale: 1.15 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                   className={`p-2 rounded transition-all duration-150 ${
                     theme === 'dark' 
                       ? 'text-white hover:bg-white/10' 
                       : 'text-black hover:bg-black/10'
                   }`}
-                  title="Rewind 10 seconds"
+                  title="Rewind 10 seconds (←)"
                 >
                   <SkipBack className="w-5 h-5" />
                 </motion.button>
@@ -319,14 +514,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
                     e.stopPropagation();
                     skip(10);
                   }}
-                  whileTap={{ scale: 0.85 }}
-                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.8 }}
+                  whileHover={{ scale: 1.15 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                   className={`p-2 rounded transition-all duration-150 ${
                     theme === 'dark' 
                       ? 'text-white hover:bg-white/10' 
                       : 'text-black hover:bg-black/10'
                   }`}
-                  title="Forward 10 seconds"
+                  title="Forward 10 seconds (→)"
                 >
                   <SkipForward className="w-5 h-5" />
                 </motion.button>
@@ -340,13 +536,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
                     toggleMute();
                   }}
                   whileTap={{ scale: 0.85 }}
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.15 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                   className={`p-2 rounded transition-all duration-150 ${
                     theme === 'dark' 
                       ? 'text-white hover:bg-white/10' 
                       : 'text-black hover:bg-black/10'
                   }`}
-                  title={isMuted ? 'Unmute' : 'Mute'}
+                  title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
                 >
                   {isMuted || volume === 0 ? (
                     <VolumeX className="w-6 h-6" />
@@ -415,13 +612,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
                   toggleFullscreen();
                 }}
                 whileTap={{ scale: 0.85 }}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                 className={`p-2 rounded transition-all duration-150 ${
                   theme === 'dark' 
                     ? 'text-white hover:bg-white/10' 
                     : 'text-black hover:bg-black/10'
                 }`}
-                title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
               >
                 {isFullscreen ? (
                   <Minimize className="w-6 h-6" />
@@ -432,7 +630,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, className = '' }
             </div>
           </div>
         </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Custom Slider Styles - Theme Aware */}
       <style>{`
