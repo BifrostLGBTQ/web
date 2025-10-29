@@ -7,6 +7,7 @@ import NearbyScreen from './components/NearbyScreen';
 import ProfileScreen from './components/ProfileScreen';
 import SearchScreen from './components/SearchScreen';
 import MessagesScreen from './components/MessagesScreen';
+import SplashScreen from './components/SplashScreen';
 import { useTheme } from './contexts/ThemeContext';
 import { useAuth } from './contexts/AuthContext.tsx';
 import AuthWizard from './components/AuthWizard';
@@ -23,6 +24,7 @@ function App() {
   const [isAuthWizardOpen, setIsAuthWizardOpen] = useState(false);
   const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
@@ -77,7 +79,13 @@ function App() {
 
   return (
     <>
+      {/* Splash Screen */}
+      {showSplash && (
+        <SplashScreen onComplete={() => setShowSplash(false)} />
+      )}
+
       {/* Twitter Style Layout - 3 Columns */}
+      {!showSplash && (
       <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
         
         {/* Mobile Header - Top Navigation */}
@@ -426,7 +434,6 @@ function App() {
 
           </div>
         </aside>
-      </div>
 
       {/* Mobile Bottom Navigation Bar - Twitter Style */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl border-t border-gray-800/50' : 'bg-white/95 backdrop-blur-xl border-t border-gray-100/50'} safe-area-inset-bottom`}>
@@ -481,7 +488,7 @@ function App() {
               </motion.button>
             );
           })}
-        </div>
+      </div>
       </nav>
 
       {/* Professional Mobile Menu - Optimized */}
@@ -647,22 +654,242 @@ function App() {
           </>
         )}
       </AnimatePresence>
+        <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl border-t border-gray-800/50' : 'bg-white/95 backdrop-blur-xl border-t border-gray-100/50'} safe-area-inset-bottom`}>
+          <div className="flex items-center justify-around px-2 py-2">
+            {[
+              { id: 'home', icon: Home, label: 'Home' },
+              { id: 'search', icon: Search, label: 'Explore' },
+              { id: 'match', icon: Heart, label: 'Matches' },
+              { id: 'messages', icon: MessageCircle, label: 'Messages' },
+              { id: 'profile', icon: User, label: 'Profile' },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeScreen === item.id;
+              return (
+                <motion.button
+                  key={item.id}
+                  onClick={() => {
+                    if (item.id === 'home') {
+                      navigate('/');
+                    } else if (item.id === 'profile') {
+                      navigate(`/${user?.username || 'profile'}`);
+                    } else {
+                      navigate(`/${item.id}`);
+                    }
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? theme === 'dark'
+                        ? 'text-white'
+                        : 'text-black'
+                      : theme === 'dark'
+                        ? 'text-gray-500'
+                        : 'text-gray-500'
+                  }`}
+                >
+                  <div className={`relative ${isActive ? 'scale-110' : 'scale-100'} transition-transform duration-200`}>
+                    <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                    {isActive && (
+                      <motion.div
+                        layoutId="mobileBottomNavIndicator"
+                        className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      />
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-medium mt-0.5 ${isActive ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
+                    {item.label}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </nav>
 
+        {/* Professional Mobile Menu - Optimized */}
+        <AnimatePresence
+          mode="wait"
+          onExitComplete={() => {
+            document.body.style.overflow = '';
+          }}
+        >
+          {isMobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className={`fixed inset-0 z-[100]`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                style={{ willChange: 'opacity' }}
+              />
 
+              {/* Mobile Menu Panel */}
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 400,
+                  damping: 40,
+                  mass: 0.8
+                }}
+                style={{
+                  willChange: 'transform',
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden'
+                }}
+                className={`fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] z-[101] ${
+                  theme === 'dark'
+                    ? 'bg-gray-900/50 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl'
+                    : 'bg-white/50 backdrop-blur-xl border-r border-gray-200/80 shadow-[4px_0_24px_rgba(0,0,0,0.08)]'
+                } flex flex-col`}
+                onAnimationStart={() => {
+                  // Prevent body scroll when menu is opening
+                  if (isMobileMenuOpen) {
+                    document.body.style.overflow = 'hidden';
+                  }
+                }}
+              >
+                {/* Header */}
+                <div className={`relative px-6 py-8 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+                  }`}>
+                  <motion.button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${theme === 'dark'
+                        ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                      }`}
+                    whileTap={{ scale: 0.9 }}
+                    style={{ willChange: 'transform' }}
+                  >
+                    <X className="w-5 h-5" />
+                  </motion.button>
 
+                  {/* Profile Section */}
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"
+                      alt="Profile"
+                      className="w-16 h-16 rounded-2xl object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                    />
+                    <div>
+                      <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>
+                        Alex Rivera
+                      </h3>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                        @alexr_pride
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
+                {/* Navigation */}
+                <nav className="flex-1 px-6 py-6 overflow-y-auto">
+                  <div className="space-y-2">
+                    {mobileNavItems.map((item, index) => {
+                      const isActive = activeScreen === item.id;
+                      const Icon = item.icon;
+                      return (
+                        <motion.button
+                          key={item.id}
+                          className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl font-semibold transition-colors duration-200 ${isActive
+                              ? theme === 'dark'
+                                ? 'bg-white/10 text-white shadow-lg border border-gray-700'
+                                : 'bg-gray-900 text-white shadow-lg'
+                              : theme === 'dark'
+                                ? 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            }`}
+                          onClick={() => {
+                            if (item.id === 'home') {
+                              navigate('/');
+                            } else if (item.id === 'profile') {
+                              navigate(`/${user?.username || 'profile'}`);
+                            } else {
+                              navigate(`/${item.id}`);
+                            }
+                            setIsMobileMenuOpen(false);
+                          }}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            delay: index * 0.05,
+                            duration: 0.2,
+                            ease: 'easeOut'
+                          }}
+                          whileTap={{ scale: 0.97 }}
+                          style={{ willChange: 'transform, opacity' }}
+                        >
+                          <Icon className="w-6 h-6 flex-shrink-0" />
+                          <span className="text-base">{item.label}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </nav>
+
+                {/* Footer */}
+                <div className={`px-6 py-6 border-t space-y-3 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+                  }`}>
+                  <motion.button
+                    onClick={toggleTheme}
+                    className={`w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-2xl font-semibold transition-colors duration-200 ${theme === 'dark'
+                        ? 'bg-gray-800 text-white hover:bg-gray-700'
+                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
+                    whileTap={{ scale: 0.97 }}
+                    style={{ willChange: 'transform' }}
+                  >
+                    {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    <span>Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      setIsLanguageSelectorOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-2xl font-semibold transition-colors duration-200 ${theme === 'dark'
+                        ? 'bg-gray-800 text-white hover:bg-gray-700'
+                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
+                    whileTap={{ scale: 0.97 }}
+                    style={{ willChange: 'transform' }}
+                  >
+                    <Languages className="w-5 h-5" />
+                    <span>Language</span>
+                  </motion.button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+        </div>
+      )}
 
       {/* Footer - Only show on home screen */}
-      {activeScreen === 'xxhome' && <Footer />}
+      {!showSplash && activeScreen === 'xxhome' && <Footer />}
 
       {/* Auth Wizard */}
+      {!showSplash && (
       <AuthWizard
         isOpen={isAuthWizardOpen}
         onClose={() => setIsAuthWizardOpen(false)}
       />
+      )}
       
       {/* LanguageSelector */}
+      {!showSplash && (
       <LanguageSelector isOpen={isLanguageSelectorOpen} onClose={() => setIsLanguageSelectorOpen(false)} />
+      )}
 
     </>
   );

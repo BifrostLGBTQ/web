@@ -198,9 +198,9 @@ const MessagesScreen: React.FC = () => {
   };
 
   return (
-    <div className={`h-[100dvh] w-full overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
-      <div className="h-full w-full">
-        <div className="flex h-full w-full relative">
+    <div className={`h-[100dvh] w-full overflow-hidden flex flex-col ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
+      <div className="h-full w-full flex-1 overflow-hidden flex">
+        <div className="flex h-full w-full flex-1 overflow-hidden">
           {/* Sidebar - Responsive Design */}
           <div className={`absolute lg:relative inset-0 z-40 lg:z-auto w-full lg:w-80 border-r ${
             theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
@@ -421,11 +421,11 @@ const MessagesScreen: React.FC = () => {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col h-full w-full">
+          <div className="flex-1 flex flex-col h-full w-full relative z-10">
             {selectedChat ? (
               <>
                 {/* Chat Header */}
-                <div className={`p-3 sm:p-4 border-b ${
+                <div className={`p-3 sm:p-4 border-b relative z-[60] ${
                   theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
                 }`}>
                   <div className="flex items-center justify-between">
@@ -532,41 +532,49 @@ const MessagesScreen: React.FC = () => {
 
                 {/* Messages */}
                 <div className={`flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-hide ${
-                  theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+                  theme === 'dark' 
+                    ? 'bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900' 
+                    : 'bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100'
                 }`}>
-                  <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
+                  <div className="space-y-1.5 sm:space-y-2 max-w-4xl mx-auto">
                     {/* Sample messages */}
-                    <div className="flex justify-end">
-                      <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
-                        theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white'
+                    <div className="flex justify-end group">
+                      <div className={`max-w-[75%] sm:max-w-xs md:max-w-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl ${
+                        theme === 'dark' 
+                          ? 'bg-[#3390ec] text-white' 
+                          : 'bg-[#3390ec] text-white'
                       }`}>
-                        <p className="text-sm leading-relaxed">Hello! How are you doing? 😊</p>
-                        <div className="flex items-center justify-end mt-2">
-                          <span className="text-xs opacity-70">2:30 PM</span>
-                          <CheckCheck className="w-3 h-3 ml-1" />
+                        <p className="text-sm leading-relaxed mb-0.5">Hello! How are you doing? 😊</p>
+                        <div className="flex items-center justify-end mt-1 gap-1">
+                          <span className="text-[10px] opacity-75">2:30 PM</span>
+                          <CheckCheck className="w-3 h-3 opacity-75" />
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex justify-start">
-                      <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
-                        theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                      }`}>
-                        <p className="text-sm leading-relaxed">I'm doing great! Thanks for asking. How about you?</p>
-                        <div className="flex items-center mt-2">
-                          <span className="text-xs opacity-70">2:32 PM</span>
+                    <div className="flex justify-start group">
+                      <div className={`max-w-[75%] sm:max-w-xs md:max-w-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl ${
+                        theme === 'dark' 
+                          ? 'bg-gray-800 text-white' 
+                          : 'bg-white text-gray-900'
+                      } shadow-sm`}>
+                        <p className="text-sm leading-relaxed mb-0.5">I'm doing great! Thanks for asking. How about you?</p>
+                        <div className="flex items-center mt-1">
+                          <span className="text-[10px] opacity-75">2:32 PM</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex justify-end">
-                      <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
-                        theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white'
+                    <div className="flex justify-end group">
+                      <div className={`max-w-[75%] sm:max-w-xs md:max-w-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl ${
+                        theme === 'dark' 
+                          ? 'bg-[#3390ec] text-white' 
+                          : 'bg-[#3390ec] text-white'
                       }`}>
-                        <p className="text-sm leading-relaxed">Amazing! The community is so supportive here! 🏳️‍🌈</p>
-                        <div className="flex items-center justify-end mt-2">
-                          <span className="text-xs opacity-70">2:35 PM</span>
-                          <CheckCheck className="w-3 h-3 ml-1" />
+                        <p className="text-sm leading-relaxed mb-0.5">Amazing! The community is so supportive here! 🏳️‍🌈</p>
+                        <div className="flex items-center justify-end mt-1 gap-1">
+                          <span className="text-[10px] opacity-75">2:35 PM</span>
+                          <CheckCheck className="w-3 h-3 opacity-75" />
                         </div>
                       </div>
                     </div>
@@ -574,16 +582,21 @@ const MessagesScreen: React.FC = () => {
                     {/* Typing indicator */}
                     {isTyping && (
                       <div className="flex justify-start">
-                        <div className={`max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
+                        <div className={`max-w-[75%] sm:max-w-xs md:max-w-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl ${
                           theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-                        }`}>
-                          <div className="flex items-center space-x-2">
+                        } shadow-sm`}>
+                          <div className="flex items-center space-x-3">
                             <div className="flex space-x-1">
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                              <div className={`w-2 h-2 rounded-full animate-bounce ${
+                                theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                              }`}></div>
+                              <div className={`w-2 h-2 rounded-full animate-bounce ${
+                                theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                              }`} style={{ animationDelay: '0.2s' }}></div>
+                              <div className={`w-2 h-2 rounded-full animate-bounce ${
+                                theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                              }`} style={{ animationDelay: '0.4s' }}></div>
                             </div>
-                            <span className="text-xs opacity-70">typing...</span>
                           </div>
                         </div>
                       </div>
@@ -593,7 +606,7 @@ const MessagesScreen: React.FC = () => {
 
                 {/* Selected Files Preview */}
                 {selectedFiles.length > 0 && (
-                  <div className={`p-3 sm:p-4 border-t ${
+                  <div className={`p-3 sm:p-4 border-t relative z-[60] ${
                     theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
                   }`}>
                     <div className="space-y-2">
@@ -637,7 +650,7 @@ const MessagesScreen: React.FC = () => {
                 )}
 
                 {/* Message Input */}
-                <div className={`p-3 sm:p-4 border-t ${
+                <div className={`p-3 sm:p-4 border-t relative z-[60] ${
                   theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
                 }`}>
                   <div className="flex items-center space-x-2">
