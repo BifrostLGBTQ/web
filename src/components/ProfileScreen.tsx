@@ -386,8 +386,8 @@ const ProfileScreen: React.FC = () => {
                 >
                   <Post 
                     post={post as any} 
-                    onPostClick={(postId) => navigate(`/${user.username}/status/${postId}`)}
-                  onProfileClick={(username) => navigate(`/${username}`)}
+                    onPostClick={(postId, username) => navigate(`/${username}/status/${postId}`)}
+                    onProfileClick={(username) => navigate(`/${username}`)}
                   />
                 </motion.div>
               ))

@@ -66,7 +66,7 @@ interface ApiPost {
     created_at: string;
     updated_at: string;
   }>;
-  poll?: {
+  poll?: Array<{
     id: string;
     post_id: string;
     contentable_id: string;
@@ -74,7 +74,7 @@ interface ApiPost {
     question: {
       en: string;
     };
-    duration: number;
+    duration: string;
     created_at: string;
     updated_at: string;
     choices: Array<{
@@ -84,8 +84,13 @@ interface ApiPost {
         en: string;
       };
       vote_count: number;
+      voters?: Array<{
+        id: string;
+        username: string;
+        displayname: string;
+      }>;
     }>;
-  };
+  }>;
   event?: {
     id: string;
     post_id: string;
@@ -116,6 +121,12 @@ interface ApiPost {
     type: string;
     created_at: string;
     updated_at: string;
+    attendees?: Array<{
+      id: string;
+      username: string;
+      displayname: string;
+      status: 'going' | 'not_going' | 'maybe';
+    }>;
   };
   location?: {
     id: string;
@@ -159,7 +170,9 @@ const HomeScreen: React.FC = () => {
     ? location.pathname.split('/status/')[1] 
     : null;
 
-  const selectedPostData = selectedPost ? posts.find(p => p.id === selectedPost || p.public_id.toString() === selectedPost) : null;
+  // Separate state for post detail data (fetched independently)
+  const [selectedPostData, setSelectedPostData] = useState<ApiPost | null>(null);
+  const [loadingPostDetail, setLoadingPostDetail] = useState(false);
 
   // Handle post click - update URL
   const handlePostClick = (postId: string, username: string) => {
@@ -196,6 +209,29 @@ const HomeScreen: React.FC = () => {
 
     fetchPosts();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch post detail when selectedPost changes
+  useEffect(() => {
+    const fetchPostDetail = async () => {
+      if (!selectedPost) {
+        setSelectedPostData(null);
+        return;
+      }
+
+      try {
+        setLoadingPostDetail(true);
+        const response = await api.fetchPost(selectedPost);
+        setSelectedPostData(response);
+      } catch (err) {
+        console.error('Error fetching post detail:', err);
+        setError('Failed to load post. Please try again.');
+      } finally {
+        setLoadingPostDetail(false);
+      }
+    };
+
+    fetchPostDetail();
+  }, [selectedPost]);
 
   // Load more posts function
   const loadMorePosts = useCallback(async () => {
@@ -330,9 +366,14 @@ const HomeScreen: React.FC = () => {
             transition={{ duration: 0.2 }}
             className={`${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
           >
-            {selectedPostData && (
+            {loadingPostDetail ? (
+              <div className={`flex items-center justify-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                Loading post...
+              </div>
+            ) : selectedPostData ? (
               <Post 
                 post={selectedPostData} 
+                onPostClick={(postId, username) => handlePostClick(postId, username)}
                 onProfileClick={handleProfileClick}
                 isDetailView={true}
                 onRefreshParent={() => {
@@ -340,12 +381,7 @@ const HomeScreen: React.FC = () => {
                   const refreshPost = async () => {
                     try {
                       const response = await api.fetchPost(selectedPostData.id);
-                      // Update the post in the posts array
-                      setPosts(prevPosts => 
-                        prevPosts.map(p => 
-                          p.id === selectedPostData.id ? response : p
-                        )
-                      );
+                      setSelectedPostData(response);
                     } catch (err) {
                       console.error('Error refreshing post:', err);
                     }
@@ -353,6 +389,10 @@ const HomeScreen: React.FC = () => {
                   refreshPost();
                 }}
               />
+            ) : (
+              <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                Post not found
+              </div>
             )}
           </motion.div>
         ) : (
@@ -401,25 +441,25 @@ const HomeScreen: React.FC = () => {
                   transition={{ delay: index * 0.05 }}
                     className={`${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
                   >
-                    <Post 
-                      post={post} 
-                      onPostClick={(postId) => handlePostClick(postId, post.author.username)}
-                      onProfileClick={handleProfileClick}
-                      onRefreshParent={() => {
-                        // Refresh the entire timeline when a reply is posted
-                        const fetchPosts = async () => {
-                          try {
-                            const response: TimelineResponse = await api.fetchTimeline({ limit: 10, cursor: "" });
-                            setPosts(response.posts);
-                            setNextCursor(response.next_cursor?.toString() || '');
-                            setHasMore(response.posts.length > 0);
-                          } catch (err) {
-                            console.error('Error refreshing posts:', err);
-                          }
-                        };
-                        fetchPosts();
-                      }}
-                    />
+                          <Post
+                            post={post}
+                            onPostClick={(postId, username) => handlePostClick(postId, username)}
+                            onProfileClick={handleProfileClick}
+                            onRefreshParent={() => {
+                              // Refresh the entire timeline when a reply is posted
+                              const fetchPosts = async () => {
+                                try {
+                                  const response: TimelineResponse = await api.fetchTimeline({ limit: 10, cursor: "" });
+                                  setPosts(response.posts);
+                                  setNextCursor(response.next_cursor?.toString() || '');
+                                  setHasMore(response.posts.length > 0);
+                                } catch (err) {
+                                  console.error('Error refreshing posts:', err);
+                                }
+                              };
+                              fetchPosts();
+                            }}
+                          />
                   </motion.div>
                 ))
               )}

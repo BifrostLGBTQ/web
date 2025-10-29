@@ -147,7 +147,7 @@ interface ApiPost {
 
 interface PostProps {
   post: ApiPost;
-  onPostClick?: (postId: string) => void;
+  onPostClick?: (postId: string, username: string) => void;
   onProfileClick?: (username: string) => void;
   isDetailView?: boolean;
   showChildren?: boolean;
@@ -233,12 +233,15 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
 
   return (
     <div 
-      className={`overflow-hidden ${
-        theme === 'dark' ? 'bg-black' : 'bg-white'
+      className={`overflow-hidden border-b ${
+        theme === 'dark' 
+          ? 'bg-black border-gray-800/40' 
+          : 'bg-white border-gray-100'
       } ${onPostClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:shadow-sm' : ''} transition-all duration-300 ease-out`}
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation(); // Prevent event bubbling
         if (onPostClick) {
-          onPostClick(post.id);
+          onPostClick(post.id, post.author.username);
         }
       }}
     >
@@ -711,6 +714,7 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                 }`}>
                   <Post
                     post={child}
+                    onPostClick={onPostClick}
                     onProfileClick={onProfileClick}
                     isDetailView={false}
                     showChildren={true}

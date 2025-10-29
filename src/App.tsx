@@ -216,7 +216,7 @@ function App() {
         </aside>
 
         {/* Middle Section - Scrollable */}
-        <main className={`flex-1 min-w-0 ${theme === 'dark' ? 'border-l border-r border-black' : 'border-l border-r border-gray-100'}`}>
+        <main className={`flex-1 min-w-0 ${theme === 'dark' ? 'border-l border-r border-gray-800/30' : 'border-l border-r border-gray-100/50'}`}>
           <Routes>
             {/* Home Routes */}
             <Route path="/" element={<HomeScreen />} />
