@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   MessageCircle, 
-  Users, 
   User, 
   Search, 
   Send, 
@@ -14,17 +13,12 @@ import {
   Smile,
   Paperclip,
   Mic,
-  Flag,
   Globe,
-  MapPin,
-  Clock,
   Check,
   CheckCheck,
   ArrowLeft,
   Star,
   Volume2,
-  VolumeX,
-  Settings,
   Info,
   Menu,
   X
@@ -204,7 +198,7 @@ const MessagesScreen: React.FC = () => {
   };
 
   return (
-    <div className={`h-[90dvh] min-h-[90dvh] max-h-[90dvh] w-full overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
+    <div className={`h-[100dvh] w-full overflow-hidden ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
       <div className="h-full w-full">
         <div className="flex h-full w-full relative">
           {/* Sidebar - Responsive Design */}
@@ -219,12 +213,14 @@ const MessagesScreen: React.FC = () => {
                 <h1 className={`text-lg sm:text-xl font-bold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>Messages</h1>
-                <button 
+                <motion.button 
                   onClick={() => setShowSidebar(false)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="lg:hidden p-2 rounded-lg transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                </button>
+                </motion.button>
               </div>
               
               {/* Search */}
@@ -246,36 +242,40 @@ const MessagesScreen: React.FC = () => {
 
             {/* Tabs */}
             <div className="flex border-b">
-              <button
+              <motion.button
                 onClick={() => setActiveTab('groups')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`flex-1 py-3 sm:py-4 px-3 sm:px-4 text-sm font-medium transition-colors ${
                   activeTab === 'groups'
                     ? theme === 'dark'
                       ? 'text-white border-b-2 border-gray-300'
                       : 'text-gray-900 border-b-2 border-gray-900'
                     : theme === 'dark'
-                    ? 'text-gray-400 hover:text-white'
-                    : 'text-gray-500 hover:text-gray-900'
+                    ? 'text-gray-400'
+                    : 'text-gray-500'
                 }`}
               >
                 <Globe className="w-4 h-4 inline mr-2" />
                 Groups
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setActiveTab('private')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`flex-1 py-3 sm:py-4 px-3 sm:px-4 text-sm font-medium transition-colors ${
                   activeTab === 'private'
                     ? theme === 'dark'
                       ? 'text-white border-b-2 border-gray-300'
                       : 'text-gray-900 border-b-2 border-gray-900'
                     : theme === 'dark'
-                    ? 'text-gray-400 hover:text-white'
-                    : 'text-gray-500 hover:text-gray-900'
+                    ? 'text-gray-400'
+                    : 'text-gray-500'
                 }`}
               >
                 <User className="w-4 h-4 inline mr-2" />
                 Private
-              </button>
+              </motion.button>
             </div>
 
             {/* Chat List */}
@@ -431,12 +431,14 @@ const MessagesScreen: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                       {/* Mobile menu button */}
-                      <button 
+                      <motion.button 
                         onClick={() => setShowSidebar(true)}
-                        className="lg:hidden p-2 rounded-lg transition-colors flex-shrink-0"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="lg:hidden p-2 rounded-lg flex-shrink-0"
                       >
                         <Menu className="w-5 h-5" />
-                      </button>
+                      </motion.button>
                       
                       {activeTab === 'groups' && selectedGroupChat ? (
                         <>
@@ -479,31 +481,51 @@ const MessagesScreen: React.FC = () => {
                       ) : null}
                     </div>
                     <div className="flex items-center space-x-1 flex-shrink-0">
-                      <button className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                      }`}>
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        }`}
+                      >
                         <Volume2 className="w-4 h-4" />
-                      </button>
-                      <button className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                      }`}>
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        }`}
+                      >
                         <Phone className="w-4 h-4" />
-                      </button>
-                      <button className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                      }`}>
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        }`}
+                      >
                         <Video className="w-4 h-4" />
-                      </button>
-                      <button className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                      }`}>
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        }`}
+                      >
                         <Info className="w-4 h-4" />
-                      </button>
-                      <button className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                      }`}>
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        }`}
+                      >
                         <MoreVertical className="w-4 h-4" />
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 </div>
@@ -598,12 +620,16 @@ const MessagesScreen: React.FC = () => {
                               }`}>{formatFileSize(file.size)}</p>
                             </div>
                           </div>
-                          <button
+                          <motion.button
                             onClick={() => removeFile(index)}
-                            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className={`p-1 rounded ${
+                              theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                            }`}
                           >
                             <X className="w-4 h-4" />
-                          </button>
+                          </motion.button>
                         </div>
                       ))}
                     </div>
@@ -615,14 +641,16 @@ const MessagesScreen: React.FC = () => {
                   theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
                 }`}>
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <motion.button 
                       onClick={() => fileInputRef.current?.click()}
-                      className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`p-2 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                       }`}
                     >
                       <Paperclip className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -630,14 +658,16 @@ const MessagesScreen: React.FC = () => {
                       onChange={handleFileSelect}
                       className="hidden"
                     />
-                    <button 
+                    <motion.button 
                       onClick={() => imageInputRef.current?.click()}
-                      className={`p-2 rounded-lg transition-colors ${
-                        theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`p-2 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                       }`}
                     >
                       <Image className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                     <input
                       ref={imageInputRef}
                       type="file"
@@ -659,35 +689,43 @@ const MessagesScreen: React.FC = () => {
                         }`}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       />
-                      <button 
+                      <motion.button 
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-lg transition-colors ${
-                          theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
                         }`}
                       >
                         <Smile className="w-4 h-4" />
-                      </button>
+                      </motion.button>
                     </div>
-                    <button
+                    <motion.button
                       onClick={handleSendMessage}
                       disabled={!message.trim() && selectedFiles.length === 0}
-                      className={`p-2 rounded-lg transition-colors ${
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`p-2 rounded-lg ${
                         (message.trim() || selectedFiles.length > 0)
                           ? theme === 'dark'
-                            ? 'bg-gray-800 hover:bg-gray-700'
-                            : 'bg-gray-900 hover:bg-gray-800'
+                            ? 'bg-gray-800'
+                            : 'bg-gray-900'
                           : theme === 'dark'
                           ? 'bg-gray-700 text-gray-500'
                           : 'bg-gray-300 text-gray-500'
                       }`}
                     >
                       <Send className="w-4 h-4" />
-                    </button>
-                    <button className={`p-2 rounded-lg transition-colors ${
-                      theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                    }`}>
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`p-2 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                      }`}
+                    >
                       <Mic className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   </div>
 
                   {/* Emoji Picker */}
@@ -697,13 +735,17 @@ const MessagesScreen: React.FC = () => {
                     }`}>
                       <div className="grid grid-cols-8 gap-2">
                         {emojis.map((emoji, index) => (
-                          <button
+                          <motion.button
                             key={index}
                             onClick={() => handleEmojiClick(emoji)}
-                            className="p-2 text-lg hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            className={`p-2 text-lg rounded ${
+                              theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                            }`}
                           >
                             {emoji}
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
                     </div>
