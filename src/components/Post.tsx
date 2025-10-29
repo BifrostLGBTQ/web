@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, MapPin, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, MapPin, Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import PostReply from './PostReply';
 import { api } from '../services/api';
@@ -10,8 +11,8 @@ interface ApiPost {
   public_id: number;
   author_id: string;
   type: string;
-  content: {
-    en: string;
+  content?: {
+    en?: string;
   };
   published: boolean;
   created_at: string;
@@ -45,7 +46,7 @@ interface ApiPost {
     social: unknown;
     deleted_at: string | null;
   };
-  attachments: Array<{
+  attachments?: Array<{
     id: string;
     file_id: string;
     owner_id: string;
@@ -162,6 +163,9 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
   const [showReply, setShowReply] = useState(isDetailView || false);
   const [children, setChildren] = useState<ApiPost[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const { theme } = useTheme();
 
   // Fetch children (replies) when in detail view
@@ -182,6 +186,11 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
         });
     }
   }, [isDetailView, post.id]);
+
+  // Handle image load
+  const handleImageLoad = useCallback((imageUrl: string) => {
+    setLoadedImages(prev => new Set(prev).add(imageUrl));
+  }, []);
 
   // Handle profile click
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -231,6 +240,108 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
     // TODO: Send vote to API
   };
 
+  // Gallery handlers
+  const openGallery = useCallback((index: number) => {
+    setSelectedImageIndex(index);
+    setIsGalleryOpen(true);
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }, []);
+
+  const closeGallery = useCallback(() => {
+    setIsGalleryOpen(false);
+    document.body.style.overflow = ''; // Restore scrolling
+  }, []);
+
+  const imageAttachments = useMemo(() => {
+    if (!post.attachments || !Array.isArray(post.attachments)) return [];
+    return post.attachments.filter(att => att?.file?.mime_type?.startsWith('image/'));
+  }, [post.attachments]);
+
+  const nextImage = useCallback(() => {
+    if (imageAttachments.length === 0) return;
+    setSelectedImageIndex((prev) => (prev + 1) % imageAttachments.length);
+  }, [imageAttachments.length]);
+
+  const prevImage = useCallback(() => {
+    if (imageAttachments.length === 0) return;
+    setSelectedImageIndex((prev) => (prev - 1 + imageAttachments.length) % imageAttachments.length);
+  }, [imageAttachments.length]);
+
+  // Keyboard navigation for gallery
+  useEffect(() => {
+    if (!isGalleryOpen || imageAttachments.length === 0) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeGallery();
+      } else if (e.key === 'ArrowLeft') {
+        prevImage();
+      } else if (e.key === 'ArrowRight') {
+        nextImage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isGalleryOpen, imageAttachments.length, prevImage, nextImage, closeGallery]);
+
+  // Touch swipe support
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      nextImage();
+    } else if (distance < -minSwipeDistance) {
+      prevImage();
+    }
+  };
+
+  // Shimmer Component
+  const ImageShimmer = ({ className }: { className?: string }) => (
+    <>
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+        .shimmer-animation {
+          animation: shimmer 1.5s infinite linear;
+        }
+      `}</style>
+      <div className={`relative overflow-hidden rounded-2xl ${className || ''}`}>
+        <div className={`absolute inset-0 rounded-2xl ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+        }`}>
+          <div className={`absolute inset-0 rounded-2xl shimmer-animation ${
+            theme === 'dark' 
+              ? 'bg-gradient-to-r from-gray-800 via-gray-700/50 to-gray-800' 
+              : 'bg-gradient-to-r from-gray-200 via-gray-300/50 to-gray-200'
+          }`} 
+          style={{
+            backgroundSize: '200% 100%'
+          }} />
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <>
       <div 
@@ -239,7 +350,7 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
             ? 'bg-black border-gray-800/40' 
             : 'bg-white border-gray-100'
         } ${onPostClick ? 'hover:bg-gray-50 dark:hover:bg-gray-900/30 hover:shadow-sm' : ''} transition-all duration-300 ease-out`}
-      >
+    >
       {/* Post Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -309,7 +420,7 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
           color: theme === 'dark' ? '#ffffff' : '#111827'
         }}>
           <div 
-            dangerouslySetInnerHTML={{ __html: post.content.en }} 
+            dangerouslySetInnerHTML={{ __html: post.content?.en || '' }} 
             style={{
               color: theme === 'dark' ? '#ffffff' : '#111827'
             }}
@@ -325,15 +436,256 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
       {/* Post Attachments */}
       {post.attachments && post.attachments.length > 0 && (
         <div className="px-4 pb-3">
-          {post.attachments.map((attachment, index) => (
-            <div key={index} className="w-full overflow-hidden">
-              {attachment.file.mime_type.startsWith('image/') ? (
-                <img
-                  src={attachment.file.url}
+          {(() => {
+            if (!post.attachments || !Array.isArray(post.attachments)) return null;
+            const imageAttachments = post.attachments.filter(att => att?.file?.mime_type?.startsWith('image/'));
+            const nonImageAttachments = post.attachments.filter(att => !att?.file?.mime_type?.startsWith('image/'));
+            const imageCount = imageAttachments.length;
+
+            if (imageCount === 0 && nonImageAttachments.length > 0) {
+              // Only non-image attachments
+              return nonImageAttachments.map((attachment, index) => (
+                <div key={index} className="w-full overflow-hidden mb-2 last:mb-0">
+                  <div className={`w-full h-48 rounded-xl flex items-center justify-center ${
+                    theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                  }`}>
+                    <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {attachment.file.name}
+                    </span>
+                  </div>
+                </div>
+              ));
+            }
+
+            // Pinterest-style image grid layouts - All images visible
+            if (imageCount === 1) {
+              const imageUrl = imageAttachments[0].file.url;
+              const isLoaded = loadedImages.has(imageUrl);
+              
+              return (
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="w-full overflow-hidden rounded-2xl relative">
+                    {!isLoaded && <ImageShimmer className="absolute inset-0" />}
+                    <img
+                      src={imageUrl}
                   alt="Post attachment"
-                  className="w-full h-auto object-cover rounded-2xl"
-                />
-              ) : (
+                      className={`w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      onLoad={() => handleImageLoad(imageUrl)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openGallery(0);
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            }
+
+            if (imageCount === 2) {
+              return (
+                <div className="grid grid-cols-2 gap-2">
+                  {imageAttachments.map((attachment, index) => {
+                    const imageUrl = attachment.file.url;
+                    const isLoaded = loadedImages.has(imageUrl);
+                    
+                    return (
+                      <div key={index} className="w-full overflow-hidden rounded-2xl relative">
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 h-[300px]" />}
+                        <img
+                          src={imageUrl}
+                          alt={`Post attachment ${index + 1}`}
+                          className={`w-full h-[300px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          onLoad={() => handleImageLoad(imageUrl)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openGallery(index);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            if (imageCount === 3) {
+              const firstImageUrl = imageAttachments[0].file.url;
+              const secondImageUrl = imageAttachments[1].file.url;
+              const thirdImageUrl = imageAttachments[2].file.url;
+              const firstLoaded = loadedImages.has(firstImageUrl);
+              const secondLoaded = loadedImages.has(secondImageUrl);
+              const thirdLoaded = loadedImages.has(thirdImageUrl);
+              
+              return (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="row-span-2 overflow-hidden rounded-2xl relative">
+                    {!firstLoaded && <ImageShimmer className="absolute inset-0 h-[300px]" />}
+                    <img
+                      src={firstImageUrl}
+                      alt="Post attachment 1"
+                      className={`w-full h-[300px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!firstLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      onLoad={() => handleImageLoad(firstImageUrl)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openGallery(0);
+                      }}
+                    />
+                  </div>
+                  <div className="overflow-hidden rounded-2xl relative">
+                    {!secondLoaded && <ImageShimmer className="absolute inset-0 h-[146px]" />}
+                    <img
+                      src={secondImageUrl}
+                      alt="Post attachment 2"
+                      className={`w-full h-[146px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!secondLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      onLoad={() => handleImageLoad(secondImageUrl)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openGallery(1);
+                      }}
+                    />
+                  </div>
+                  <div className="overflow-hidden rounded-2xl relative">
+                    {!thirdLoaded && <ImageShimmer className="absolute inset-0 h-[146px]" />}
+                    <img
+                      src={thirdImageUrl}
+                      alt="Post attachment 3"
+                      className={`w-full h-[146px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!thirdLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      onLoad={() => handleImageLoad(thirdImageUrl)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openGallery(2);
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            }
+
+            if (imageCount === 4) {
+              return (
+                <div className="grid grid-cols-2 gap-2">
+                  {imageAttachments.map((attachment, index) => {
+                    const imageUrl = attachment.file.url;
+                    const isLoaded = loadedImages.has(imageUrl);
+                    
+                    return (
+                      <div key={index} className="w-full overflow-hidden rounded-2xl relative">
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 h-[200px]" />}
+                        <img
+                          src={imageUrl}
+                          alt={`Post attachment ${index + 1}`}
+                          className={`w-full h-[200px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          onLoad={() => handleImageLoad(imageUrl)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openGallery(index);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            // 5 images: Pinterest-style masonry grid
+            if (imageCount === 5) {
+              const firstImageUrl = imageAttachments[0].file.url;
+              const firstLoaded = loadedImages.has(firstImageUrl);
+              
+              return (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2 row-span-2 overflow-hidden rounded-2xl relative">
+                    {!firstLoaded && <ImageShimmer className="absolute inset-0 h-[300px]" />}
+                    <img
+                      src={firstImageUrl}
+                      alt="Post attachment 1"
+                      className={`w-full h-[300px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!firstLoaded ? 'opacity-0' : 'opacity-100'}`}
+                      onLoad={() => handleImageLoad(firstImageUrl)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openGallery(0);
+                      }}
+                    />
+                  </div>
+                  {imageAttachments.slice(1, 5).map((attachment, idx) => {
+                    const imageUrl = attachment.file.url;
+                    const isLoaded = loadedImages.has(imageUrl);
+                    
+                    return (
+                      <div key={idx + 1} className="overflow-hidden rounded-2xl relative">
+                        {!isLoaded && <ImageShimmer className="absolute inset-0 h-[146px]" />}
+                        <img
+                          src={imageUrl}
+                          alt={`Post attachment ${idx + 2}`}
+                          className={`w-full h-[146px] object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          onLoad={() => handleImageLoad(imageUrl)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openGallery(idx + 1);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            // 6+ images: Pinterest-style masonry grid - All images visible
+            return (
+              <>
+                <div className="grid grid-cols-3 gap-2 auto-rows-[146px]">
+                  {imageAttachments.map((attachment, index) => {
+                    // Pinterest-style alternating pattern
+                    let gridClass = '';
+                    let heightClass = '';
+                    
+                    if (index === 0) {
+                      // First image: large - spans 2 rows
+                      gridClass = 'col-span-2 row-span-2';
+                      heightClass = 'h-full'; // Use full height of 2 rows
+                    } else if (index === 1) {
+                      gridClass = '';
+                      heightClass = 'h-full';
+                    } else if (index === 2) {
+                      gridClass = '';
+                      heightClass = 'h-full';
+                    } else if (index === 3) {
+                      gridClass = '';
+                      heightClass = 'h-full';
+                    } else if (index === 4) {
+                      gridClass = 'col-span-2';
+                      heightClass = 'h-full';
+                    } else {
+                      // For remaining images, alternate between single and double span
+                      gridClass = index % 5 === 0 ? 'col-span-2' : '';
+                      heightClass = 'h-full';
+                    }
+
+                    const imageUrl = attachment.file.url;
+                    const isLoaded = loadedImages.has(imageUrl);
+                    const shimmerHeight = index === 0 ? 'h-[292px]' : 'h-[146px]'; // 292px = 2 rows (146px * 2 + gap)
+                    
+                    return (
+                      <div key={index} className={`overflow-hidden rounded-2xl relative ${gridClass}`}>
+                        {!isLoaded && <ImageShimmer className={`absolute inset-0 ${shimmerHeight}`} />}
+                        <img
+                          src={imageUrl}
+                          alt={`Post attachment ${index + 1}`}
+                          className={`w-full ${heightClass} object-cover cursor-pointer hover:opacity-90 transition-all duration-300 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+                          onLoad={() => handleImageLoad(imageUrl)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openGallery(index);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                {nonImageAttachments.map((attachment, index) => (
+                  <div key={`non-image-${index}`} className="w-full overflow-hidden mb-2 mt-2 last:mb-0">
                 <div className={`w-full h-48 rounded-xl flex items-center justify-center ${
                   theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                 }`}>
@@ -341,9 +693,11 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                     {attachment.file.name}
                   </span>
                 </div>
-              )}
             </div>
           ))}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -401,7 +755,7 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                           <span className={`font-medium text-sm ${
                             theme === 'dark' ? 'text-white' : 'text-gray-900'
                           }`}>
-                            {choice.label.en}
+                            {choice.label?.en || ''}
                           </span>
                         </div>
                         <div className={`w-full h-2 rounded-full ${
@@ -486,12 +840,12 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                 <h4 className={`font-bold text-xl mb-3 ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>
-                  {post.event.title.en}
+                  {post.event.title?.en || ''}
                 </h4>
                 <p className={`text-lg mb-4 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                 }`}>
-                  {post.event.description.en}
+                  {post.event.description?.en || ''}
                 </p>
                 <div className={`text-base font-semibold mb-3 ${
                   theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
@@ -672,38 +1026,38 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
     </div>
 
     {/* PostReply Component - Outside main post div */}
-    {showReply && (
-      <PostReply 
-        isOpen={true}
-        onClose={() => setShowReply(false)}
-        parentPostId={`${post.id}`}
-        onReply={(content, parentPostId) => {
-          console.log('Reply posted:', content, 'Parent ID:', parentPostId);
-          setShowReply(false);
-          
-          // Refresh parent post (top-level post) to get updated children
-          if (onRefreshParent) {
-            onRefreshParent();
-          }
-          
-          // Also refresh local children if in detail view
-          if (isDetailView) {
-            api.fetchPost(post.id)
-              .then((response) => {
-                if (response.children) {
-                  setChildren(response.children);
-                }
-              })
-              .catch((error) => {
-                console.error('Error refreshing children:', error);
-              });
-          }
-        }}
-      />
-    )}
+      {showReply && (
+        <PostReply 
+          isOpen={true}
+          onClose={() => setShowReply(false)}
+          parentPostId={`${post.id}`}
+          onReply={(content, parentPostId) => {
+            console.log('Reply posted:', content, 'Parent ID:', parentPostId);
+            setShowReply(false);
+            
+            // Refresh parent post (top-level post) to get updated children
+            if (onRefreshParent) {
+              onRefreshParent();
+            }
+            
+            // Also refresh local children if in detail view
+            if (isDetailView) {
+              api.fetchPost(post.id)
+                .then((response) => {
+                  if (response.children) {
+                    setChildren(response.children);
+                  }
+                })
+                .catch((error) => {
+                  console.error('Error refreshing children:', error);
+                });
+            }
+          }}
+        />
+      )}
 
     {/* Children (Replies) Section - Outside main post div */}
-    {(isDetailView || showChildren) && (
+      {(isDetailView || showChildren) && (
       <div className={`overflow-hidden border-b ${
         theme === 'dark' 
           ? 'bg-black border-gray-800/40' 
@@ -724,14 +1078,14 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
                   theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                 }`}>
                   <div className="pointer-events-auto">
-                    <Post
-                      post={child}
+                  <Post
+                    post={child}
                       onPostClick={onPostClick}
-                      onProfileClick={onProfileClick}
-                      isDetailView={false}
-                      showChildren={true}
-                      onRefreshParent={onRefreshParent}
-                    />
+                    onProfileClick={onProfileClick}
+                    isDetailView={false}
+                    showChildren={true}
+                    onRefreshParent={onRefreshParent}
+                  />
                   </div>
                 </div>
               ))}
@@ -739,7 +1093,172 @@ const Post: React.FC<PostProps> = ({ post, onPostClick, onProfileClick, isDetail
           ) : null}
         </div>
       </div>
-    )}
+      )}
+
+    {/* Image Gallery Modal */}
+    {isGalleryOpen && imageAttachments.length > 0 && (() => {
+      const currentImage = imageAttachments[selectedImageIndex];
+      
+      if (!currentImage) return null;
+
+      return (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-2xl ${
+            theme === 'dark' 
+              ? 'bg-black/95' 
+              : 'bg-white/95'
+          }`}
+          onClick={closeGallery}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Top Bar - Close Button and Image Counter - Absolute positioned */}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 sm:p-6 z-[60]">
+            <div className="flex-1" />
+            {/* Image Counter - Prominent Display */}
+            {imageAttachments.length > 1 && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`px-6 py-3 rounded-full backdrop-blur-xl border ${
+                  theme === 'dark' 
+                    ? 'bg-black/40 border-gray-700/50 text-white' 
+                    : 'bg-white/40 border-gray-300/50 text-gray-900'
+                }`}
+              >
+                <span className="text-base font-semibold tracking-wide">
+                  {selectedImageIndex + 1} / {imageAttachments.length}
+                </span>
+              </motion.div>
+            )}
+            <div className="flex-1 flex justify-end">
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeGallery();
+                }}
+                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
+                className={`p-3 rounded-full backdrop-blur-xl border transition-all ${
+                  theme === 'dark' 
+                    ? 'bg-black/40 hover:bg-black/50 border-gray-700/50 text-white' 
+                    : 'bg-white/40 hover:bg-white/50 border-gray-300/50 text-gray-900'
+                }`}
+              >
+                <X className="w-6 h-6" />
+              </motion.button>
+    </div>
+          </div>
+
+          {/* Main Image Container - Centered with equal padding on all sides */}
+          <div 
+            className="relative w-full h-full flex items-center justify-center p-6 sm:p-8 md:p-12 lg:p-16"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Blurred background - full size cover */}
+            <div 
+              className="absolute inset-0 overflow-hidden"
+              style={{
+                backgroundImage: `url(${currentImage.file.url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                filter: 'blur(40px)',
+                transform: 'scale(1.1)',
+                opacity: theme === 'dark' ? 0.5 : 0.6
+              }}
+            />
+            
+            {/* Image wrapper - Professional constraints with equal spacing */}
+            <motion.div 
+              key={selectedImageIndex}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="relative z-10 w-full h-full flex items-center justify-center"
+              style={{
+                maxWidth: 'calc(100vw - 3rem)',
+                maxHeight: 'calc(100vh - 3rem)'
+              }}
+            >
+              {/* Responsive max constraints */}
+              <div className="relative w-full h-full flex items-center justify-center" style={{
+                maxWidth: 'min(95vw, 1400px)',
+                maxHeight: 'min(85vh, 900px)'
+              }}>
+                {/* Edge blur overlay - creates soft fade on edges */}
+                <div 
+                  className="absolute -inset-12 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(ellipse at center, transparent 0%, transparent 40%, ${
+                      theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
+                    } 70%, ${
+                      theme === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)'
+                    } 100%)`,
+                    filter: 'blur(30px)',
+                    borderRadius: '2rem',
+                    zIndex: -1
+                  }}
+                />
+                {/* Foreground image */}
+                <img
+                  src={currentImage.file.url}
+                  alt={`Gallery image ${selectedImageIndex + 1} of ${imageAttachments.length}`}
+                  className="relative max-w-full max-h-full object-contain rounded-2xl shadow-2xl select-none"
+                  style={{
+                    filter: 'drop-shadow(0 0 60px rgba(0,0,0,0.2))'
+                  }}
+                  draggable={false}
+                  onError={(e) => {
+                    console.error('Image load error:', e);
+                  }}
+                />
+              </div>
+            </motion.div>
+
+            {/* Navigation Buttons - Positioned on sides, outside image */}
+            {imageAttachments.length > 1 && (
+              <>
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  className={`absolute left-4 sm:left-6 md:left-8 z-[60] p-4 rounded-full backdrop-blur-xl border transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-black/40 hover:bg-black/50 border-gray-700/50 text-white' 
+                      : 'bg-white/40 hover:bg-white/50 border-gray-300/50 text-gray-900'
+                  }`}
+                >
+                  <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+                </motion.button>
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  className={`absolute right-4 sm:right-6 md:right-8 z-[60] p-4 rounded-full backdrop-blur-xl border transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-black/40 hover:bg-black/50 border-gray-700/50 text-white' 
+                      : 'bg-white/40 hover:bg-white/50 border-gray-300/50 text-gray-900'
+                  }`}
+                >
+                  <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+                </motion.button>
+              </>
+            )}
+          </div>
+        </motion.div>
+      );
+    })()}
     </>
   );
 };

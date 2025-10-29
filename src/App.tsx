@@ -91,7 +91,7 @@ function App() {
                   <span className="text-xl font-bold">P</span>
                 </div>
                 <h1 className={`text-2xl font-extrabold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  PrideApp
+                  SOCIAL
                 </h1>
               </button>
             </div>
