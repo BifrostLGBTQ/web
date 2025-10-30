@@ -599,7 +599,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           // Multiple providers in case one fails
           const providers = [
             'https://ipapi.co/json/',
-            'https://ipinfo.io/json?token=', // token optional; will still respond limited
+            'https://ipinfo.io/json?token=17064ceadbe842', // token optional; will still respond limited
           ];
           for (const url of providers) {
             try {

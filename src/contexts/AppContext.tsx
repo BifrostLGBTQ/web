@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Actions } from "../services/actions";
 import { api } from "../services/api";
+import i18n from "../i18n";
 
 
 interface FantasyTranslation {
@@ -49,7 +50,7 @@ interface InitialData {
   fantasies: Fantasy[];
   countries: Record<string, any>;
   interests: Interest[];
-  sexual_orientations:SexualOrientation[];
+  sexual_orientations: SexualOrientation[];
   languages: Record<string, any>;
   status: string;
 }
@@ -58,23 +59,24 @@ interface AppContextType {
   data: InitialData | null;
   refresh: () => Promise<void>;
   loading: boolean;
-defaultLanguage: string; // ✅ eklendi
+  defaultLanguage: string; // ✅ eklendi
   setDefaultLanguage: (lang: string) => void; // opsiyonel olarak değiştirmek için
 }
 
 const AppContext = createContext<AppContextType>({
   data: null,
-  refresh: async () => {},
+  refresh: async () => { },
   loading: true,
   defaultLanguage: "en",
-  setDefaultLanguage: () => {},
+  setDefaultLanguage: () => { },
 
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<InitialData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [defaultLanguage, setDefaultLanguage] = useState<string>("en"); // default language
+  const storedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') : null;
+  const [defaultLanguage, setDefaultLanguage] = useState<string>(storedLang || i18n.language || "en"); // default language from localStorage or i18n
 
   const refresh = async () => {
     setLoading(true);
@@ -90,6 +92,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     refresh(); // uygulama açıldığında ilk senkron
+  }, []);
+
+  // i18n language değiştiğinde defaultLanguage'i güncelle
+  useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      setDefaultLanguage(lng);
+    };
+    
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
   }, []);
 
   return (

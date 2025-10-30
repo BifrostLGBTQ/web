@@ -13,7 +13,7 @@ interface Props {
 }
 
 const LanguageSelectorModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { data, loading, defaultLanguage, setDefaultLanguage } = useApp();
+  const { data, defaultLanguage, setDefaultLanguage } = useApp();
   
   const { theme } = useTheme();
 
@@ -64,7 +64,7 @@ const LanguageSelectorModal: React.FC<Props> = ({ isOpen, onClose }) => {
         onClick={() => 
             {
                 setDefaultLanguage(lang.code)
-                setLanguage(lang);
+                setLanguage(lang.code as 'en' | 'tr');
                 onClose()
             }
 
