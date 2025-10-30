@@ -266,7 +266,8 @@ function App() {
 
         {/* Middle Section - Scrollable */}
         <main className={`
-              max-h-[100dvh]  /* Maksimum ekran yüksekliği */
+              max-h-[100dvh] 
+            
     scrollbar-hide
      flex-1 min-w-0 lg:border-l lg:border-r ${theme === 'dark' ? 'lg:border-gray-800/30' : 'lg:border-gray-100/50'} pt-[56px] lg:pt-0 pb-[70px] lg:pb-0`}>
           <Routes>

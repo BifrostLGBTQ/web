@@ -779,11 +779,7 @@ const CreatePost: React.FC<CreatePostProps> = ({
           isFullScreen 
             ? 'fixed inset-0 z-50 max-w-none max-h-none rounded-none mb-0'
             : 'w-full max-w-full mb-6'
-        } ${
-          theme === 'dark'
-            ? 'bg-gray-900/95 backdrop-blur-xl shadow-black/20'
-            : 'bg-white/95 backdrop-blur-xl shadow-gray-900/10'
-        } ${isExpanded ? 'shadow-xl' : ''}`}
+        }   ${isExpanded ? 'shadow-xl' : ''}`}
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ 
           opacity: 1, 

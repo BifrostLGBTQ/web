@@ -696,9 +696,9 @@ export default function ToolbarPlugin({
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
       {/* Single Row Scrollable for All Screens */}
-      <div className="relative">
+      <div className="  flex flex-row gap-2 items-center justify-around ">
         {/* Left Scroll Arrow */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20">
+        <div className=" left-0  z-20 ">
           <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-1">
             <motion.button
               onClick={scrollLeft}
@@ -717,35 +717,12 @@ export default function ToolbarPlugin({
           </div>
         </div>
 
-        {/* Right Scroll Arrow */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-20">
-          <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-1">
-            <motion.button
-              onClick={scrollRight}
-              disabled={!canScrollRight}
-              className={`p-2 rounded-lg transition-all duration-200 h-10 ${
-                !canScrollRight
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg'
-              }`}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.88 }}
-              title="Scroll Right"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Scrollable Content */}
         <div 
           ref={scrollContainerRef}
-          className="flex items-center space-x-2 scrollbar-hide relative z-0"
+          className="flex w-full rounded-lg items-center space-x-2 scrollbar-hide  z-0"
           style={{ 
             overflowX: 'auto',
             overflowY: 'visible',
-            marginLeft: '35px',
-            marginRight: '35px',
             paddingLeft: '0px',
             paddingRight: '0px'
           }}
@@ -1185,41 +1162,26 @@ export default function ToolbarPlugin({
               <Eraser className="w-5 h-5" />
             </motion.button>
 
-            <ExpandablePanel
-              disabled={!isEditable}
-              buttonClassName="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 hover:shadow-lg h-10"
-              buttonLabel=""
-              buttonAriaLabel="More options"
-              direction="right"
-              maxWidth="180px">
-              <MoreHorizontal className="w-5 h-5" />
-              <div className="flex items-center space-x-1">
-                <motion.button
-                  className={`p-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                    toolbarState.blockType === 'check'
-                      ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700'
-                  }`}
-                  onClick={() => formatCheckList(activeEditor, toolbarState.blockType)}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.88 }}
-                  title="Check List">
-                  ✓
-                </motion.button>
-                <motion.button
-                  className={`p-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                    toolbarState.blockType === 'code'
-                      ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700'
-                  }`}
-                  onClick={() => formatCode(activeEditor, toolbarState.blockType)}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.88 }}
-                  title="Code Block">
-                  &lt;/&gt;
-                </motion.button>
-              </div>
-            </ExpandablePanel>
+        
+          </div>
+        </div>
+           {/* Right Scroll Arrow */}
+           <div className=" right-0 z-20">
+          <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-1">
+            <motion.button
+              onClick={scrollRight}
+              disabled={!canScrollRight}
+              className={`p-2 rounded-lg transition-all duration-200 h-10 ${
+                !canScrollRight
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg'
+              }`}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.88 }}
+              title="Scroll Right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </motion.button>
           </div>
         </div>
       </div>

@@ -408,62 +408,66 @@ const ProfileScreen: React.FC = () => {
               <div className="px-4 py-4 space-y-6">
                 <div className={`w-full`}>
                 <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Attributes</h3>
-                  <div className="divide-y divide-gray-200 dark:divide-gray-900">
-                    {[{
-                      id: 'relationship_status', label: 'Relationship', icon: Heart, value: user.relationship_status
-                    },{
-                      id: 'sexuality', label: 'Sexuality', icon: VenusAndMars, value: user.sexual_orientation?.key
-                    },{
-                      id: 'hair_color', label: 'Hair color', icon: Paintbrush, value: user.hair_color || '—'
-                    },{
-                      id: 'eye_color', label: 'Eye color', icon: Eye, value: user.eye_color || '—'
-                    },{
-                      id: 'skin_color', label: 'Skin color', icon: Palette, value: (user as any).skin_color || '—'
-                    },{
-                      id: 'height', label: 'Height', icon: Ruler, value: user.height_cm ? `${user.height_cm} cm` : '—'
-                    },{
-                      id: 'weight', label: 'Weight', icon: RulerDimensionLine, value: user.weight_kg ? `${user.weight_kg} kg` : '—'
-                    },{
-                      id: 'body_type', label: 'Body type', icon: PersonStanding, value: user.body_type || '—'
-                    },{
-                      id: 'circumcision', label: 'Circumcision', icon: Banana, value: (user as any).circumcision || '—'
-                    },{
-                      id: 'physical_disability', label: 'Physical disability', icon: Accessibility, value: (user as any).physical_disability || '—'
-                    },{
-                      id: 'ethnicity', label: 'Ethnicity', icon: Users, value: (user as any).ethnicity || '—'
-                    },{
-                      id: 'kids_preference', label: 'Kids', icon: Baby, value: (user as any).kids || (user as any).kids_preference || '—'
-                    },{
-                      id: 'smoking', label: 'Smoking', icon: Cigarette, value: (user as any).smoking || '—'
-                    },{
-                      id: 'drinking', label: 'Drinking', icon: Wine, value: (user as any).drinking || '—'
-                    },
-                    {
-                      id: 'dietary', label: 'Dietary', icon: Vegan, value: (user as any).dietary || '—'
-                    },   
-                    {
-                      id: 'language', label: 'Language', icon: Languages, value: (user as any).languages_display || (Array.isArray(user.languages) ? user.languages.join(', ') : '—')
-                    },{
-                      id: 'zodiac_sign', label: 'Star sign', icon: Sparkles, value: (user as any).zodiac_sign || (user as any).star_sign || '—'
-                    },{
-                      id: 'pets', label: 'Pets', icon: PawPrint, value: (user as any).pets || '—'
-                    },{
-                      id: 'religion', label: 'Religion', icon: Church, value: (user as any).religion || '—'
-                    },{
-                      id: 'personality', label: 'Personality', icon: Drama, value: (user as any).personality || '—'
-                    },{
-                      id: 'education', label: 'Education level', icon: GraduationCap, value: (user as any).education_level || '—'
-                    }].map((row) => (
-                      <button key={row.id} className={`w-full flex items-center justify-between px-3 sm:px-4 py-3 hover:opacity-90`}>
-                        <div className="flex items-center gap-3 min-w-0">
-                          <row.icon className={`w-6 h-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-                          <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{row.label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{row.value}</span>
-                        </div>
-                      </button>
-                    ))}
+                  <div className={`w-full`}>
+                   
+                      <div className="w-full flex flex-col gap-2 sm:gap-3">
+                        {[{
+                          id: 'relationship_status', label: 'Relationship', icon: Heart, value: user.relationship_status
+                        },{
+                          id: 'sexuality', label: 'Sexuality', icon: VenusAndMars, value: user.sexual_orientation?.key
+                        },{
+                          id: 'hair_color', label: 'Hair color', icon: Paintbrush, value: user.hair_color || '—'
+                        },{
+                          id: 'eye_color', label: 'Eye color', icon: Eye, value: user.eye_color || '—'
+                        },{
+                          id: 'skin_color', label: 'Skin color', icon: Palette, value: (user as any).skin_color || '—'
+                        },{
+                          id: 'height', label: 'Height', icon: Ruler, value: user.height_cm ? `${user.height_cm} cm` : '—'
+                        },{
+                          id: 'weight', label: 'Weight', icon: RulerDimensionLine, value: user.weight_kg ? `${user.weight_kg} kg` : '—'
+                        },{
+                          id: 'body_type', label: 'Body type', icon: PersonStanding, value: user.body_type || '—'
+                        },{
+                          id: 'circumcision', label: 'Circumcision', icon: Banana, value: (user as any).circumcision || '—'
+                        },{
+                          id: 'physical_disability', label: 'Physical disability', icon: Accessibility, value: (user as any).physical_disability || '—'
+                        },{
+                          id: 'ethnicity', label: 'Ethnicity', icon: Users, value: (user as any).ethnicity || '—'
+                        },{
+                          id: 'kids_preference', label: 'Kids', icon: Baby, value: (user as any).kids || (user as any).kids_preference || '—'
+                        },{
+                          id: 'smoking', label: 'Smoking', icon: Cigarette, value: (user as any).smoking || '—'
+                        },{
+                          id: 'drinking', label: 'Drinking', icon: Wine, value: (user as any).drinking || '—'
+                        },
+                        {
+                          id: 'dietary', label: 'Dietary', icon: Vegan, value: (user as any).dietary || '—'
+                        },   
+                        {
+                          id: 'language', label: 'Language', icon: Languages, value: (user as any).languages_display || (Array.isArray(user.languages) ? user.languages.join(', ') : '—')
+                        },{
+                          id: 'zodiac_sign', label: 'Star sign', icon: Sparkles, value: (user as any).zodiac_sign || (user as any).star_sign || '—'
+                        },{
+                          id: 'pets', label: 'Pets', icon: PawPrint, value: (user as any).pets || '—'
+                        },{
+                          id: 'religion', label: 'Religion', icon: Church, value: (user as any).religion || '—'
+                        },{
+                          id: 'personality', label: 'Personality', icon: Drama, value: (user as any).personality || '—'
+                        },{
+                          id: 'education', label: 'Education level', icon: GraduationCap, value: (user as any).education_level || '—'
+                        }].map((row) => (
+                          <div key={row.id} className={`flex items-center justify-between gap-3 rounded-xl px-3 py-3 ${theme === 'dark' ? 'bg-gray-950/50 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <row.icon className={`w-7 h-7 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+                              <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{row.label}</span>
+                            </div>
+                            <div className="min-w-0 max-w-[60%] text-right">
+                              <span className={`text-sm truncate ${row.value && row.value !== '—' ? (theme === 'dark' ? 'text-gray-300' : 'text-gray-700') : 'text-gray-500'}`}>{row.value}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+           
                   </div>
                 </div>
 
