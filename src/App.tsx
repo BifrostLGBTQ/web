@@ -7,11 +7,12 @@ import NearbyScreen from './components/NearbyScreen';
 import ProfileScreen from './components/ProfileScreen';
 import SearchScreen from './components/SearchScreen';
 import MessagesScreen from './components/MessagesScreen';
+import NotificationsScreen from './components/NotificationsScreen';
 import SplashScreen from './components/SplashScreen';
 import { useTheme } from './contexts/ThemeContext';
 import { useAuth } from './contexts/AuthContext.tsx';
 import AuthWizard from './components/AuthWizard';
-import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon, Languages, Sparkles, TrendingUp, Users, MoreHorizontal, Star, Activity, Flame, TrendingDown, FileText } from 'lucide-react';
+import { Home, Search, MapPin, Heart, MessageCircle, User, Map, Building2, Menu, X, Sun, Moon, Languages, Sparkles, TrendingUp, Users, MoreHorizontal, Star, Activity, Flame, TrendingDown, FileText, Bell } from 'lucide-react';
 import PlacesScreen from './components/PlacesScreen';
 import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
@@ -44,6 +45,8 @@ function App() {
       setActiveScreen('match');
     } else if (path === '/messages') {
       setActiveScreen('messages');
+    } else if (path === '/notifications') {
+      setActiveScreen('notifications');
     } else if (path === '/places') {
       setActiveScreen('places');
     } else if (path === '/classifieds') {
@@ -71,6 +74,7 @@ function App() {
     { id: 'match', label: 'Match', icon: Heart },
     { id: 'places', label: 'Places', icon: Building2 },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'classifieds', label: 'Classifieds', icon: FileText },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -147,6 +151,7 @@ function App() {
                 { id: 'search', label: 'Explore', icon: Search },
                 { id: 'match', label: 'Matches', icon: Heart },
                 { id: 'messages', label: 'Messages', icon: MessageCircle },
+                { id: 'notifications', label: 'Notifications', icon: Bell },
                 { id: 'places', label: 'Places', icon: Building2 },
                 { id: 'classifieds', label: 'Classifieds', icon: FileText },
                 { id: 'profile', label: 'Profile', icon: User },
@@ -276,6 +281,7 @@ function App() {
             <Route path="/nearby" element={<NearbyScreen />} />
             <Route path="/places" element={<PlacesScreen />} />
             <Route path="/messages" element={<MessagesScreen />} />
+            <Route path="/notifications" element={<NotificationsScreen />} />
             <Route path="/classifieds" element={<ClassifiedsScreen />} />
             
             {/* Fallback */}
