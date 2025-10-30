@@ -28,7 +28,7 @@
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lexical": "^0.37.0",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.548.0",
     "ngeohash": "^0.6.3",
     "react": "^18.3.1",
     "react-day-picker": "^9.11.1",

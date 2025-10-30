@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Languages, Ruler, Star as StarIcon, PawPrint, Church, Brain, GraduationCap, ChevronRight, VenusAndMars, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, SparkleIcon, Scissors, Sparkle, Sparkles, Drumstick, Drama, Banana } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
 import Post from './Post';
@@ -26,7 +26,8 @@ interface User {
   created_at: string;
   updated_at: string;
   default_language: string;
-  languages: unknown;
+  languages: string[] | null;
+  languages_display?: string;
   fantasies: string[]; // labels of selected fantasies
   interests?: number[] | string[]; // interest ids (from README) or labels
   height_cm?: number;
@@ -34,6 +35,19 @@ interface User {
   hair_color?: string;
   eye_color?: string;
   body_type?: string;
+  skin_color?: string;
+  ethnicity?: string;
+  zodiac_sign?: string;
+  physical_disability?: string;
+  circumcision?: string;
+  kids?: string;
+  smoking?: string;
+  drinking?: string;
+  star_sign?: string;
+  pets?: string;
+  religion?: string;
+  personality?: string;
+  education_level?: string;
   travel: unknown;
   social: unknown;
   deleted_at: string | null;
@@ -116,7 +130,8 @@ const ProfileScreen: React.FC = () => {
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z',
           default_language: 'en',
-          languages: null,
+          languages: ['English'],
+          languages_display: 'English',
           fantasies: ['Bondage', 'Role Play', 'Voyeurism'],
           interests: [247, 175, 21, 253, 125, 88, 228, 229, 221, 136, 25],
           height_cm: 178,
@@ -124,6 +139,19 @@ const ProfileScreen: React.FC = () => {
           hair_color: 'Brown',
           eye_color: 'Hazel',
           body_type: 'Athletic',
+          skin_color: 'Tan',
+          ethnicity: 'Mediterranean',
+          zodiac_sign: 'Aquarius',
+          physical_disability: 'None',
+          circumcision: 'Circumcised',
+          kids: 'I’d like them someday',
+          smoking: 'No',
+          drinking: 'Socially',
+          star_sign: 'Aquarius',
+          pets: 'Dog(s)',
+          religion: 'Agnostic',
+          personality: 'Somewhere in between',
+          education_level: 'Undergraduate degree',
           travel: null,
           social: null,
           deleted_at: null,
@@ -378,40 +406,64 @@ const ProfileScreen: React.FC = () => {
             {/* Profile */}
             {activeTab === 'profile' && (
               <div className="px-4 py-4 space-y-6">
-                {/* About */}
-                <div>
-                  <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>About</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {user.height_cm && (
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Height</div>
-                        <div className="font-medium">{user.height_cm} cm</div>
-                      </div>
-                    )}
-                    {user.weight_kg && (
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Weight</div>
-                        <div className="font-medium">{user.weight_kg} kg</div>
-                      </div>
-                    )}
-                    {user.hair_color && (
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Hair color</div>
-                        <div className="font-medium">{user.hair_color}</div>
-                      </div>
-                    )}
-                    {user.eye_color && (
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Eye color</div>
-                        <div className="font-medium">{user.eye_color}</div>
-                      </div>
-                    )}
-                    {user.body_type && (
-                      <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Body type</div>
-                        <div className="font-medium">{user.body_type}</div>
-                      </div>
-                    )}
+                <div className={`w-full`}>
+                <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Attributes</h3>
+                  <div className="divide-y divide-gray-200 dark:divide-gray-900">
+                    {[{
+                      id: 'relationship_status', label: 'Relationship', icon: Heart, value: user.relationship_status
+                    },{
+                      id: 'sexuality', label: 'Sexuality', icon: VenusAndMars, value: user.sexual_orientation?.key
+                    },{
+                      id: 'hair_color', label: 'Hair color', icon: Paintbrush, value: user.hair_color || '—'
+                    },{
+                      id: 'eye_color', label: 'Eye color', icon: Eye, value: user.eye_color || '—'
+                    },{
+                      id: 'skin_color', label: 'Skin color', icon: Palette, value: (user as any).skin_color || '—'
+                    },{
+                      id: 'height', label: 'Height', icon: Ruler, value: user.height_cm ? `${user.height_cm} cm` : '—'
+                    },{
+                      id: 'weight', label: 'Weight', icon: RulerDimensionLine, value: user.weight_kg ? `${user.weight_kg} kg` : '—'
+                    },{
+                      id: 'body_type', label: 'Body type', icon: PersonStanding, value: user.body_type || '—'
+                    },{
+                      id: 'circumcision', label: 'Circumcision', icon: Banana, value: (user as any).circumcision || '—'
+                    },{
+                      id: 'physical_disability', label: 'Physical disability', icon: Accessibility, value: (user as any).physical_disability || '—'
+                    },{
+                      id: 'ethnicity', label: 'Ethnicity', icon: Users, value: (user as any).ethnicity || '—'
+                    },{
+                      id: 'kids_preference', label: 'Kids', icon: Baby, value: (user as any).kids || (user as any).kids_preference || '—'
+                    },{
+                      id: 'smoking', label: 'Smoking', icon: Cigarette, value: (user as any).smoking || '—'
+                    },{
+                      id: 'drinking', label: 'Drinking', icon: Wine, value: (user as any).drinking || '—'
+                    },
+                    {
+                      id: 'dietary', label: 'Dietary', icon: Vegan, value: (user as any).dietary || '—'
+                    },   
+                    {
+                      id: 'language', label: 'Language', icon: Languages, value: (user as any).languages_display || (Array.isArray(user.languages) ? user.languages.join(', ') : '—')
+                    },{
+                      id: 'zodiac_sign', label: 'Star sign', icon: Sparkles, value: (user as any).zodiac_sign || (user as any).star_sign || '—'
+                    },{
+                      id: 'pets', label: 'Pets', icon: PawPrint, value: (user as any).pets || '—'
+                    },{
+                      id: 'religion', label: 'Religion', icon: Church, value: (user as any).religion || '—'
+                    },{
+                      id: 'personality', label: 'Personality', icon: Drama, value: (user as any).personality || '—'
+                    },{
+                      id: 'education', label: 'Education level', icon: GraduationCap, value: (user as any).education_level || '—'
+                    }].map((row) => (
+                      <button key={row.id} className={`w-full flex items-center justify-between px-3 sm:px-4 py-3 hover:opacity-90`}>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <row.icon className={`w-6 h-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+                          <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{row.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{row.value}</span>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -449,7 +501,7 @@ const ProfileScreen: React.FC = () => {
                       125: 'Afrobeats',
                       88: 'Animal lover',
                       228: 'Badminton',
-                      229: 'Graduate degree or higher', // example only
+                      229: 'Graduate degree or higher',
                       221: 'Exercising',
                       136: 'Sci-fi books',
                       25: 'Sci-fi films',
