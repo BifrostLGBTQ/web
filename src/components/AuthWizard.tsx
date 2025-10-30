@@ -243,16 +243,16 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         nickname: formData.nickname,
         password: formData.password
       })
-      .then(response => {
-        login(response.token, response.user);
-        onClose();
-      })
-      .catch(err => {
-        setError(err.response?.data?.message || 'Login failed. Please try again.');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+        .then(response => {
+          login(response.token, response.user);
+          onClose();
+        })
+        .catch(err => {
+          setError(err.response?.data?.message || 'Login failed. Please try again.');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -315,7 +315,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   };
 
   const currentStepData = steps[currentStep];
-  
+
   // Login için step sayısı: auth-mode (0) + location (1) + login-form (2) = 3
   // Register için step sayısı: auth-mode (0) + location (1) + nickname (3) + birthdate (4) + orientation (5) + preferences (6) = 6
   const getTotalSteps = () => {
@@ -326,7 +326,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     }
     return steps.length;
   };
-  
+
   const getCurrentStepIndex = () => {
     if (authMode === 'login') {
       if (currentStep === 0) return 0; // auth-mode
@@ -342,7 +342,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     }
     return currentStep;
   };
-  
+
   const isLastStep = () => {
     if (authMode === 'login') {
       return currentStep === 2; // login-form
@@ -361,10 +361,10 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       case 'loginForm':
         return formData.nickname.trim() !== '' && formData.password.trim() !== '';
       case 'nickname':
-        return formData.nickname.trim() !== '' && 
-               formData.password.trim() !== '' && 
-               formData.confirmPassword.trim() !== '' &&
-               formData.password === formData.confirmPassword;
+        return formData.nickname.trim() !== '' &&
+          formData.password.trim() !== '' &&
+          formData.confirmPassword.trim() !== '' &&
+          formData.password === formData.confirmPassword;
       case 'birthDate':
         return selectedDate.day && selectedDate.month && selectedDate.year;
       case 'orientation':
@@ -384,15 +384,14 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <motion.button
                 onClick={() => setAuthMode('login')}
-                className={`p-4 sm:p-6 rounded-2xl border-2 text-center transition-all w-full ${
-                  authMode === 'login'
+                className={`p-4 sm:p-6 rounded-2xl border-2 text-center transition-all w-full ${authMode === 'login'
                     ? theme === 'dark'
                       ? 'bg-white text-gray-900 border-white shadow-md'
                       : 'bg-gray-900 text-white border-gray-900 shadow-md'
                     : theme === 'dark'
                       ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
                       : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
-                }`}
+                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -403,15 +402,14 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
               <motion.button
                 onClick={() => setAuthMode('register')}
-                className={`p-4 sm:p-6 rounded-2xl border-2 text-center transition-all w-full ${
-                  authMode === 'register'
+                className={`p-4 sm:p-6 rounded-2xl border-2 text-center transition-all w-full ${authMode === 'register'
                     ? theme === 'dark'
                       ? 'bg-white text-gray-900 border-white shadow-md'
                       : 'bg-gray-900 text-white border-gray-900 shadow-md'
                     : theme === 'dark'
                       ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
                       : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
-                }`}
+                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -461,8 +459,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`p-4 rounded-2xl border ${theme === 'dark' 
-                  ? 'bg-red-900/20 border-red-700 text-red-300' 
+                className={`p-4 rounded-2xl border ${theme === 'dark'
+                  ? 'bg-red-900/20 border-red-700 text-red-300'
                   : 'bg-red-50 border-red-200 text-red-700'
                   }`}
               >
@@ -605,7 +603,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 <LocateFixed className={`w-8 h-8 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
             </div>
-            
+
             {!formData.location && (
               <motion.button
                 onClick={handleLocationRequest}
@@ -619,7 +617,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 Allow Location Access
               </motion.button>
             )}
-            
+
             {formData.location && (
               <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'}`}>
                 <div className="flex items-center">
@@ -882,9 +880,12 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto scrollbar-hide p-2">
               {data &&
                 data.sexual_orientations.map((sexual_orientation: any) => {
-                  const label =
-                    sexual_orientation.translations[defaultLanguage] ||
-                    sexual_orientation.translations.en;
+
+                  const label = sexual_orientation.translations.find(
+                    (t: any) => t.language === defaultLanguage
+                  )?.label || sexual_orientation.translations.find(
+                    (t: any) => t.language === "en"
+                  )?.label || "";
                   const isSelected = formData.orientation === sexual_orientation.id;
 
                   return (
@@ -915,25 +916,33 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           <div className="max-h-64 overflow-y-auto  scrollbar-hide p-2">
             <div className="grid grid-cols-2 gap-2">
               {data &&
-                Object.values(data.fantasies).map((fantasy) => (
-                  <motion.button
-                    key={fantasy.id}
-                    onClick={() => togglePreference(fantasy.id)}
-                    className={`p-3 rounded-xl border transition-all text-left text-sm ${formData.fantasies.includes(fantasy.id)
-                      ? theme === 'dark'
-                        ? 'bg-white text-gray-900 border-white'
-                        : 'bg-gray-900 text-white border-gray-900'
-                      : theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
-                        : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
-                      }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {/* Label'ı varsayılan olarak İngilizce alıyoruz */}
-                    {fantasy.translations.en?.label || fantasy.category}
-                  </motion.button>
-                ))}
+                data.fantasies.map((fantasy: any) => {
+                  // Öncelikle defaultLanguage'i bul, yoksa İngilizce
+                  const translation =
+                    fantasy.translations.find((t: any) => t.language === defaultLanguage) ||
+                    fantasy.translations.find((t: any) => t.language === "en");
+
+                  const label = translation?.label || fantasy.category;
+
+                  return (
+                    <motion.button
+                      key={fantasy.id}
+                      onClick={() => togglePreference(fantasy.id)}
+                      className={`p-3 rounded-xl border transition-all text-left text-sm ${formData.fantasies.includes(fantasy.id)
+                          ? theme === 'dark'
+                            ? 'bg-white text-gray-900 border-white'
+                            : 'bg-gray-900 text-white border-gray-900'
+                          : theme === 'dark'
+                            ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
+                            : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
+                        }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {label}
+                    </motion.button>
+                  );
+                })}
             </div>
           </div>
         );
@@ -957,8 +966,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className={`w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark' 
-            ? 'bg-gray-900 border-gray-800' 
+          className={`w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border ${theme === 'dark'
+            ? 'bg-gray-900 border-gray-800'
             : 'bg-white border-gray-200'
             }`}
         >
@@ -981,8 +990,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             {/* X Button */}
             <button
               onClick={onClose}
-              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0 ${theme === 'dark' 
-                ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300' 
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0 ${theme === 'dark'
+                ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300'
                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                 }`}
             >
@@ -998,8 +1007,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, x: 0 }}
             className="text-center px-4 sm:px-8 py-4 sm:py-6"
           >
-            <div className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 rounded-2xl flex items-center justify-center ${theme === 'dark' 
-              ? 'bg-gray-800' 
+            <div className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 rounded-2xl flex items-center justify-center ${theme === 'dark'
+              ? 'bg-gray-800'
               : 'bg-gray-100'
               }`}>
               <currentStepData.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -1062,8 +1071,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm sm:text-base">{currentStep === 2 && authMode === 'login' ? 'Sign In' : 
-                     isLastStep() ? 'Complete Registration' : 'Continue'}</span>
+                    <span className="text-sm sm:text-base">{currentStep === 2 && authMode === 'login' ? 'Sign In' :
+                      isLastStep() ? 'Complete Registration' : 'Continue'}</span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                   </>
                 )}

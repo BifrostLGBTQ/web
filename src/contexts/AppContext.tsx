@@ -2,10 +2,54 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Actions } from "../services/actions";
 import { api } from "../services/api";
 
+
+interface FantasyTranslation {
+  id: string;
+  fantasy_id: string;
+  language: string;
+  label: string;
+  description: string;
+}
+
+interface Fantasy {
+  id: string;
+  category: string;
+  translations: FantasyTranslation[];
+}
+
+interface OrientationTranslation {
+  id: string;
+  orientation_id: string;
+  language: string;
+  label: string;
+}
+
+interface SexualOrientation {
+  id: string;
+  key: string;
+  order: number;
+  translations: OrientationTranslation[];
+}
+
+interface InterestItem {
+  id: string;
+  interest_id: string;
+  name: Record<string, string>; // örn: { en: "Big bookworm", jp: "大の本好き" }
+  emoji?: string;
+}
+
+interface Interest {
+  id: string;
+  name: Record<string, string>; // örn: { en: "Reading and books", jp: "読書" }
+  items: InterestItem[];
+}
+
+
 interface InitialData {
-  fantasies: Record<string, any>;
+  fantasies: Fantasy[];
   countries: Record<string, any>;
-  sexual_orientations:Record<string, any>;
+  interests: Interest[];
+  sexual_orientations:SexualOrientation[];
   languages: Record<string, any>;
   status: string;
 }

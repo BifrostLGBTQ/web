@@ -188,7 +188,7 @@ const NotificationsScreen: React.FC = () => {
           ? 'border-gray-800/50 bg-black/95 backdrop-blur-xl' 
           : 'border-gray-100/50 bg-white/95 backdrop-blur-xl'
       }`}>
-        <div className="max-w-2xl mx-auto px-4 lg:px-6">
+        <div className="w-full px-4 lg:px-6">
           {/* Top Bar */}
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
@@ -331,7 +331,7 @@ const NotificationsScreen: React.FC = () => {
       </div>
 
       {/* Notifications List */}
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         <AnimatePresence mode="wait">
           {filteredNotifications.length === 0 ? (
             <motion.div

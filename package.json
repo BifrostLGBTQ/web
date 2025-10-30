@@ -24,6 +24,7 @@
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.11",
+    "intersection-observer": "^0.12.2",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lexical": "^0.37.0",

@@ -291,7 +291,7 @@ function App() {
 
         {/* Right Sidebar - Fixed */}
         {/* Hide right sidebar on messages and notifications routes for better UX */}
-        {location.pathname !== '/messages' && location.pathname !== '/notifications' && (
+        {location.pathname !== '/messages' && (
         <aside className={`hidden xl:flex scrollbar-hide flex-col w-[380px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
           <div className="p-5 sticky top-0 h-screen scrollbar-hide overflow-y-auto space-y-4">
             
