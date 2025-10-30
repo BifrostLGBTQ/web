@@ -181,7 +181,7 @@ const NotificationsScreen: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+    <div className={`scrollbar-hide max-h-[100dvh]  overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       {/* Header - Sticky */}
       <div className={`sticky top-0 z-50 border-b ${
         theme === 'dark' 

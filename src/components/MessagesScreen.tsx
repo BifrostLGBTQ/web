@@ -206,8 +206,10 @@ const MessagesScreen: React.FC = () => {
             theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
           } ${showSidebar ? 'block' : 'hidden lg:block'}`}>
             {/* Header */}
-            <div className={`p-3 sm:p-4 border-b ${
-              theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+            <div className={`sticky top-0 z-40 p-3 sm:p-4 border-b ${
+              theme === 'dark' 
+                ? 'border-gray-800 bg-black/95 backdrop-blur-xl' 
+                : 'border-gray-200 bg-white/95 backdrop-blur-xl'
             }`}>
               <div className="flex items-center justify-between">
                 <h1 className={`text-lg sm:text-xl font-bold ${
@@ -421,12 +423,14 @@ const MessagesScreen: React.FC = () => {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col h-full w-full relative z-10">
+          <div className="flex-1 flex flex-col h-full w-full relative z-10 overflow-hidden">
             {selectedChat ? (
               <>
                 {/* Chat Header */}
-                <div className={`p-3 sm:p-4 border-b relative z-[60] ${
-                  theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
+                <div className={`sticky top-0 z-40 p-3 sm:p-4 border-b ${
+                  theme === 'dark' 
+                    ? 'border-gray-800 bg-black/95 backdrop-blur-xl' 
+                    : 'border-gray-200 bg-white/95 backdrop-blur-xl'
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
@@ -535,7 +539,7 @@ const MessagesScreen: React.FC = () => {
                   theme === 'dark' 
                     ? 'bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900' 
                     : 'bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100'
-                }`}>
+                }`} style={{ paddingBottom: selectedFiles.length > 0 ? 160 : 88 }}>
                   <div className="space-y-1.5 sm:space-y-2 max-w-4xl mx-auto">
                     {/* Sample messages */}
                     <div className="flex justify-end group">
@@ -606,8 +610,8 @@ const MessagesScreen: React.FC = () => {
 
                 {/* Selected Files Preview */}
                 {selectedFiles.length > 0 && (
-                  <div className={`p-3 sm:p-4 border-t relative z-[60] ${
-                    theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
+                  <div className={`sticky bottom-[64px] sm:bottom-[72px] p-3 sm:p-4 border-t z-40 ${
+                    theme === 'dark' ? 'border-gray-800 bg-black/95 backdrop-blur-xl' : 'border-gray-200 bg-white/95 backdrop-blur-xl'
                   }`}>
                     <div className="space-y-2">
                       {selectedFiles.map((file, index) => (
@@ -650,8 +654,8 @@ const MessagesScreen: React.FC = () => {
                 )}
 
                 {/* Message Input */}
-                <div className={`p-3 sm:p-4 border-t relative z-[60] ${
-                  theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
+                <div className={`sticky bottom-0 p-3 sm:p-4 border-t z-40 ${
+                  theme === 'dark' ? 'border-gray-800 bg-black/95 backdrop-blur-xl' : 'border-gray-200 bg-white/95 backdrop-blur-xl'
                 }`}>
                   <div className="flex items-center space-x-2">
                     <motion.button 

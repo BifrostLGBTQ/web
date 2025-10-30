@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100dvh;   /* dynamic viewport height */
+  overflow: hidden; /* scroll bar kaldır */
+}
+
+body {
+  background-color: red;
+  position: fixed;  /* body'yi sabitle */
+  width: 100vw;     /* yatay genişliği kapla */
+}
+
 /* Touch-friendly range sliders */
 input[type="range"] {
   -webkit-appearance: none;

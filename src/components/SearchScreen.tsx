@@ -188,7 +188,7 @@ const SearchScreen: React.FC = () => {
   });
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
+    <div className={`scrollbar-hide max-h-[100dvh]  overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
       {/* Search Header */}
       <div className={`sticky top-0 z-50 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-b backdrop-blur-xl bg-opacity-80`}>
         <div className="max-w-4xl mx-auto px-4 py-4">

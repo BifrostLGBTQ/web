@@ -281,7 +281,7 @@ const HomeScreen: React.FC = () => {
   }, [hasMore, loadingMore, loading, selectedPost, loadMorePosts]);
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+    <div className={`scrollbar-hide max-h-[100dvh]  overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       
       {/* Stories Above Tabs - Only show when not in post detail view */}
       {!selectedPost && (
@@ -291,7 +291,7 @@ const HomeScreen: React.FC = () => {
       )}
 
       {/* Header - Show Post Detail or Tabs */}
-      <div className={`sticky top-[56px] lg:top-0 z-40 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} border-b ${theme === 'dark' ? 'border-gray-800/50' : 'border-gray-100/50'}`}>
+      <div className={`sticky top-0 lg:top-0 z-40 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} border-b ${theme === 'dark' ? 'border-gray-800/50' : 'border-gray-100/50'}`}>
         {selectedPost ? (
           // Post Detail Header
           <div className="flex items-center px-4 py-3">

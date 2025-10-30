@@ -126,7 +126,7 @@ function App() {
         </header>
         
         {/* Left Sidebar - Fixed */}
-        <aside className={`hidden lg:flex flex-col w-[280px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+        <aside className={`hidden    scrollbar-hide lg:flex flex-col w-[280px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
           <div className="p-4 sticky top-0 h-screen overflow-y-auto flex flex-col">
             {/* Logo */}
             <div className="flex items-center justify-center mb-4 pt-2">
@@ -265,7 +265,10 @@ function App() {
         </aside>
 
         {/* Middle Section - Scrollable */}
-        <main className={`flex-1 min-w-0 lg:border-l lg:border-r ${theme === 'dark' ? 'lg:border-gray-800/30' : 'lg:border-gray-100/50'} pt-[56px] lg:pt-0 pb-[70px] lg:pb-0`}>
+        <main className={`
+              max-h-[100dvh]  /* Maksimum ekran yüksekliği */
+    scrollbar-hide
+     flex-1 min-w-0 lg:border-l lg:border-r ${theme === 'dark' ? 'lg:border-gray-800/30' : 'lg:border-gray-100/50'} pt-[56px] lg:pt-0 pb-[70px] lg:pb-0`}>
           <Routes>
             {/* Home Routes */}
             <Route path="/" element={<HomeScreen />} />
