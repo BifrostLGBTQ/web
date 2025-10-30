@@ -290,6 +290,8 @@ function App() {
         </main>
 
         {/* Right Sidebar - Fixed */}
+        {/* Hide right sidebar on messages and notifications routes for better UX */}
+        {location.pathname !== '/messages' && location.pathname !== '/notifications' && (
         <aside className={`hidden xl:flex scrollbar-hide flex-col w-[380px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
           <div className="p-5 sticky top-0 h-screen scrollbar-hide overflow-y-auto space-y-4">
             
@@ -440,6 +442,7 @@ function App() {
 
           </div>
         </aside>
+        )}
 
       {/* Mobile Bottom Navigation Bar - Twitter Style */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 ${theme === 'dark' ? 'bg-black/95 backdrop-blur-xl border-t border-gray-800/50' : 'bg-white/95 backdrop-blur-xl border-t border-gray-100/50'} safe-area-inset-bottom`}>
