@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, User, Calendar, Heart, Rabbit, X, ChevronLeft, ChevronRight, ChevronDown, LocateFixed, MapPin } from 'lucide-react';
+import { ArrowRight, ArrowLeft, User, Calendar, Heart, Rabbit, X, ChevronLeft, ChevronRight, ChevronDown, LocateFixed, MapPin, Bell } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useApp } from '../contexts/AppContext';
@@ -20,6 +20,21 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const [error, setError] = useState('');
   const { data, defaultLanguage } = useApp();
 
+  // Track notification permission
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | null>(null);
+  const requestNotificationPermission = async () => {
+    try {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const perm = await Notification.requestPermission();
+        setNotificationPermission(perm);
+      }
+    } catch (_) {
+      // ignore unsupported
+    }
+  };
+
+  // Location status for UI
+  const [locationStatus, setLocationStatus] = useState<string>('');
 
   const [formData, setFormData] = useState<{
     name: string;
@@ -72,9 +87,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-
-
-
   const steps = [
     {
       id: 'auth-mode',
@@ -93,6 +105,15 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       field: 'location',
       placeholder: '',
       type: 'location'
+    },
+    {
+      id: 'notifications',
+      title: 'Enable Notifications',
+      subtitle: 'Allow notifications to stay updated on messages and matches (recommended).',
+      icon: Bell,
+      field: 'notifications',
+      placeholder: '',
+      type: 'notifications'
     },
     {
       id: 'login-form',
@@ -174,17 +195,14 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     }
   };
 
-
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
     const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
-    const days = [];
+    const days: React.ReactNode[] = [];
     const today = new Date();
-    // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="w-10 h-10" />);
     }
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const isSelected = selectedDate.day === day &&
         selectedDate.month === currentMonth + 1 &&
@@ -226,17 +244,16 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
   const handleNext = () => {
     if (currentStep === 0) {
-      // Auth mode seçildikten sonra lokasyon adımına git
       setCurrentStep(1);
     } else if (currentStep === 1) {
-      // Lokasyon adımından sonra auth mode'a göre yönlendir
+      setCurrentStep(2); // notifications
+    } else if (currentStep === 2) {
       if (authMode === 'login') {
-        setCurrentStep(2); // Login form
+        setCurrentStep(3); // login-form
       } else {
-        setCurrentStep(3); // Register form (nickname)
+        setCurrentStep(4); // nickname
       }
-    } else if (currentStep === 2 && authMode === 'login') {
-      // Login işlemi
+    } else if (currentStep === 3 && authMode === 'login') {
       setIsLoading(true);
       setError('');
       api.handleLogin({
@@ -256,7 +273,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Register işlemi
       const birthDate = selectedDate.day && selectedDate.month && selectedDate.year
         ? `${selectedDate.year}-${selectedDate.month.toString().padStart(2, '0')}-${selectedDate.day.toString().padStart(2, '0')}`
         : '';
@@ -316,13 +332,12 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
   const currentStepData = steps[currentStep];
 
-  // Login için step sayısı: auth-mode (0) + location (1) + login-form (2) = 3
-  // Register için step sayısı: auth-mode (0) + location (1) + nickname (3) + birthdate (4) + orientation (5) + preferences (6) = 6
+  // Progress bar mapping
   const getTotalSteps = () => {
     if (authMode === 'login') {
-      return 3; // auth-mode, location, login-form
+      return 4; // auth-mode, location, notifications, login-form
     } else if (authMode === 'register') {
-      return 6; // auth-mode, location, nickname, birthdate, orientation, preferences
+      return 7; // auth-mode, location, notifications, nickname, birthdate, orientation, preferences
     }
     return steps.length;
   };
@@ -331,21 +346,23 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     if (authMode === 'login') {
       if (currentStep === 0) return 0; // auth-mode
       if (currentStep === 1) return 1; // location
-      if (currentStep === 2) return 2; // login-form
+      if (currentStep === 2) return 2; // notifications
+      if (currentStep === 3) return 3; // login-form
     } else if (authMode === 'register') {
       if (currentStep === 0) return 0; // auth-mode
       if (currentStep === 1) return 1; // location
-      if (currentStep === 3) return 2; // nickname
-      if (currentStep === 4) return 3; // birthdate
-      if (currentStep === 5) return 4; // orientation
-      if (currentStep === 6) return 5; // preferences
+      if (currentStep === 2) return 2; // notifications
+      if (currentStep === 3) return 3; // nickname
+      if (currentStep === 4) return 4; // birthdate
+      if (currentStep === 5) return 5; // orientation
+      if (currentStep === 6) return 6; // preferences
     }
     return currentStep;
   };
 
   const isLastStep = () => {
     if (authMode === 'login') {
-      return currentStep === 2; // login-form
+      return currentStep === 3; // login-form
     } else if (authMode === 'register') {
       return currentStep === 6; // preferences
     }
@@ -358,6 +375,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         return authMode !== null;
       case 'location':
         return !!formData.location;
+      case 'notifications':
+        return true; // optional
       case 'loginForm':
         return formData.nickname.trim() !== '' && formData.password.trim() !== '';
       case 'nickname':
@@ -533,67 +552,136 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         );
 
       case 'location':
-        const handleLocationRequest = async () => {
-          if (navigator.geolocation) {
+        // Robust geolocation that works better across browsers (incl. Opera)
+        const getPositionWithTimeout = (options: PositionOptions, timeoutMs = 10000) => {
+          return new Promise<GeolocationPosition>((resolve, reject) => {
+            let settled = false;
+            const timer = setTimeout(() => {
+              if (!settled) {
+                settled = true;
+                reject(new Error('Location request timed out'));
+              }
+            }, timeoutMs);
             navigator.geolocation.getCurrentPosition(
-              async (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-
-                try {
-                  // Reverse geocoding isteği
-                  const res = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-                  );
-                  const data = await res.json();
-
-                  const address = data.address || {};
-
-                  const newLocation: {
-                    country_code: string;
-                    country_name: string;
-                    city: string;
-                    region: string;
-                    lat: number;
-                    lng: number;
-                    timezone: string;
-                    display: string;
-                  } = {
-                    country_code: address.country_code?.toUpperCase() || '',
-                    country_name: address.country || '',
-                    city: address.city || address.town || address.village || '',
-                    region: address.state || '',
-                    lat: lat,
-                    lng: lng,
-                    timezone: '', // opsiyonel, IP veya başka API ile alabilirsin
-                    display: `${address.city || address.town || address.village || lat.toFixed(3)}, ${address.country || ''}`
-                  };
-
-                  updateFormData('location', newLocation);
-                } catch (err) {
-                  console.error("Reverse geocoding failed", err);
-
-                  // Eğer API başarısız olursa koordinatları kullan
-                  const fallbackLocation = {
-                    country_code: '',
-                    country_name: '',
-                    city: '',
-                    region: '',
-                    lat,
-                    lng,
-                    timezone: '',
-                    display: `${lat.toFixed(3)}, ${lng.toFixed(3)}`
-                  };
-
-                  updateFormData('location', fallbackLocation);
+              (pos) => {
+                if (!settled) {
+                  settled = true;
+                  clearTimeout(timer);
+                  resolve(pos);
                 }
               },
-              (error) => {
-                console.error("Location access denied", error);
-              }
+              (err) => {
+                if (!settled) {
+                  settled = true;
+                  clearTimeout(timer);
+                  reject(err);
+                }
+              },
+              options
             );
-          } else {
-            console.error("Geolocation not supported");
+          });
+        };
+
+        const fetchIpFallback = async () => {
+          // As a last resort, use IP-based geolocation (approximate city-level)
+          // Multiple providers in case one fails
+          const providers = [
+            'https://ipapi.co/json/',
+            'https://ipinfo.io/json?token=', // token optional; will still respond limited
+          ];
+          for (const url of providers) {
+            try {
+              const res = await fetch(url, { cache: 'no-store' });
+              if (!res.ok) continue;
+              const j = await res.json();
+              const locStr: string | undefined = j.loc || (j.latitude && j.longitude ? `${j.latitude},${j.longitude}` : undefined);
+              const [latStr, lngStr] = (locStr || '').split(',');
+              const lat = parseFloat(j.latitude ?? latStr);
+              const lng = parseFloat(j.longitude ?? lngStr);
+              const display = j.city ? `${j.city}, ${j.country_name || j.country || ''}` : `${lat?.toFixed?.(3) || ''}, ${lng?.toFixed?.(3) || ''}`;
+              if (!isNaN(lat) && !isNaN(lng)) {
+                return {
+                  country_code: (j.country_code || j.country || '').toString().toUpperCase(),
+                  country_name: (j.country_name || j.country || '').toString(),
+                  city: (j.city || '').toString(),
+                  region: (j.region || j.region_name || '').toString(),
+                  lat,
+                  lng,
+                  timezone: (j.timezone || '').toString(),
+                  display,
+                };
+              }
+            } catch (_) {
+              // try next provider
+            }
+          }
+          throw new Error('IP geolocation failed');
+        };
+
+        const handleLocationRequest = async () => {
+          try {
+            setLocationStatus('Requesting permission...');
+            if (!navigator.geolocation) {
+              setLocationStatus('Geolocation API not available in this browser');
+              return;
+            }
+
+            // Check permission state if supported
+            try {
+              if ('permissions' in navigator && (navigator as any).permissions?.query) {
+                const status = await (navigator as any).permissions.query({ name: 'geolocation' });
+                if (status.state === 'denied') {
+                  setLocationStatus('Permission denied in browser settings');
+                  return;
+                }
+              }
+            } catch (_) {}
+
+            setLocationStatus('Fetching accurate location...');
+            const pos = await getPositionWithTimeout({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }, 12000);
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            // Reverse geocode (existing flow)
+            try {
+              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+              const data = await res.json();
+              const address = data.address || {};
+              updateFormData('location', {
+                country_code: address.country_code?.toUpperCase() || '',
+                country_name: address.country || '',
+                city: address.city || address.town || address.village || '',
+                region: address.state || '',
+                lat,
+                lng,
+                timezone: '',
+                display: `${address.city || address.town || address.village || lat.toFixed(3)}, ${address.country || ''}`,
+              });
+              setLocationStatus('Location detected');
+            } catch (e) {
+              // If reverse geocoding fails, still save coordinates
+              updateFormData('location', {
+                country_code: '',
+                country_name: '',
+                city: '',
+                region: '',
+                lat,
+                lng,
+                timezone: '',
+                display: `${lat.toFixed(3)}, ${lng.toFixed(3)}`,
+              });
+              setLocationStatus('Location detected (no address)');
+            }
+          } catch (geoErr: any) {
+            // Opera and some browsers can hang or error; fallback to IP
+            setLocationStatus('Could not get GPS location. Trying IP-based...');
+            try {
+              const ipLoc = await fetchIpFallback();
+              updateFormData('location', ipLoc);
+              setLocationStatus('Approximate location detected');
+            } catch (_) {
+              setLocationStatus('Failed to detect location');
+            }
           }
         };
         return (
@@ -602,6 +690,9 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
                 <LocateFixed className={`w-8 h-8 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
+              {locationStatus && (
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{locationStatus}</p>
+              )}
             </div>
 
             {!formData.location && (
@@ -628,6 +719,29 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             )}
+          </div>
+        );
+      case 'notifications':
+        return (
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-yellow-900/20' : 'bg-yellow-100'}`}>
+                <Bell className={`w-8 h-8 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
+              </div>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Current status: {notificationPermission ?? 'unknown'}</p>
+            </div>
+            <motion.button
+              onClick={requestNotificationPermission}
+              className={`w-full px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 ${theme === 'dark'
+                ? 'bg-yellow-500 text-black hover:bg-yellow-400'
+                : 'bg-yellow-500 text-black hover:bg-yellow-600'
+                }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Enable Notifications
+            </motion.button>
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>You can change this later in your browser settings.</p>
           </div>
         );
       case 'date-picker': {
@@ -1071,8 +1185,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm sm:text-base">{currentStep === 2 && authMode === 'login' ? 'Sign In' :
-                      isLastStep() ? 'Complete Registration' : 'Continue'}</span>
+                    <span className="text-sm sm:text-base">{currentStep === (authMode === 'login' ? 3 : 6) ? (authMode === 'login' ? 'Sign In' : 'Complete Registration') : 'Continue'}</span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                   </>
                 )}
