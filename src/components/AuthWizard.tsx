@@ -5,6 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useApp } from '../contexts/AppContext';
 import { api } from '../services/api.tsx';
+import { useTranslation } from 'react-i18next';
 
 interface AuthWizardProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { data, defaultLanguage } = useApp();
+  const { t } = useTranslation('common');
 
   // Track notification permission
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | null>(null);
@@ -83,15 +85,25 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const [viewMode, setViewMode] = useState<'day' | 'month' | 'year'>('day');
   const [decadeStart, setDecadeStart] = useState(Math.floor((new Date().getFullYear() - 25) / 10) * 10);
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    t('months.january'),
+    t('months.february'),
+    t('months.march'),
+    t('months.april'),
+    t('months.may'),
+    t('months.june'),
+    t('months.july'),
+    t('months.august'),
+    t('months.september'),
+    t('months.october'),
+    t('months.november'),
+    t('months.december')
   ];
 
   const steps = [
     {
       id: 'auth-mode',
-      title: 'Welcome to Bifrost',
-      subtitle: 'Choose how you\'d like to get started',
+      title: t('auth.welcome_title'),
+      subtitle: t('auth.welcome_subtitle'),
       icon: Heart,
       field: 'authMode',
       placeholder: '',
@@ -99,8 +111,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'location',
-      title: 'Enable Location Services',
-      subtitle: 'To find amazing people near you and create meaningful connections, we need access to your location.',
+      title: t('auth.enable_location_title'),
+      subtitle: t('auth.enable_location_subtitle'),
       icon: MapPin,
       field: 'location',
       placeholder: '',
@@ -108,8 +120,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'notifications',
-      title: 'Enable Notifications',
-      subtitle: 'Allow notifications to stay updated on messages and matches (recommended).',
+      title: t('auth.enable_notifications_title'),
+      subtitle: t('auth.enable_notifications_subtitle'),
       icon: Bell,
       field: 'notifications',
       placeholder: '',
@@ -117,8 +129,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'login-form',
-      title: 'Sign In',
-      subtitle: 'Enter your credentials to continue',
+      title: t('auth.sign_in'),
+      subtitle: t('auth.sign_in_subtitle'),
       icon: User,
       field: 'loginForm',
       placeholder: '',
@@ -126,17 +138,17 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'nickname',
-      title: 'Create Your Account',
-      subtitle: 'Choose a nickname and secure password',
+      title: t('auth.create_account'),
+      subtitle: t('auth.welcome_subtitle'),
       icon: User,
       field: 'nickname',
-      placeholder: 'Enter your nickname',
+      placeholder: 'nickname',
       type: 'text'
     },
     {
       id: 'birthdate',
-      title: 'When were you born?',
-      subtitle: 'This helps us create better matches',
+      title: t('auth.birthdate_title', { defaultValue: 'When were you born?' }),
+      subtitle: t('auth.birthdate_subtitle', { defaultValue: 'This helps us create better matches' }),
       icon: Calendar,
       field: 'birthDate',
       placeholder: '',
@@ -144,8 +156,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'orientation',
-      title: 'Sexual Orientation',
-      subtitle: 'How do you identify?',
+      title: t('auth.orientation_title'),
+      subtitle: t('auth.orientation_subtitle'),
       icon: Heart,
       field: 'orientation',
       placeholder: '',
@@ -153,8 +165,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'preferences',
-      title: 'Sexual Preferences',
-      subtitle: 'What are you interested in? (Optional)',
+      title: t('auth.preferences_title'),
+      subtitle: t('auth.preferences_subtitle'),
       icon: Rabbit,
       field: 'preferences',
       placeholder: '',
@@ -415,8 +427,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 whileTap={{ scale: 0.98 }}
               >
                 <User className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3" />
-                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">I have an account</h3>
-                <p className="text-xs sm:text-sm opacity-80">Sign in with your existing credentials</p>
+                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">{t('auth.have_account')}</h3>
+                <p className="text-xs sm:text-sm opacity-80">{t('auth.sign_in_subtitle')}</p>
               </motion.button>
 
               <motion.button
@@ -433,8 +445,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Heart className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3" />
-                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Create account</h3>
-                <p className="text-xs sm:text-sm opacity-80">Join our community and find matches</p>
+                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">{t('auth.create_account')}</h3>
+                <p className="text-xs sm:text-sm opacity-80">{t('auth.create_account_subtitle')}</p>
               </motion.button>
             </div>
           </div>
@@ -445,11 +457,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           <div className="space-y-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Nickname
+                {t('auth.nickname')}
               </label>
               <input
                 type="text"
-                placeholder="Enter your nickname"
+                placeholder={t('auth.placeholder_nickname')}
                 value={formData.nickname}
                 onChange={(e) => updateFormData('nickname', e.target.value)}
                 className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
@@ -461,11 +473,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Password
+                {t('auth.password')}
               </label>
               <input
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t('auth.placeholder_password')}
                 value={formData.password}
                 onChange={(e) => updateFormData('password', e.target.value)}
                 className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
@@ -494,11 +506,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           <div className="space-y-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Nickname
+                {t('auth.nickname')}
               </label>
               <input
                 type="text"
-                placeholder="Enter your nickname"
+                placeholder={t('auth.placeholder_nickname')}
                 value={formData.nickname}
                 onChange={(e) => updateFormData('nickname', e.target.value)}
                 className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
@@ -510,11 +522,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Password
+                {t('auth.password')}
               </label>
               <input
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t('auth.placeholder_password')}
                 value={formData.password}
                 onChange={(e) => updateFormData('password', e.target.value)}
                 className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
@@ -525,11 +537,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Confirm Password
+                {t('auth.confirm_password')}
               </label>
               <input
                 type="password"
-                placeholder="Confirm your password"
+                placeholder={t('auth.placeholder_confirm_password')}
                 value={formData.confirmPassword}
                 onChange={(e) => updateFormData('confirmPassword', e.target.value)}
                 className={`w-full px-4 py-4 rounded-2xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
@@ -539,12 +551,12 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               />
               {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
                 <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
-                  Passwords do not match
+                  {t('auth.passwords_not_match')}
                 </p>
               )}
               {formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && (
                 <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-                  ✓ Passwords match
+                  {t('auth.passwords_match')}
                 </p>
               )}
             </div>
@@ -620,9 +632,9 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
 
         const handleLocationRequest = async () => {
           try {
-            setLocationStatus('Requesting permission...');
+            setLocationStatus(t('location.requesting_permission'));
             if (!navigator.geolocation) {
-              setLocationStatus('Geolocation API not available in this browser');
+              setLocationStatus(t('location.geo_api_unavailable'));
               return;
             }
 
@@ -631,13 +643,13 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               if ('permissions' in navigator && (navigator as any).permissions?.query) {
                 const status = await (navigator as any).permissions.query({ name: 'geolocation' });
                 if (status.state === 'denied') {
-                  setLocationStatus('Permission denied in browser settings');
+                  setLocationStatus(t('location.permission_denied'));
                   return;
                 }
               }
             } catch (_) {}
 
-            setLocationStatus('Fetching accurate location...');
+            setLocationStatus(t('location.fetching_accurate'));
             const pos = await getPositionWithTimeout({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }, 12000);
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
@@ -657,7 +669,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 timezone: '',
                 display: `${address.city || address.town || address.village || lat.toFixed(3)}, ${address.country || ''}`,
               });
-              setLocationStatus('Location detected');
+              setLocationStatus(t('location.detected'));
             } catch (e) {
               // If reverse geocoding fails, still save coordinates
               updateFormData('location', {
@@ -670,17 +682,17 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 timezone: '',
                 display: `${lat.toFixed(3)}, ${lng.toFixed(3)}`,
               });
-              setLocationStatus('Location detected (no address)');
+              setLocationStatus(t('location.detected_no_address'));
             }
           } catch (geoErr: any) {
             // Opera and some browsers can hang or error; fallback to IP
-            setLocationStatus('Could not get GPS location. Trying IP-based...');
+            setLocationStatus(t('location.trying_ip'));
             try {
               const ipLoc = await fetchIpFallback();
               updateFormData('location', ipLoc);
-              setLocationStatus('Approximate location detected');
+              setLocationStatus(t('location.approximate_detected'));
             } catch (_) {
-              setLocationStatus('Failed to detect location');
+              setLocationStatus(t('location.failed'));
             }
           }
         };
@@ -705,7 +717,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Allow Location Access
+                {t('auth.allow_location')}
               </motion.button>
             )}
 
@@ -714,7 +726,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center">
                   <div className={`w-2 h-2 rounded-full mr-3 ${theme === 'dark' ? 'bg-green-400' : 'bg-green-500'}`}></div>
                   <p className={`text-sm font-medium ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
-                    Location saved: {formData.location.display}
+                    {t('auth.location_saved')}: {formData.location.display}
                   </p>
                 </div>
               </div>
@@ -728,7 +740,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-yellow-900/20' : 'bg-yellow-100'}`}>
                 <Bell className={`w-8 h-8 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
               </div>
-              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Current status: {notificationPermission ?? 'unknown'}</p>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('auth.current_status')}: {notificationPermission ?? 'unknown'}</p>
             </div>
             <motion.button
               onClick={requestNotificationPermission}
@@ -739,9 +751,9 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              Enable Notifications
+              {t('auth.enable_notifications')}
             </motion.button>
-            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>You can change this later in your browser settings.</p>
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t('auth.change_later')}</p>
           </div>
         );
       case 'date-picker': {
@@ -988,7 +1000,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           <div className="space-y-3 ">
             <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}>
-              Select your orientation
+              {t('auth.select_orientation')}
             </label>
 
             <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto scrollbar-hide p-2">
@@ -1162,7 +1174,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Back
+                  {t('auth.back')}
                 </motion.button>
               )}
 
@@ -1181,11 +1193,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2`} />
-                    <span className="text-sm sm:text-base">{authMode === 'login' ? 'Signing in...' : 'Creating account...'}</span>
+                    <span className="text-sm sm:text-base">{authMode === 'login' ? t('auth.signing_in') : t('auth.creating_account')}</span>
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm sm:text-base">{currentStep === (authMode === 'login' ? 3 : 6) ? (authMode === 'login' ? 'Sign In' : 'Complete Registration') : 'Continue'}</span>
+                    <span className="text-sm sm:text-base">{currentStep === (authMode === 'login' ? 3 : 6) ? (authMode === 'login' ? t('auth.sign_in') : t('auth.complete_registration')) : t('auth.continue')}</span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                   </>
                 )}
@@ -1201,7 +1213,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Skip
+                  {t('auth.skip')}
                 </motion.button>
               )}
             </div>

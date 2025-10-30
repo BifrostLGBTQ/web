@@ -1,7 +1,7 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "rainbowstories",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -34,6 +34,8 @@
     "react-day-picker": "^9.11.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
+    "i18next": "^23.11.5",
+    "react-i18next": "^14.1.2",
     "react-router-dom": "^7.9.4",
     "tailwind-scrollbar-hide": "^4.0.0"
   },

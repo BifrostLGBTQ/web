@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { AppProvider } from './contexts/AppContext.tsx'
 import { ToolbarContext } from './contexts/ToolbarContext.tsx'
 import { SettingsContext } from './contexts/SettingsContext.tsx'
+import './i18n'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

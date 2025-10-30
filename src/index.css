@@ -10,7 +10,6 @@ html, body {
 }
 
 body {
-  background-color: red;
   position: fixed;  /* body'yi sabitle */
   width: 100vw;     /* yatay genişliği kapla */
 }

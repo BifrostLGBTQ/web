@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { X } from 'lucide-react';
+import { setLanguage } from '../i18n';
 
 
 interface Props {
@@ -63,6 +64,7 @@ const LanguageSelectorModal: React.FC<Props> = ({ isOpen, onClose }) => {
         onClick={() => 
             {
                 setDefaultLanguage(lang.code)
+                setLanguage(lang);
                 onClose()
             }
 

@@ -18,6 +18,8 @@ import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
 import CreatePost from './components/CreatePost.tsx';
 import ClassifiedsScreen from './components/ClassifiedsScreen';
+import './i18n';
+import i18n, { setLanguage } from './i18n';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
