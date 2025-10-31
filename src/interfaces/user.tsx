@@ -117,4 +117,16 @@ export interface User {
   fantasies?: UserFantasy[];
   travel?: TravelData;
   media?: Media[];
+  user_attributes?: Array<{
+    id: string;
+    user_id: string;
+    category_type: string;
+    attribute_id: string;
+    attribute: {
+      id: string;
+      category: string;
+      display_order: number;
+      name: Record<string, string>;
+    };
+  }>;
 }

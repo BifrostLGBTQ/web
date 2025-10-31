@@ -83,7 +83,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear() - 25);
   const [viewMode, setViewMode] = useState<'day' | 'month' | 'year'>('day');
-  const [decadeStart, setDecadeStart] = useState(Math.floor((new Date().getFullYear() - 25) / 10) * 10);
+  const [decadeStart, setDecadeStart] = useState(Math.floor((new Date().getFullYear() - 25) / 20) * 20);
   const months = [
     t('months.january'),
     t('months.february'),
@@ -349,7 +349,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     if (authMode === 'login') {
       return 4; // auth-mode, location, notifications, login-form
     } else if (authMode === 'register') {
-      return 7; // auth-mode, location, notifications, nickname, birthdate, orientation, preferences
+      return 8; // auth-mode, location, notifications, nickname, birthdate, orientation, preferences
     }
     return steps.length;
   };
@@ -757,19 +757,19 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           </div>
         );
       case 'date-picker': {
-        // Calculate year range for decade navigation
+        // Calculate year range for 20-year navigation
         const minYear = new Date().getFullYear() - 80;
         const maxYear = new Date().getFullYear() - 18;
 
-        // Decade block for year view
+        // 20-year block for year view
         const decadeYears: number[] = [];
-        for (let y = decadeStart; y < decadeStart + 10; y++) {
+        for (let y = decadeStart; y < decadeStart + 20; y++) {
           if (y >= minYear && y <= maxYear) {
             decadeYears.push(y);
           }
         }
-        // For grid: fill to 10 years if possible
-        while (decadeYears.length < 10) {
+        // For grid: fill to 20 years if possible
+        while (decadeYears.length < 20) {
           decadeYears.push(NaN);
         }
 
@@ -818,10 +818,10 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     className="rounded-full p-1.5 transition-colors"
-                    onClick={() => setDecadeStart(ds => Math.max(ds - 10, minYear))}
-                    disabled={decadeStart - 10 < minYear}
+                    onClick={() => setDecadeStart(ds => Math.max(ds - 20, minYear))}
+                    disabled={decadeStart - 20 < minYear}
                   >
-                    <ChevronLeft className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} ${decadeStart - 10 < minYear ? 'opacity-30' : ''}`} />
+                    <ChevronLeft className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} ${decadeStart - 20 < minYear ? 'opacity-30' : ''}`} />
                   </button>
                 )}
                 {/* Month and Year buttons */}
@@ -884,10 +884,10 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     className="rounded-full p-1.5 transition-colors"
-                    onClick={() => setDecadeStart(ds => Math.min(ds + 10, maxYear - 9))}
-                    disabled={decadeStart + 10 > maxYear}
+                    onClick={() => setDecadeStart(ds => Math.min(ds + 20, maxYear - 19))}
+                    disabled={decadeStart + 20 > maxYear}
                   >
-                    <ChevronRight className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} ${decadeStart + 10 > maxYear ? 'opacity-30' : ''}`} />
+                    <ChevronRight className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} ${decadeStart + 20 > maxYear ? 'opacity-30' : ''}`} />
                   </button>
                 )}
               </div>
@@ -929,7 +929,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                       )}
                     </div>
                     <div className="text-xs text-center text-gray-400 mt-1">
-                      {decadeStart} – {decadeStart + 9}
+                      {decadeStart} – {decadeStart + 19}
                     </div>
                   </motion.div>
                 )}
@@ -1162,11 +1162,11 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
             </motion.div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-row flex-nowrap gap-3 sm:gap-4 items-stretch">
               {currentStep > 0 && (
                 <motion.button
                   onClick={handleBack}
-                  className={`flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 ${theme === 'dark'
+                  className={`flex-shrink-0 flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 whitespace-nowrap ${theme === 'dark'
                     ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                     }`}
@@ -1181,7 +1181,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
               <motion.button
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
-                className={`flex-1 flex items-center justify-center px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-200 ${canProceed() && !isLoading
+                className={`flex-1 flex items-center justify-center px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-200 min-w-0 ${canProceed() && !isLoading
                   ? theme === 'dark'
                     ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-white/25'
                     : 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-gray-900/25'
@@ -1197,8 +1197,8 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm sm:text-base">{currentStep === (authMode === 'login' ? 3 : 6) ? (authMode === 'login' ? t('auth.sign_in') : t('auth.complete_registration')) : t('auth.continue')}</span>
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+                    <span className="text-sm sm:text-base whitespace-nowrap">{currentStep === (authMode === 'login' ? 3 : 7) ? (authMode === 'login' ? t('auth.sign_in') : t('auth.complete_registration')) : t('auth.continue')}</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                   </>
                 )}
               </motion.button>

@@ -49,7 +49,29 @@ export class ApiService {
       params: { id: postId },
     });
   }
+
+  async updateProfile(userData: Record<string, any>) {
+    return this.call(Actions.USER_UPDATE_PROFILE, {
+      method: "POST",
+      body: userData,
+    });
+  }
+
+  async fetchProfile(username?: string) {
+    return this.call(Actions.USER_FETCH_PROFILE, {
+      method: "GET",
+      params: username ? { username } : {},
+    });
+  }
+
+  async getUserInfo() {
+    return this.call(Actions.CMD_AUTH_USER_INFO, {
+      method: "POST",
+      body: {},
+    });
+  }
  
+
  
   async call<T = any>(
     action: ActionType,

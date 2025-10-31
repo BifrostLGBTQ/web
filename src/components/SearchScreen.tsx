@@ -221,13 +221,15 @@ const SearchScreen: React.FC = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex space-x-1 mt-4 overflow-x-auto scrollbar-hide">
+          <div className="flex flex-row gap-2 mt-2 px-2 pt-2 overflow-x-auto scrollbar-hide">
             {filters.map((filter) => {
               const Icon = filter.icon;
               return (
-                <button
+                <motion.button
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 whitespace-nowrap ${
                     activeFilter === filter.id
                       ? theme === 'dark'
@@ -240,7 +242,7 @@ const SearchScreen: React.FC = () => {
                 >
                   <Icon className="w-4 h-4" />
                   <span className="text-sm font-medium">{filter.label}</span>
-                </button>
+                </motion.button>
               );
             })}
           </div>

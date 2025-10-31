@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../interfaces/user';
+import { api } from '../services/api';
 
 
 
@@ -16,16 +17,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token,setToken] = useState<string | null>(null)
-  const login = (token:string, userData: User) => {
-    setToken(token)
+  const [token, setToken] = useState<string | null>(null);
+
+  // Auto-login on mount if token exists in localStorage
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        const savedToken = localStorage.getItem("authToken");
+        if (savedToken) {
+          // Set token first
+          setToken(savedToken);
+          
+          // Fetch user info from API
+          const response = await api.getUserInfo();
+          
+          // If response has user data, set it
+          if (response?.user) {
+            setUser(response.user);
+          } else if (response) {
+            // If response itself is user data
+            setUser(response as User);
+          }
+        }
+      } catch (error) {
+        console.error('Auto-login failed:', error);
+        // If token is invalid, remove it
+        localStorage.removeItem("authToken");
+        setToken(null);
+      }
+    };
+
+    autoLogin();
+  }, []);
+
+  const login = (token: string, userData: User) => {
+    setToken(token);
     setUser(userData);
     localStorage.setItem("authToken", token);
   };
 
   const logout = () => {
     setUser(null);
-    setToken("")
+    setToken(null);
     localStorage.removeItem("authToken");
   };
 

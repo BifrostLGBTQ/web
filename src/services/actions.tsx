@@ -6,6 +6,8 @@ export const Actions = {
   AUTH_LOGIN: "auth.login",
   AUTH_REGISTER: "auth.register",
   AUTH_LOGOUT: "auth.logout",
+  CMD_AUTH_USER_INFO : "auth.user_info",
+
 
   // CHAT
   CHAT_SEND_TEXT: "chat.send_text",
@@ -15,12 +17,18 @@ export const Actions = {
 
   // USER
   USER_UPDATE_PROFILE: "user.update_profile",
+  CMD_USER_UPDATE_ATTRIBUTE : "user.update_attribute",
+
+
   USER_FETCH_PROFILE: "user.fetch_profile",
 
   POST_CREATE : "post.create",
   POST_FETCH : "post.fetch",
   POST_TIMELINE: "post.timeline",
 
+  CMD_USER_UPLOAD_AVATAR  : "user.upload_avatar",
+	CMD_USER_UPLOAD_COVER   : "user.upload_cover",
+	CMD_USER_UPLOAD_STORY   : "user.upload_story",
 
 
 } as const;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Filter, Search, Users, Grid, List, Square, ChevronDown, RefreshCw } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Filter, Search, Users, Grid, List, Square, ChevronDown, RefreshCw, MapPin, Users2, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { UserCard } from './UserCard';
@@ -128,145 +128,228 @@ const NearbyScreen: React.FC = () => {
     ? ['All Cities'] 
     : citiesByCountry[filters.country] || ['All Cities'];
 
+  // Calculate active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.sexualOrientation.length > 0) count += filters.sexualOrientation.length;
+    if (filters.country !== 'All Countries') count++;
+    if (filters.city !== 'All Cities' && filters.city !== 'all') count++;
+    if (filters.ethnicity.length > 0) count += filters.ethnicity.length;
+    if (filters.position.length > 0) count += filters.position.length;
+    if (filters.eyeColor.length > 0) count += filters.eyeColor.length;
+    if (filters.skinColor.length > 0) count += filters.skinColor.length;
+    if (filters.bodyType.length > 0) count += filters.bodyType.length;
+    if (filters.smoking !== 'all') count++;
+    if (filters.alcohol !== 'all') count++;
+    if (filters.minAge !== 18 || filters.maxAge !== 99) count++;
+    if (filters.minHeight !== 150 || filters.maxHeight !== 220) count++;
+    if (filters.minWeight !== 45 || filters.maxWeight !== 120) count++;
+    return count;
+  }, [filters]);
+
   return (
-    <div className={`w-full min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-      <div className="w-full mx-auto max-w-7xl px-4 md:px-6 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className={`text-2xl md:text-3xl font-bold mb-2 ${
-            theme === 'dark' ? 'text-white' : 'text-gray-900'
-          }`}>
-            Nearby People
-          </h1>
-              <p className={`text-sm md:text-base ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-          }`}>Discover LGBTIQ+ community members around you</p>
-            </div>
-            <motion.button
-              onClick={() => {
-                setIsRefreshing(true);
-                // Simulate API call
-                setTimeout(() => {
-                  setIsRefreshing(false);
-                }, 1000);
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`p-3 rounded-xl ${theme === 'dark' 
-                ? 'bg-gray-900 border border-gray-800' 
-                : 'bg-white border border-gray-200'
-              }`}
-              title="Refresh"
-            >
-              <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''} ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Search, Filter and View Toggle */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-            }`} />
-            <input
-              type="text"
-              placeholder="Search nearby people..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all ${
+    <div className={`w-full min-h-screen scrollbar-hide max-h-[100dvh] overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+      {/* Header - Sticky */}
+      <div className={`sticky top-0 z-50 border-b ${
+        theme === 'dark' 
+          ? 'border-gray-800/50 bg-black/95' 
+          : 'border-gray-200/50 bg-white/95'
+      }`}>
+        <div className="w-full px-4 lg:px-6">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center space-x-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 theme === 'dark'
-                  ? 'bg-gray-900 border border-gray-800 text-white placeholder-gray-500'
-                  : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
-              }`}
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            {/* View Mode Toggle */}
-            <div className={`flex rounded-xl p-1 ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-100 border border-gray-200'}`}>
-              <motion.button
-                onClick={() => setViewMode('grid')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`px-3 py-2 rounded-lg ${
-                  viewMode === 'grid'
-                    ? theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
-                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}
-                title="Grid View"
-              >
-                <Grid className="w-4 h-4" />
-              </motion.button>
-          <motion.button
-                onClick={() => setViewMode('list')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`px-3 py-2 rounded-lg ${
-                  viewMode === 'list'
-                    ? theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
-                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}
-                title="List View"
-              >
-                <List className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                onClick={() => setViewMode('card')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-                className={`px-3 py-2 rounded-lg ${
-                  viewMode === 'card'
-                    ? theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
-                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}
-                title="Card View"
-              >
-                <Square className="w-4 h-4" />
-          </motion.button>
-            </div>
-            
-            <motion.button
-              onClick={() => setShowFilters(!showFilters)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`px-4 py-2 rounded-xl ${
-                showFilters
-                  ? theme === 'dark'
-                    ? 'bg-white text-black'
-                    : 'bg-black text-white'
-                  : theme === 'dark'
-                  ? 'bg-gray-900 border border-gray-800'
-                  : 'bg-gray-100 border border-gray-200'
-              }`}
-            >
-              <Filter className={`w-5 h-5`} />
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className={`rounded-2xl p-4 mb-6 ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-50 border border-gray-200'}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Users className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
+                  ? 'bg-white text-black'
+                  : 'bg-black text-white'
+              }`}>
+                <MapPin className="w-5 h-5" />
+              </div>
               <div>
-                <p className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  {nearbyUsers.length} people
+                <h1 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Nearby People
+                </h1>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {nearbyUsers.length} people nearby
                 </p>
-                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Within 10km</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {nearbyUsers.filter(u => u.isOnline).length} online
-              </p>
-              <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Active now</p>
+            
+            <div className="flex items-center space-x-2">
+              <motion.button
+                onClick={() => {
+                  setIsRefreshing(true);
+                  setTimeout(() => {
+                    setIsRefreshing(false);
+                  }, 1000);
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'dark' 
+                    ? 'hover:bg-white/10 text-gray-400 hover:text-white' 
+                    : 'hover:bg-black/10 text-gray-500 hover:text-gray-900'
+                }`}
+                title="Refresh"
+              >
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Search, Filter and View Toggle */}
+          <div className="flex flex-col sm:flex-row gap-2 pb-4">
+            <div className="flex-1 relative group">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors ${
+                theme === 'dark' ? 'text-gray-400 group-focus-within:text-white' : 'text-gray-400 group-focus-within:text-gray-600'
+              }`} />
+              <input
+                type="text"
+                placeholder="Search by name or interests..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-9 py-2 rounded-xl text-sm transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'bg-gray-900 border border-gray-800 text-white placeholder-gray-500 focus:border-gray-700 focus:bg-gray-900 focus:ring-1 focus:ring-gray-700'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-300 focus:bg-white focus:ring-1 focus:ring-gray-200'
+                }`}
+              />
+              {searchQuery && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  onClick={() => setSearchQuery('')}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded ${
+                    theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <X className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                </motion.button>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              {/* View Mode Toggle */}
+              <div className={`flex rounded-xl p-1 ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-100 border border-gray-200'}`}>
+                <motion.button
+                  onClick={() => setViewMode('grid')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-2.5 py-1.5 rounded-lg transition-all ${
+                    viewMode === 'grid'
+                      ? theme === 'dark' ? 'bg-white text-black' : 'bg-gray-900 text-white'
+                      : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  title="Grid View"
+                >
+                  <Grid className="w-3.5 h-3.5" />
+                </motion.button>
+                <motion.button
+                  onClick={() => setViewMode('list')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-2.5 py-1.5 rounded-lg transition-all ${
+                    viewMode === 'list'
+                      ? theme === 'dark' ? 'bg-white text-black' : 'bg-gray-900 text-white'
+                      : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </motion.button>
+                <motion.button
+                  onClick={() => setViewMode('card')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-2.5 py-1.5 rounded-lg transition-all ${
+                    viewMode === 'card'
+                      ? theme === 'dark' ? 'bg-white text-black' : 'bg-gray-900 text-white'
+                      : theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  title="Card View"
+                >
+                  <Square className="w-3.5 h-3.5" />
+                </motion.button>
+              </div>
+              
+              <motion.button
+                onClick={() => setShowFilters(!showFilters)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative px-3 py-2 rounded-xl font-medium text-sm transition-all ${
+                  showFilters
+                    ? theme === 'dark'
+                      ? 'bg-white text-black'
+                      : 'bg-gray-900 text-white'
+                    : theme === 'dark'
+                    ? 'bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800'
+                    : 'bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Filter className="w-3.5 h-3.5 inline-block mr-1.5" />
+                Filters
+                {activeFiltersCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      theme === 'dark' ? 'bg-white text-black' : 'bg-gray-900 text-white'
+                    }`}
+                  >
+                    {activeFiltersCount}
+                  </motion.span>
+                )}
+              </motion.button>
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="w-full mx-auto max-w-7xl px-4 md:px-6 py-4">
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`rounded-2xl p-4 mb-4 ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-50 border border-gray-200'}`}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100'}`}>
+                <Users className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold mb-0.5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  {nearbyUsers.length}
+                </p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>People nearby</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-green-900/30' : 'bg-green-100'}`}>
+                <Users2 className={`w-6 h-6 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold mb-0.5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  {nearbyUsers.filter(u => u.isOnline).length}
+                </p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Online now</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
+                <MapPin className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold mb-0.5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  10km
+                </p>
+                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Search radius</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Filters Panel */}
         <AnimatePresence>
@@ -278,7 +361,7 @@ const NearbyScreen: React.FC = () => {
               transition={{ duration: 0.3 }}
               className="mb-6 overflow-hidden"
             >
-              <div className={`rounded-2xl p-6 ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-50 border border-gray-200'}`}>
+              <div className={`rounded-2xl p-5 md:p-6 ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-50 border border-gray-200'}`}>
                 <div className="space-y-6">
                   {/* Age Range */}
                   <div>
@@ -706,28 +789,100 @@ const NearbyScreen: React.FC = () => {
         </AnimatePresence>
 
         {/* Users - Different layouts based on viewMode */}
-        {viewMode === 'grid' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {nearbyUsers.map((user, index) => (
-              <UserCard user={user} key={index} viewMode={'compact'} />
-            ))}
-          </div>
-        )}
-        
-        {viewMode === 'list' && (
-          <div className="space-y-2">
-          {nearbyUsers.map((user, index) => (
-              <UserCard user={user} key={index} viewMode={'list'} />
-            ))}
-          </div>
-        )}
-        
-        {viewMode === 'card' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {nearbyUsers.map((user, index) => (
-              <UserCard user={user} key={index} viewMode={'card'} />
-            ))}
-          </div>
+        {nearbyUsers.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`rounded-2xl p-12 md:p-16 text-center ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-gray-50 border border-gray-200'}`}
+          >
+            <div className="max-w-md mx-auto">
+              <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`} />
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                No matches found
+              </h3>
+              <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                {searchQuery || activeFiltersCount > 0
+                  ? 'Try adjusting your search or filters to find more people.'
+                  : 'Be the first to join the community nearby!'}
+              </p>
+              {(searchQuery || activeFiltersCount > 0) && (
+                <motion.button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilters({
+                      minAge: 18, maxAge: 99,
+                      minHeight: 150, maxHeight: 220,
+                      minWeight: 45, maxWeight: 120,
+                      sexualOrientation: [],
+                      country: 'All Countries', city: 'All Cities',
+                      ethnicity: [], position: [],
+                      eyeColor: [], skinColor: [],
+                      smoking: 'all', alcohol: 'all',
+                      bodyType: []
+                    });
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-6 py-3 rounded-2xl font-medium text-sm ${
+                    theme === 'dark'
+                      ? 'bg-white text-black hover:bg-gray-100'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}
+                >
+                  Clear All Filters
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        ) : (
+          <>
+            {viewMode === 'grid' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                {nearbyUsers.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <UserCard user={user} viewMode={'compact'} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+            
+            {viewMode === 'list' && (
+              <div className="space-y-3">
+                {nearbyUsers.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                  >
+                    <UserCard user={user} viewMode={'list'} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+            
+            {viewMode === 'card' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                {nearbyUsers.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <UserCard user={user} viewMode={'card'} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

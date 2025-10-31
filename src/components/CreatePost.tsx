@@ -767,7 +767,7 @@ const CreatePost: React.FC<CreatePostProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed bg-red-500 inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={toggleFullScreen}
           />
         )}
@@ -779,7 +779,11 @@ const CreatePost: React.FC<CreatePostProps> = ({
           isFullScreen 
             ? 'fixed inset-0 z-50 max-w-none max-h-none rounded-none mb-0'
             : 'w-full max-w-full mb-6'
-        }   ${isExpanded ? 'shadow-xl' : ''}`}
+        } ${
+          theme === 'dark'
+            ? 'bg-black/60 backdrop-blur-xl shadow-black/20'
+            : 'bg-white/90 backdrop-blur-xl shadow-gray-900/10'
+        } ${isExpanded ? 'shadow-xl' : ''}`}
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ 
           opacity: 1, 
@@ -885,7 +889,7 @@ const CreatePost: React.FC<CreatePostProps> = ({
                     <ListPlugin/>
                     <LinkPlugin/>
                   
-                    <div className="-mx-2 -mt-1">
+                    <div className="-mx-2 mt-1">
                       <ToolbarPluginWrapper setEditorInstance={setEditorInstance} />
                     </div>
 

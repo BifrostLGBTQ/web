@@ -1,0 +1,113 @@
+{
+    "user": {
+        "id": "c12e2128-a1bd-459c-8d09-128dc9a5f7b2",
+        "public_id": 1984053013685211136,
+        "username": "demo",
+        "displayname": "demo",
+        "email": "",
+        "date_of_birth": "2000-10-05T05:45:00+05:45",
+        "gender": "",
+        "user_attributes": [
+            {
+                "id": "1e444a05-77ab-4a43-9000-f4ae4d13db0a",
+                "user_id": "c12e2128-a1bd-459c-8d09-128dc9a5f7b2",
+                "category_type": "height",
+                "attribute_id": "2e5ba9e0-fb6a-492a-98c9-5cdfddd1ebc7",
+                "attribute": {
+                    "id": "2e5ba9e0-fb6a-492a-98c9-5cdfddd1ebc7",
+                    "category": "height",
+                    "display_order": 0,
+                    "name": {
+                        "en": "140 cm",
+                        "tr": "140 cm"
+                    }
+                }
+            },
+            {
+                "id": "85216d4a-c5fa-4344-9a66-fd6abe6ded7f",
+                "user_id": "c12e2128-a1bd-459c-8d09-128dc9a5f7b2",
+                "category_type": "weight",
+                "attribute_id": "5f9d5349-e80a-4ca5-8806-2941246554fe",
+                "attribute": {
+                    "id": "5f9d5349-e80a-4ca5-8806-2941246554fe",
+                    "category": "weight",
+                    "display_order": 0,
+                    "name": {
+                        "en": "40 kg",
+                        "tr": "40 kg"
+                    }
+                }
+            },
+            {
+                "id": "2da43105-ccb8-434b-95bc-8ebb3a074a62",
+                "user_id": "c12e2128-a1bd-459c-8d09-128dc9a5f7b2",
+                "category_type": "hair_color",
+                "attribute_id": "d8d6e6f4-17dd-4b3c-804f-b04b462f85b5",
+                "attribute": {
+                    "id": "d8d6e6f4-17dd-4b3c-804f-b04b462f85b5",
+                    "category": "hair_color",
+                    "display_order": 1,
+                    "name": {
+                        "en": "Dark Brown",
+                        "tr": "Koyu Kahverengi"
+                    }
+                }
+            },
+            {
+                "id": "fa9b71eb-cc57-45f0-b7d5-ddf3d29ecfa3",
+                "user_id": "c12e2128-a1bd-459c-8d09-128dc9a5f7b2",
+                "category_type": "eye_color",
+                "attribute_id": "967088d7-052a-46d7-a28a-a2f9a580b87d",
+                "attribute": {
+                    "id": "967088d7-052a-46d7-a28a-a2f9a580b87d",
+                    "category": "eye_color",
+                    "display_order": 3,
+                    "name": {
+                        "en": "Hazel",
+                        "tr": "Ela"
+                    }
+                }
+            }
+        ],
+        "sexual_orientation": {
+            "id": "f6ba4fd7-40a7-449c-88a5-1030978a7bea",
+            "key": "active_gay",
+            "order": 1
+        },
+        "sex_role": "",
+        "relationship_status": "",
+        "user_role": "",
+        "is_active": false,
+        "created_at": "2025-10-31T06:06:15.044628+05:45",
+        "updated_at": "2025-10-31T06:06:15.044628+05:45",
+        "default_language": "en",
+        "languages": null,
+        "fantasies": [
+            {
+                "id": "2d263290-1f04-4da6-95c3-82b04dcb430d",
+                "user_id": "c12e2128-a1bd-459c-8d09-128dc9a5f7b2",
+                "fantasy_id": "bf51df42-90ac-4c75-824c-bffd739afe3b",
+                "fantasy": {
+                    "id": "bf51df42-90ac-4c75-824c-bffd739afe3b",
+                    "category": "sexual_adventure",
+                    "translations": [
+                        {
+                            "id": "2c8e345c-ce70-44ef-8444-906d64ef1d5d",
+                            "fantasy_id": "bf51df42-90ac-4c75-824c-bffd739afe3b",
+                            "language": "en",
+                            "label": "Being watched",
+                            "description": "People who like to expose themselves get a kick from being seen. Whether it’s sex with a partner or masturbation, things are hotter when you have an audience."
+                        }
+                    ]
+                }
+            }
+        ],
+        "travel": {
+            "visited_countries": null,
+            "travel_frequency": "",
+            "favorite_places": null
+        },
+        "social": {},
+        "deleted_at": null
+    }
+}

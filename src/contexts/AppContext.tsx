@@ -45,6 +45,20 @@ interface Interest {
   items: InterestItem[];
 }
 
+export interface LocalizedString {
+  [langCode: string]: string;
+}
+
+export interface AttributeItem {
+  id: string;
+  name: LocalizedString;
+  display_order: number;
+}
+
+export interface GroupedAttribute {
+  category: string;
+  attributes: AttributeItem[];
+}
 
 interface InitialData {
   fantasies: Fantasy[];
@@ -52,6 +66,7 @@ interface InitialData {
   interests: Interest[];
   sexual_orientations: SexualOrientation[];
   languages: Record<string, any>;
+  attributes: GroupedAttribute[];
   status: string;
 }
 
@@ -78,10 +93,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const storedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') : null;
   const [defaultLanguage, setDefaultLanguage] = useState<string>(storedLang || i18n.language || "en"); // default language from localStorage or i18n
 
+
   const refresh = async () => {
     setLoading(true);
     try {
       const res = await api.call<InitialData>(Actions.SYSTEM_INITIAL_SYNC);
+    
       setData(res);
     } catch (err) {
       console.error("Initial sync failed:", err);
