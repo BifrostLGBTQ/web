@@ -4,7 +4,7 @@ import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigaret
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useApp } from '../contexts/AppContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Post from './Post';
 import { api } from '../services/api';
 import { Actions } from '../services/actions';
@@ -141,6 +141,8 @@ const ProfileScreen: React.FC = () => {
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [attributeView, setAttributeView] = useState<'list' | 'detail'>('list');
   const [updatingAttributes, setUpdatingAttributes] = useState<Record<string, boolean>>({});
+  const [editTab, setEditTab] = useState<'profile' | 'attributes' | 'interests' | 'fantasies'>('profile');
+  const isEditModeRef = useRef(false);
   
   // Check if viewing own profile
   const isOwnProfile = isAuthenticated && authUser && user && (authUser.username === user.username || authUser.id === user.id);
@@ -286,13 +288,14 @@ const ProfileScreen: React.FC = () => {
 
   // Initialize edit form when edit mode opens (only for non-attribute fields)
   useEffect(() => {
-    if (isEditMode && user) {
-      setEditFormData({
-        displayname: user.displayname,
-        bio: user.bio || '',
-        website: user.website || '',
-        languages: user.languages || [],
-      } as any);
+    if (isEditMode) {
+      // Reset edit tab only when first entering edit mode
+      // Use a ref to track if this is the first time entering edit mode
+      if (!isEditModeRef.current) {
+        setEditTab('profile');
+        isEditModeRef.current = true;
+      }
+      
       // Reset image previews
       setProfileImagePreview(null);
       setCoverImagePreview(null);
@@ -301,8 +304,34 @@ const ProfileScreen: React.FC = () => {
       // Reset attribute view
       setAttributeView('list');
       setSelectedField(null);
+      
+      // Initialize form data if user is available
+      if (user) {
+        setEditFormData({
+          displayname: user.displayname,
+          bio: user.bio || '',
+          website: user.website || '',
+          languages: user.languages || [],
+        } as any);
+      }
+    } else {
+      // Reset ref when exiting edit mode
+      isEditModeRef.current = false;
     }
-  }, [isEditMode, user]);
+  }, [isEditMode]); // Only depend on isEditMode, not user
+  
+  // Update form data when user changes (but don't reset tab or other states)
+  useEffect(() => {
+    if (isEditMode && user && isEditModeRef.current) {
+      // Only update if we're already in edit mode (ref is true)
+      setEditFormData({
+        displayname: user.displayname,
+        bio: user.bio || '',
+        website: user.website || '',
+        languages: user.languages || [],
+      } as any);
+    }
+  }, [isEditMode, user?.displayname, user?.bio, user?.website, user?.languages]);
 
   const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -639,7 +668,7 @@ const ProfileScreen: React.FC = () => {
           // Edit Profile View
           <main className={`flex-1 w-full min-w-0 ${theme === 'dark' ? 'border-x border-black' : 'border-x border-gray-100'}`}>
             <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-              <div className={`max-w-4xl mx-auto px-4 sm:px-6 py-8 border-x ${theme === 'dark' ? 'border-black' : 'border-gray-100'}`}>
+              <div className={`max-w-4xl mx-auto border-x ${theme === 'dark' ? 'border-black' : 'border-gray-100'}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -647,7 +676,7 @@ const ProfileScreen: React.FC = () => {
                   className="space-y-6"
                 >
                   {/* Cover Image */}
-                  <div>
+                  <div className="px-4 sm:px-6 pt-8">
                     <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       {t('profile.cover_image')}
                     </label>
@@ -694,7 +723,7 @@ const ProfileScreen: React.FC = () => {
                   </div>
 
                   {/* Profile Image */}
-                  <div>
+                  <div className="px-4 sm:px-6">
                     <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       {t('profile.profile_image')}
                     </label>
@@ -747,81 +776,133 @@ const ProfileScreen: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Display Name */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {t('profile.display_name')}
-                    </label>
-                    <input
-                      type="text"
-                      value={editFormData.displayname || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, displayname: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-                        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
-                        }`}
-                    />
+                  {/* Edit Tabs */}
+                  <div className={`sticky top-0 z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`}>
+                    <div className={`flex px-4 sm:px-6`}>
+                      {[
+                        { id: 'profile', label: t('profile.profile_info') || 'Profile Info' },
+                        { id: 'attributes', label: t('profile.attributes') },
+                        { id: 'interests', label: 'Interests' },
+                        { id: 'fantasies', label: 'Fantasies' },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setEditTab(tab.id as any)}
+                          className={`flex-1 py-3 font-semibold text-sm relative transition-all duration-200 ${editTab === tab.id
+                              ? theme === 'dark' ? 'text-white' : 'text-black'
+                              : theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                          {tab.label}
+                          {editTab === tab.id && (
+                            <motion.div
+                              className={`absolute bottom-0 left-0 right-0 h-1 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                              layoutId="activeEditTabIndicator"
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Bio */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {t('profile.bio')}
-                    </label>
-                    <textarea
-                      value={editFormData.bio || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
-                      rows={4}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all resize-none ${theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-                        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
-                        }`}
-                      placeholder={t('profile.bio_placeholder')}
-                    />
-                  </div>
+                  {/* Tab Content */}
+                  <div className="relative min-h-[400px] px-4 sm:px-6">
+                    <AnimatePresence mode="wait" initial={false}>
+                      {editTab === 'profile' && (
+                        <motion.div
+                          key="profile"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="space-y-6"
+                        >
+                          {/* Display Name */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {t('profile.display_name')}
+                            </label>
+                            <input
+                              type="text"
+                              value={editFormData.displayname || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, displayname: e.target.value })}
+                              className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                                }`}
+                            />
+                          </div>
 
-                  {/* Location */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {t('profile.location')}
-                    </label>
-                    <input
-                      type="text"
-                      value={typeof user?.location === 'string' ? user.location : (user?.location as any)?.display || ''}
-                      onChange={(e) => {
-                        const locationValue = e.target.value;
-                        setEditFormData({ 
-                          ...editFormData, 
-                          location: locationValue as any
-                        });
-                      }}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-                        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
-                        }`}
-                      placeholder={t('profile.location_placeholder')}
-                    />
-                  </div>
+                          {/* Bio */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {t('profile.bio')}
+                            </label>
+                            <textarea
+                              value={editFormData.bio || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
+                              rows={4}
+                              className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all resize-none ${theme === 'dark'
+                                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                                }`}
+                              placeholder={t('profile.bio_placeholder')}
+                            />
+                          </div>
 
-                  {/* Website */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {t('profile.website')}
-                    </label>
-                    <input
-                      type="url"
-                      value={editFormData.website || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, website: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
-                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-                        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
-                        }`}
-                      placeholder="https://example.com"
-                    />
-                  </div>
+                          {/* Location */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {t('profile.location')}
+                            </label>
+                            <input
+                              type="text"
+                              value={typeof user?.location === 'string' ? user.location : (user?.location as any)?.display || ''}
+                              onChange={(e) => {
+                                const locationValue = e.target.value;
+                                setEditFormData({ 
+                                  ...editFormData, 
+                                  location: locationValue as any
+                                });
+                              }}
+                              className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                                }`}
+                              placeholder={t('profile.location_placeholder')}
+                            />
+                          </div>
 
-                  {/* Attributes List - iOS tableView style */}
-                  <div className="relative">
+                          {/* Website */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {t('profile.website')}
+                            </label>
+                            <input
+                              type="url"
+                              value={editFormData.website || ''}
+                              onChange={(e) => setEditFormData({ ...editFormData, website: e.target.value })}
+                              className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all ${theme === 'dark'
+                                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
+                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
+                                }`}
+                              placeholder="https://example.com"
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                      {editTab === 'attributes' && (
+                        <motion.div
+                          key="attributes"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="space-y-6"
+                        >
+                          {/* Attributes List - iOS tableView style */}
+                          <div className="relative">
                     {/* List View */}
                     <motion.div
                       animate={{ 
@@ -984,15 +1065,109 @@ const ProfileScreen: React.FC = () => {
                             <p className="text-sm">{t('profile.no_options_available') || 'No options available for this attribute'}</p>
                           </div>
                         )}
+                          </div>
+                        </motion.div>
                       </div>
                     </motion.div>
+                      )}
+                      {editTab === 'interests' && (
+                        <motion.div
+                          key="interests"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="space-y-6"
+                        >
+                          <div>
+                            <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Interests</h3>
+                            {(() => {
+                              const interestNameById: Record<number, string> = {
+                                247: '3D printing',
+                                175: 'Acting',
+                                21: 'Action films',
+                                253: 'Adventure',
+                                125: 'Afrobeats',
+                                88: 'Animal lover',
+                                228: 'Badminton',
+                                229: 'Graduate degree or higher',
+                                221: 'Exercising',
+                                136: 'Sci-fi books',
+                                25: 'Sci-fi films',
+                              };
+                              const asLabels = (user.interests || []).map((i) =>
+                                typeof i === 'number' ? (interestNameById[i] || `Interest #${i}`) : i
+                              );
+                              return asLabels.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {asLabels.map((label) => (
+                                    <span
+                                      key={label}
+                                      className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
+                                        ? 'border-gray-800 bg-gray-900 text-gray-200'
+                                        : 'border-gray-200 bg-gray-50 text-gray-800'
+                                      }`}
+                                    >
+                                      {label}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className={`p-4 rounded-xl border ${theme === 'dark'
+                                  ? 'bg-gray-900/50 border-gray-800 text-gray-400'
+                                  : 'bg-gray-50 border-gray-200 text-gray-500'
+                                }`}>
+                                  <p className="text-sm">No interests added</p>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </motion.div>
+                      )}
+                      {editTab === 'fantasies' && (
+                        <motion.div
+                          key="fantasies"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="space-y-6"
+                        >
+                          <div>
+                            <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fantasies</h3>
+                            {user.fantasies && user.fantasies.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {user.fantasies.map((f) => (
+                                  <span
+                                    key={String(f)}
+                                    className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
+                                      ? 'border-gray-800 bg-gray-900 text-gray-200'
+                                      : 'border-gray-200 bg-gray-50 text-gray-800'
+                                    }`}
+                                  >
+                                    {String(f)}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className={`p-4 rounded-xl border ${theme === 'dark'
+                                ? 'bg-gray-900/50 border-gray-800 text-gray-400'
+                                : 'bg-gray-50 border-gray-200 text-gray-500'
+                              }`}>
+                                <p className="text-sm">No fantasies added</p>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
-                  {error && (
+              {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`p-4 rounded-xl border ${theme === 'dark'
+                      className={`mx-4 sm:mx-6 p-4 rounded-xl border ${theme === 'dark'
                         ? 'bg-red-900/20 border-red-700 text-red-300'
                         : 'bg-red-50 border-red-200 text-red-700'
                         }`}
@@ -1002,7 +1177,7 @@ const ProfileScreen: React.FC = () => {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-800">
+                  <div className="flex items-center justify-end gap-3 pt-6 pb-8 px-4 sm:px-6 border-t border-gray-200 dark:border-gray-800">
                     <button
                       onClick={() => setIsEditMode(false)}
                       className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${theme === 'dark'
