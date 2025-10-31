@@ -2170,96 +2170,152 @@ const ProfileScreen: React.FC = () => {
           <div className='w-full min-h-[100dvh]'>
             {/* Profile */}
             {activeTab === 'profile' && (
-              <div className="px-4 py-4 space-y-6">
-                <div className={`w-full`}>
-                <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Attributes</h3>
-                  <div className={`w-full`}>
-                   
-                      <div className="w-full flex flex-col gap-2 sm:gap-3">
-                        {USER_ATTRIBUTES.map((item) => {
-                          // Find attribute from user_attributes
-                          const currentUserAttribute = user?.user_attributes?.find(
-                            (ua: any) => ua.category_type === item.field
-                          );
-                          
-                          // Get display value
-                          let displayValue = '';
-                          let hasValue = false;
-                          
-                          if (currentUserAttribute?.attribute?.name) {
-                            // Get localized name from attribute
-                            displayValue = currentUserAttribute.attribute.name[defaultLanguage] || 
-                                          currentUserAttribute.attribute.name.en || 
-                                          Object.values(currentUserAttribute.attribute.name)[0] || '';
-                            hasValue = !!displayValue;
-                          }
-                          
-                          // Special cases for non-attribute fields
-                          if (item.field === 'relationship_status' && !hasValue) {
-                            displayValue = user?.relationship_status || '';
-                            hasValue = !!displayValue;
-                          }
-                          
-                          if (!hasValue) {
-                            displayValue = t('profile.select_option');
-                          }
-                          
-                          return (
-                            <div key={item.field} className={`flex items-center justify-between gap-3 rounded-xl px-3 py-3 ${theme === 'dark' ? 'bg-gray-950/50 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}>
-                            <div className="flex items-center gap-3 min-w-0">
-                                <item.icon className={`w-7 h-7 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-                                <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.label}</span>
+              <div className="px-4 py-6 space-y-8">
+                {/* Attributes Section */}
+                <div className="w-full">
+                  <h2 className={`text-2xl font-bold mb-5 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    Attributes
+                  </h2>
+                  <div className={`rounded-2xl overflow-hidden ${theme === 'dark' 
+                    ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
+                    : 'bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-sm'
+                  }`}>
+                    {USER_ATTRIBUTES.map((item, index) => {
+                      // Find attribute from user_attributes
+                      const currentUserAttribute = user?.user_attributes?.find(
+                        (ua: any) => ua.category_type === item.field
+                      );
+                      
+                      // Get display value
+                      let displayValue = '';
+                      let hasValue = false;
+                      
+                      if (currentUserAttribute?.attribute?.name) {
+                        displayValue = currentUserAttribute.attribute.name[defaultLanguage] || 
+                                      currentUserAttribute.attribute.name.en || 
+                                      Object.values(currentUserAttribute.attribute.name)[0] || '';
+                        hasValue = !!displayValue;
+                      }
+                      
+                      if (item.field === 'relationship_status' && !hasValue) {
+                        displayValue = user?.relationship_status || '';
+                        hasValue = !!displayValue;
+                      }
+                      
+                      if (!hasValue) {
+                        displayValue = t('profile.select_option');
+                      }
+                      
+                      const isLast = index === USER_ATTRIBUTES.length - 1;
+                      
+                      return (
+                        <div 
+                          key={item.field} 
+                          className={`flex items-center justify-between px-4 py-3.5 transition-colors ${
+                            !isLast ? `border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}` : ''
+                          } ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50/50'}`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-100'}`}>
+                              <item.icon className={`w-4 h-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
                             </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {!hasValue && (
-                                  <AlertTriangle className={`w-4 h-4 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />
-                                )}
-                                <span className={`text-sm whitespace-nowrap ${hasValue 
-                                  ? (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')
-                                  : (theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600')
-                                }`}>
-                                  {displayValue}
-                                </span>
+                            <span className={`text-[15px] font-medium tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {item.label}
+                            </span>
                             </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {!hasValue && (
+                              <div className={`w-1.5 h-1.5 rounded-full ${theme === 'dark' ? 'bg-yellow-400' : 'bg-yellow-500'}`} />
+                            )}
+                            <span className={`text-[13px] font-medium whitespace-nowrap ${hasValue 
+                              ? (theme === 'dark' ? 'text-gray-400' : 'text-gray-600')
+                              : (theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600')
+                            }`}>
+                              {displayValue}
+                            </span>
                           </div>
-                          );
-                        })}
                       </div>
-           
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Fantasies */}
+                {/* Fantasies Section */}
                 <div>
-                  <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fantasies</h3>
+                  <h2 className={`text-2xl font-bold mb-5 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    Fantasies
+                  </h2>
                   {user.fantasies && user.fantasies.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {user.fantasies.map((f) => {
-                        const translation = f.fantasy?.translations?.find(t => t.language === defaultLanguage) ||
-                                           f.fantasy?.translations?.find(t => t.language === 'en') ||
-                                           f.fantasy?.translations?.[0];
-                        const label = translation?.label || `Fantasy ${f.fantasy_id || f.id}`;
-                        return (
+                    (() => {
+                      // Group fantasies by category
+                      const fantasiesByCategory: Record<string, typeof user.fantasies> = {};
+                      user.fantasies.forEach((f) => {
+                        const categoryId = f.fantasy?.category || 'other';
+                        if (!fantasiesByCategory[categoryId]) {
+                          fantasiesByCategory[categoryId] = [];
+                        }
+                        fantasiesByCategory[categoryId].push(f);
+                      });
+
+                      return (
+                        <div className="space-y-3">
+                          {Object.entries(fantasiesByCategory).map(([categoryId, categoryFantasies]) => {
+                            const categoryName = fantasyCategoryNames[categoryId]?.[defaultLanguage] || 
+                                               fantasyCategoryNames[categoryId]?.en || 
+                                               categoryId;
+                            return (
+                              <div 
+                                key={categoryId} 
+                                className={`rounded-2xl overflow-hidden ${theme === 'dark' 
+                                  ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
+                                  : 'bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-sm'
+                                }`}
+                              >
+                                <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                                  <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    {categoryName}
+                                  </h3>
+                                </div>
+                                <div className="p-4 flex flex-wrap gap-2">
+                                  {categoryFantasies.map((f) => {
+                                    const translation = f.fantasy?.translations?.find(t => t.language === defaultLanguage) ||
+                                                       f.fantasy?.translations?.find(t => t.language === 'en') ||
+                                                       f.fantasy?.translations?.[0];
+                                    const label = translation?.label || `Fantasy ${f.fantasy_id || f.id}`;
+                                    return (
                         <span
-                            key={f.id || f.fantasy_id}
-                          className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
-                              ? 'border-gray-800 bg-gray-900 text-gray-200'
-                              : 'border-gray-200 bg-gray-50 text-gray-800'
-                            }`}
-                        >
-                            {label}
+                                        key={f.id || f.fantasy_id}
+                                        className={`px-3 py-1.5 text-[13px] font-medium rounded-full transition-all ${theme === 'dark'
+                                            ? 'bg-white/10 text-gray-200 hover:bg-white/15'
+                                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200/70'
+                                          }`}
+                                      >
+                                        {label}
                         </span>
-                        );
-                      })}
+                                    );
+                                  })}
                     </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()
                   ) : (
-                    <div className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No fantasies added</div>
+                    <div className={`text-center py-12 rounded-2xl ${theme === 'dark' 
+                      ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
+                      : 'bg-white/90 backdrop-blur-xl border border-gray-200/50'
+                    }`}>
+                      <p className={`text-[15px] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No fantasies added</p>
+                    </div>
                   )}
                 </div>
 
-                {/* Interests */}
+                {/* Interests Section */}
                 <div>
-                  <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Interests</h3>
+                  <h2 className={`text-2xl font-bold mb-5 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    Interests
+                  </h2>
                   {(() => {
                     // Use authUser.interests if viewing own profile, otherwise use user.interests
                     const interestsSource = (isOwnProfile && isAuthenticated && authUser && (authUser as any).interests) 
@@ -2267,23 +2323,44 @@ const ProfileScreen: React.FC = () => {
                       : user?.interests;
                     
                     if (!interestsSource || interestsSource.length === 0) {
-                      return <div className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No interests added</div>;
+                      return (
+                        <div className={`text-center py-12 rounded-2xl ${theme === 'dark' 
+                          ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
+                          : 'bg-white/90 backdrop-blur-xl border border-gray-200/50'
+                        }`}>
+                          <p className={`text-[15px] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No interests added</p>
+                        </div>
+                      );
                     }
                     
-                    const interestItems = interestsSource.map((interest: any) => {
+                    // Group interests by category
+                    const interestsByCategory: Record<string, Array<{ id: string; name: string; emoji?: string; categoryId: string; categoryName: string }>> = {};
+                    
+                    interestsSource.forEach((interest: any) => {
                       if (typeof interest === 'object' && interest !== null && interest.interest_item) {
-                        // New format: object with interest_item
                         const itemName = interest.interest_item.name[defaultLanguage] || 
                                        interest.interest_item.name.en || 
                                        Object.values(interest.interest_item.name)[0] || 
                                        `Interest ${interest.interest_item.id}`;
-                        return {
+                        
+                        const categoryId = interest.interest_item.interest_id || interest.interest_item.interest?.id || 'other';
+                        const categoryName = interest.interest_item.interest?.name?.[defaultLanguage] ||
+                                           interest.interest_item.interest?.name?.en ||
+                                           (interest.interest_item.interest?.name ? Object.values(interest.interest_item.interest.name)[0] : null) ||
+                                           'Other';
+                        
+                        if (!interestsByCategory[categoryId]) {
+                          interestsByCategory[categoryId] = [];
+                        }
+                        
+                        interestsByCategory[categoryId].push({
                           id: interest.interest_item.id || interest.id,
                           name: itemName,
                           emoji: interest.interest_item.emoji,
-                        };
-                      } else if (typeof interest === 'number') {
-                        // Legacy format: number
+                          categoryId,
+                          categoryName,
+                        });
+                      } else {
                     const interestNameById: Record<number, string> = {
                       247: '3D printing',
                       175: 'Acting',
@@ -2297,35 +2374,56 @@ const ProfileScreen: React.FC = () => {
                       136: 'Sci-fi books',
                       25: 'Sci-fi films',
                     };
-                        return {
+                        
+                        const categoryId = 'uncategorized';
+                        if (!interestsByCategory[categoryId]) {
+                          interestsByCategory[categoryId] = [];
+                        }
+                        
+                        interestsByCategory[categoryId].push({
                           id: String(interest),
-                          name: interestNameById[interest] || `Interest #${interest}`,
+                          name: typeof interest === 'number' ? (interestNameById[interest] || `Interest #${interest}`) : String(interest),
                           emoji: undefined,
-                        };
-                      } else {
-                        // Legacy format: string
-                        return {
-                          id: String(interest),
-                          name: String(interest),
-                          emoji: undefined,
-                        };
+                          categoryId,
+                          categoryName: 'Other',
+                        });
                       }
                     });
                     
                     return (
-                      <div className="flex flex-wrap gap-2">
-                        {interestItems.map((item: { id: string; name: string; emoji?: string }) => (
-                          <span
-                            key={item.id}
-                            className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border ${theme === 'dark'
-                                ? 'border-gray-800 bg-gray-900 text-gray-200'
-                                : 'border-gray-200 bg-gray-50 text-gray-800'
+                      <div className="space-y-3">
+                        {Object.entries(interestsByCategory).map(([categoryId, categoryInterests]) => {
+                          const categoryName = categoryInterests[0]?.categoryName || 'Other';
+                          return (
+                            <div 
+                              key={categoryId} 
+                              className={`rounded-2xl overflow-hidden ${theme === 'dark' 
+                                ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
+                                : 'bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-sm'
                               }`}
-                          >
-                            {item.emoji && <span>{item.emoji}</span>}
-                            <span>{item.name}</span>
+                            >
+                              <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                                <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  {categoryName}
+                                </h3>
+                              </div>
+                              <div className="p-4 flex flex-wrap gap-2">
+                                {categoryInterests.map((item) => (
+                          <span
+                                    key={item.id}
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-full transition-all ${theme === 'dark'
+                                        ? 'bg-white/10 text-gray-200 hover:bg-white/15'
+                                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200/70'
+                                      }`}
+                                  >
+                                    {item.emoji && <span className="text-sm">{item.emoji}</span>}
+                                    <span>{item.name}</span>
                           </span>
                         ))}
+                      </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     );
                   })()}
