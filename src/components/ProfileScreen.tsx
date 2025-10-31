@@ -1507,7 +1507,7 @@ const ProfileScreen: React.FC = () => {
                               }`}
                             >
                               <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <item.icon className={`w-5 h-5 flex-shrink-0 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                                <item.icon className={`w-7 h-7 flex-shrink-0 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                                 <span className="font-medium text-base flex-1 text-left">{item.label}</span>
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0 ml-3">
@@ -2170,15 +2170,23 @@ const ProfileScreen: React.FC = () => {
           <div className='w-full min-h-[100dvh]'>
             {/* Profile */}
             {activeTab === 'profile' && (
-              <div className="px-4 py-6 space-y-8">
+              <div className="px-4 py-6 space-y-10">
                 {/* Attributes Section */}
                 <div className="w-full">
-                  <h2 className={`text-2xl font-bold mb-5 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                    Attributes
-                  </h2>
-                  <div className={`rounded-2xl overflow-hidden ${theme === 'dark' 
-                    ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
-                    : 'bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-sm'
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className={`text-[22px] font-bold tracking-[-0.022em] leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                      Attributes
+                    </h2>
+                    <span className={`text-[13px] font-semibold ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {USER_ATTRIBUTES.filter(attr => {
+                        const ua = user?.user_attributes?.find((u: any) => u.category_type === attr.field);
+                        return !!(ua?.attribute?.name);
+                      }).length} / {USER_ATTRIBUTES.length}
+                    </span>
+                  </div>
+                  <div className={`rounded-[18px] overflow-hidden ${theme === 'dark' 
+                    ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 backdrop-blur-xl border border-white/[0.06]' 
+                    : 'bg-white backdrop-blur-xl border border-black/[0.06]'
                   }`}>
                     {USER_ATTRIBUTES.map((item, index) => {
                       // Find attribute from user_attributes
@@ -2211,25 +2219,28 @@ const ProfileScreen: React.FC = () => {
                       return (
                         <div 
                           key={item.field} 
-                          className={`flex items-center justify-between px-4 py-3.5 transition-colors ${
-                            !isLast ? `border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}` : ''
-                          } ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-gray-50/50'}`}
+                          className={`group flex items-center justify-between px-4 py-3 transition-all duration-200 ${
+                            !isLast ? `border-b ${theme === 'dark' ? 'border-white/[0.06]' : 'border-black/[0.04]'}` : ''
+                          } ${theme === 'dark' ? 'hover:bg-white/[0.03] active:bg-white/[0.05]' : 'hover:bg-black/[0.02] active:bg-black/[0.03]'}`}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-100'}`}>
-                              <item.icon className={`w-4 h-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+                            <div className={`p-2.5 rounded-[10px] transition-all duration-200 ${theme === 'dark' 
+                              ? 'bg-white/[0.08] group-hover:bg-white/[0.12]' 
+                              : 'bg-black/[0.04] group-hover:bg-black/[0.06]'
+                            }`}>
+                              <item.icon className={`w-7 h-7 ${theme === 'dark' ? 'text-white/90' : 'text-black/90'}`} />
                             </div>
-                            <span className={`text-[15px] font-medium tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <span className={`text-[15px] font-medium tracking-[-0.011em] ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                               {item.label}
                             </span>
                             </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {!hasValue && (
-                              <div className={`w-1.5 h-1.5 rounded-full ${theme === 'dark' ? 'bg-yellow-400' : 'bg-yellow-500'}`} />
+                              <div className={`w-1.5 h-1.5 rounded-full ${theme === 'dark' ? 'bg-yellow-400/80' : 'bg-yellow-500/80'}`} />
                             )}
-                            <span className={`text-[13px] font-medium whitespace-nowrap ${hasValue 
-                              ? (theme === 'dark' ? 'text-gray-400' : 'text-gray-600')
-                              : (theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600')
+                            <span className={`text-[13px] font-medium tracking-[-0.006em] whitespace-nowrap ${hasValue 
+                              ? (theme === 'dark' ? 'text-gray-400' : 'text-gray-500')
+                              : (theme === 'dark' ? 'text-yellow-400/90' : 'text-yellow-600/90')
                             }`}>
                               {displayValue}
                             </span>
@@ -2242,9 +2253,16 @@ const ProfileScreen: React.FC = () => {
 
                 {/* Fantasies Section */}
                 <div>
-                  <h2 className={`text-2xl font-bold mb-5 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                    Fantasies
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className={`text-[22px] font-bold tracking-[-0.022em] leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                      Fantasies
+                    </h2>
+                    {user.fantasies && user.fantasies.length > 0 && (
+                      <span className={`text-[13px] font-semibold ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                        {user.fantasies.length}
+                      </span>
+                    )}
+                  </div>
                   {user.fantasies && user.fantasies.length > 0 ? (
                     (() => {
                       // Group fantasies by category
@@ -2266,17 +2284,17 @@ const ProfileScreen: React.FC = () => {
                             return (
                               <div 
                                 key={categoryId} 
-                                className={`rounded-2xl overflow-hidden ${theme === 'dark' 
-                                  ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
-                                  : 'bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-sm'
+                                className={`rounded-[18px] overflow-hidden ${theme === 'dark' 
+                                  ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 backdrop-blur-xl border border-white/[0.06]' 
+                                  : 'bg-white backdrop-blur-xl border border-black/[0.06]'
                                 }`}
                               >
-                                <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                                  <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <div className={`px-4 py-2.5 border-b ${theme === 'dark' ? 'border-white/[0.06]' : 'border-black/[0.04]'}`}>
+                                  <h3 className={`text-[11px] font-bold uppercase tracking-[0.08em] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                                     {categoryName}
                                   </h3>
                                 </div>
-                                <div className="p-4 flex flex-wrap gap-2">
+                                <div className="p-3.5 flex flex-wrap gap-2">
                                   {categoryFantasies.map((f) => {
                                     const translation = f.fantasy?.translations?.find(t => t.language === defaultLanguage) ||
                                                        f.fantasy?.translations?.find(t => t.language === 'en') ||
@@ -2285,9 +2303,9 @@ const ProfileScreen: React.FC = () => {
                                     return (
                         <span
                                         key={f.id || f.fantasy_id}
-                                        className={`px-3 py-1.5 text-[13px] font-medium rounded-full transition-all ${theme === 'dark'
-                                            ? 'bg-white/10 text-gray-200 hover:bg-white/15'
-                                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200/70'
+                                        className={`px-4 py-2 text-[14px] font-medium tracking-[-0.006em] rounded-full transition-all duration-200 cursor-default ${theme === 'dark'
+                                            ? 'bg-white/[0.08] text-gray-200 hover:bg-white/[0.12] active:scale-[0.98]'
+                                            : 'bg-black/[0.04] text-gray-800 hover:bg-black/[0.06] active:scale-[0.98]'
                                           }`}
                                       >
                                         {label}
@@ -2302,20 +2320,38 @@ const ProfileScreen: React.FC = () => {
                       );
                     })()
                   ) : (
-                    <div className={`text-center py-12 rounded-2xl ${theme === 'dark' 
-                      ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
-                      : 'bg-white/90 backdrop-blur-xl border border-gray-200/50'
+                    <div className={`text-center py-16 rounded-[18px] ${theme === 'dark' 
+                      ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 backdrop-blur-xl border border-white/[0.06]' 
+                      : 'bg-white/95 backdrop-blur-xl border border-black/[0.06]'
                     }`}>
-                      <p className={`text-[15px] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No fantasies added</p>
+                      <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${theme === 'dark' ? 'bg-white/[0.08]' : 'bg-black/[0.04]'}`}>
+                        <Sparkles className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                      </div>
+                      <p className={`text-[15px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No fantasies added</p>
                     </div>
                   )}
                 </div>
 
                 {/* Interests Section */}
                 <div>
-                  <h2 className={`text-2xl font-bold mb-5 tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                    Interests
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className={`text-[22px] font-bold tracking-[-0.022em] leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                      Interests
+                    </h2>
+                  {(() => {
+                      const interestsSource = (isOwnProfile && isAuthenticated && authUser && (authUser as any).interests) 
+                        ? (authUser as any).interests 
+                        : user?.interests;
+                      if (interestsSource && interestsSource.length > 0) {
+                        return (
+                          <span className={`text-[13px] font-semibold ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                            {interestsSource.length}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
                   {(() => {
                     // Use authUser.interests if viewing own profile, otherwise use user.interests
                     const interestsSource = (isOwnProfile && isAuthenticated && authUser && (authUser as any).interests) 
@@ -2324,11 +2360,14 @@ const ProfileScreen: React.FC = () => {
                     
                     if (!interestsSource || interestsSource.length === 0) {
                       return (
-                        <div className={`text-center py-12 rounded-2xl ${theme === 'dark' 
-                          ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
-                          : 'bg-white/90 backdrop-blur-xl border border-gray-200/50'
+                        <div className={`text-center py-16 rounded-[18px] ${theme === 'dark' 
+                          ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 backdrop-blur-xl border border-white/[0.06]' 
+                          : 'bg-white/95 backdrop-blur-xl border border-black/[0.06]'
                         }`}>
-                          <p className={`text-[15px] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No interests added</p>
+                          <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${theme === 'dark' ? 'bg-white/[0.08]' : 'bg-black/[0.04]'}`}>
+                            <Heart className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                          </div>
+                          <p className={`text-[15px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No interests added</p>
                         </div>
                       );
                     }
@@ -2397,26 +2436,26 @@ const ProfileScreen: React.FC = () => {
                           return (
                             <div 
                               key={categoryId} 
-                              className={`rounded-2xl overflow-hidden ${theme === 'dark' 
-                                ? 'bg-gradient-to-br from-gray-900/90 to-gray-900/50 backdrop-blur-xl border border-white/5' 
-                                : 'bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-sm'
+                              className={`rounded-[18px] overflow-hidden ${theme === 'dark' 
+                                ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 backdrop-blur-xl border border-white/[0.06]' 
+                                : 'bg-white backdrop-blur-xl border border-black/[0.06]'
                               }`}
                             >
-                              <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                                <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                              <div className={`px-4 py-2.5 border-b ${theme === 'dark' ? 'border-white/[0.06]' : 'border-black/[0.04]'}`}>
+                                <h3 className={`text-[11px] font-bold uppercase tracking-[0.08em] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                                   {categoryName}
                                 </h3>
                               </div>
-                              <div className="p-4 flex flex-wrap gap-2">
+                              <div className="p-3.5 flex flex-wrap gap-2">
                                 {categoryInterests.map((item) => (
                           <span
                                     key={item.id}
-                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-full transition-all ${theme === 'dark'
-                                        ? 'bg-white/10 text-gray-200 hover:bg-white/15'
-                                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200/70'
+                                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium tracking-[-0.006em] rounded-full transition-all duration-200 cursor-default ${theme === 'dark'
+                                        ? 'bg-white/[0.08] text-gray-200 hover:bg-white/[0.12] active:scale-[0.98]'
+                                        : 'bg-black/[0.04] text-gray-800 hover:bg-black/[0.06] active:scale-[0.98]'
                                       }`}
                                   >
-                                    {item.emoji && <span className="text-sm">{item.emoji}</span>}
+                                    {item.emoji && <span className="text-[15px] leading-none">{item.emoji}</span>}
                                     <span>{item.name}</span>
                           </span>
                         ))}
