@@ -13,6 +13,7 @@ const Stories: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
   const [itemWidth, setItemWidth] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const stories = [
     { id: 1, name: 'Your Story', avatar: null, cover: null, isOwn: true },
@@ -37,25 +38,24 @@ const Stories: React.FC = () => {
   // Calculate drag constraints for scrollable stories
   useEffect(() => {
     const calculateConstraints = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
+      if (scrollContainerRef.current) {
+        const scrollContainer = scrollContainerRef.current;
+        const containerWidth = scrollContainer.offsetWidth;
         const cardWidth = 120;
         const gap = 12;
-        const totalWidth = (cardWidth + gap) * otherStories.length;
-        const maxDrag = totalWidth - containerWidth + 120; // 120px for "Your Story" width
+        const contentWidth = (cardWidth + gap) * otherStories.length - gap; // subtract last gap
+        const maxDrag = Math.max(0, contentWidth - containerWidth);
         
-        if (maxDrag > 0) {
-          setItemWidth(maxDrag);
-        } else {
-          setItemWidth(0);
-        }
+        setItemWidth(maxDrag);
       }
     };
 
-    calculateConstraints();
+    // Delay to ensure DOM is ready
+    const timer = setTimeout(calculateConstraints, 100);
     window.addEventListener('resize', calculateConstraints);
     
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('resize', calculateConstraints);
     };
   }, [otherStories.length]);
@@ -169,7 +169,7 @@ const Stories: React.FC = () => {
         )}
 
         {/* Scrollable Other Stories Container */}
-        <div className="flex-1 overflow-hidden relative ml-3">
+        <div className="flex-1 overflow-hidden relative ml-3" ref={scrollContainerRef}>
           <motion.div 
             className="flex space-x-3 cursor-grab active:cursor-grabbing"
             drag="x"
