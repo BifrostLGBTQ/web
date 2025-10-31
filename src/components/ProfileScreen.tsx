@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Edit2, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useApp } from '../contexts/AppContext';
@@ -1158,9 +1158,9 @@ const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <div className={`scrollbar-hide max-h-[100dvh]  overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
+    <div className={`scrollbar-hide max-h-[100dvh] overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       {/* Header */}
-      <div ref={headerRef} className={`sticky top-0 z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+      <div ref={headerRef} className={`sticky top-0 z-30 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
         <div className="flex items-center px-4 py-3">
           {isEditMode ? (
             <>
@@ -1180,31 +1180,31 @@ const ProfileScreen: React.FC = () => {
             </>
           ) : (
             <>
-              <button
-                onClick={handleBackClick}
-                className={`p-2 rounded-full transition-all duration-200 mr-3 ${theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                  }`}
-              >
-                <ArrowLeft className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
-              </button>
-              <div className="flex-1">
-                <h1 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  {user.displayname}
-                </h1>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {user.posts_count} posts
-                </p>
-              </div>
-              <button className={`p-2 rounded-full transition-colors ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                }`}>
-                <MoreHorizontal className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-              </button>
+          <button
+            onClick={handleBackClick}
+            className={`p-2 rounded-full transition-all duration-200 mr-3 ${theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+              }`}
+          >
+            <ArrowLeft className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+          </button>
+          <div className="flex-1">
+            <h1 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {user.displayname}
+            </h1>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              {user.posts_count} posts
+            </p>
+          </div>
+          <button className={`p-2 rounded-full transition-colors ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+            }`}>
+            <MoreHorizontal className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
             </>
           )}
         </div>
       </div>
 
-      <div className="scrollbar-hide max-h-[100dvh] min-h-[100dvh]  overflow-y-auto max-w-[1380px] mx-auto">
+      <div className="max-w-[1380px] mx-auto">
         {isEditMode ? (
           // Edit Profile View
           <main className={`flex-1 w-full min-w-0 ${theme === 'dark' ? 'border-x border-black' : 'border-x border-gray-100'}`}>
@@ -1318,7 +1318,7 @@ const ProfileScreen: React.FC = () => {
                   </div>
 
                   {/* Edit Tabs */}
-                  <div className={`sticky z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: '57px' }}>
+                  <div className={`sticky z-20 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: `${headerHeight}px` }}>
                     <div className={`flex px-4 sm:px-6`}>
                       {[
                         { id: 'profile', label: t('profile.profile_info') || 'Profile Info' },
@@ -2016,10 +2016,10 @@ const ProfileScreen: React.FC = () => {
           </main>
         ) : (
           // Profile View
-          <main className={`flex-1 w-full min-w-0 ${theme === 'dark' ? 'border-x border-black' : 'border-x border-gray-100'}`}>
+        <main className={`flex-1 w-full min-w-0 ${theme === 'dark' ? 'border-x border-black' : 'border-x border-gray-100'}`}>
 
           {/* Cover Photo */}
-          <div className={`h-48 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
+          <div className={`h-48 relative ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
             {getCoverImageUrl() ? (
               <img
                 src={getCoverImageUrl() || ''}
@@ -2032,107 +2032,113 @@ const ProfileScreen: React.FC = () => {
           </div>
 
           {/* Profile Info */}
-          <div className="relative px-4">
-            <div className="flex items-start justify-between">
+          <div className="px-4">
+            {/* Profile Picture & Edit Button Row */}
+            <div className="flex items-end justify-between -mt-16 mb-3 relative">
               {/* Profile Picture */}
-              <div className="relative -mt-16">
-                <div className={`w-28 h-28 rounded-full border-4 ${theme === 'dark' ? 'border-black' : 'border-white'}`}>
+              <div className={`relative w-32 h-32 rounded-full border-4 ${theme === 'dark' ? 'border-black' : 'border-white'} ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'} z-10`}>
                   <img
-                    src={getProfileImageUrl() || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
+                  src={getProfileImageUrl() || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
                     alt={user.displayname}
                     className="w-full h-full rounded-full object-cover"
                   />
-                </div>
               </div>
 
-              {/* Follow Button or Edit Button */}
-              {!isEditMode && (
-                isOwnProfile ? (
+              {/* Action Button */}
+              {isOwnProfile ? (
+                <button
+                  onClick={() => setIsEditMode(true)}
+                  className={`px-4 py-1.5 rounded-full font-bold text-sm transition-colors border relative z-10 ${theme === 'dark'
+                      ? 'border-gray-700 hover:bg-gray-900'
+                      : 'border-gray-300 hover:bg-gray-50'
+                    }`}
+                >
+                  Edit profile
+                </button>
+              ) : (
+                <div className="flex gap-2 relative z-10">
+              <button
+                onClick={handleFollowClick}
+                    className={`px-4 py-1.5 rounded-full font-bold text-sm transition-colors ${isFollowing
+                        ? `border ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-900' : 'border-gray-300 hover:bg-gray-50'}`
+                    : theme === 'dark'
+                      ? 'bg-white text-black hover:bg-gray-200'
+                      : 'bg-black text-white hover:bg-gray-900'
+                  }`}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
                   <button
-                    onClick={() => setIsEditMode(true)}
-                    className={`px-6 py-2 -mt-12 rounded-full font-bold transition-all duration-200 flex items-center gap-2 ${theme === 'dark'
-                        ? 'bg-white text-black hover:bg-gray-200'
-                        : 'bg-black text-white hover:bg-gray-900'
+                    className={`px-2 py-1.5 rounded-full transition-colors border ${theme === 'dark'
+                        ? 'border-gray-700 hover:bg-gray-900'
+                        : 'border-gray-300 hover:bg-gray-50'
                       }`}
                   >
-                    <Edit2 className="w-4 h-4" />
-                    {t('profile.edit_profile')}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleFollowClick}
-                    className={`px-6 py-2 -mt-12 rounded-full font-bold transition-all duration-200 ${isFollowing
-                        ? theme === 'dark'
-                          ? 'bg-gray-800 text-white border border-gray-700 hover:bg-gray-700'
-                          : 'bg-gray-100 text-gray-900 border border-gray-300 hover:bg-gray-200'
-                        : theme === 'dark'
-                          ? 'bg-white text-black hover:bg-gray-200'
-                          : 'bg-black text-white hover:bg-gray-900'
-                      }`}
-                  >
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </button>
-                )
+                    <MoreHorizontal className="w-5 h-5" />
+              </button>
+                </div>
               )}
             </div>
 
             {/* User Info */}
-            <div className="mt-3 mb-3">
-              <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <div className="mb-3">
+              <h2 className={`text-xl font-bold leading-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 {user.displayname}
               </h2>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
                 @{user.username}
               </p>
             </div>
 
             {/* Bio */}
             {user.bio && (
-              <p className={`mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-sm mb-3 leading-relaxed ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 {user.bio}
               </p>
             )}
 
-            {/* Additional Info */}
-            <div className="space-y-1 mb-3">
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-sm">
               {user.location && (
-                <div className={`flex items-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {user.location}
+                <div className={`flex items-center ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span>{user.location}</span>
                 </div>
               )}
               {user.website && (
-                <div className={`flex items-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <Link className="w-4 h-4 mr-2" />
+                <div className={`flex items-center ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                  <Link className="w-4 h-4 mr-1" />
                   <a href={user.website} className="hover:underline" target="_blank" rel="noopener noreferrer">
-                    {user.website}
+                    {user.website.replace(/^https?:\/\//, '')}
                   </a>
                 </div>
               )}
-              <div className={`flex items-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                <Calendar className="w-4 h-4 mr-2" />
-                {formatJoinDate(user.created_at)}
+              <div className={`flex items-center ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                <Calendar className="w-4 h-4 mr-1" />
+                <span>{formatJoinDate(user.created_at)}</span>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="flex space-x-4 mb-3">
-              <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  {user.following_count}
-                </span> Following
-              </div>
-              <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  {user.followers_count}
-                </span> Followers
-              </div>
+            <div className="flex gap-5 mb-4">
+              <button className={`text-sm hover:underline ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                  {user.following_count?.toLocaleString()}
+                </span>
+                <span className="ml-1">Following</span>
+              </button>
+              <button className={`text-sm hover:underline ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                  {user.followers_count?.toLocaleString()}
+                </span>
+                <span className="ml-1">Followers</span>
+              </button>
             </div>
           </div>
 
           {/* Tabs - Sticky */}
-          <div className={`sticky z-10 ${theme === 'dark' ? 'bg-black' : 'bg-white'}`} style={{ top: `${headerHeight}px` }}>
-            <div className={`flex border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+          <div className={`sticky z-20 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: `${headerHeight}px` }}>
+            <div className={`flex`}>
               {[
                 { id: 'profile', label: 'Profile' },
                 { id: 'posts', label: 'Posts' },
@@ -2143,17 +2149,17 @@ const ProfileScreen: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex-1 py-4 font-semibold text-sm relative transition-all duration-200 ${activeTab === tab.id
+                  className={`flex-1 py-4 font-bold text-sm relative transition-colors ${activeTab === tab.id
                       ? theme === 'dark' ? 'text-white' : 'text-black'
-                      : theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                      : theme === 'dark' ? 'text-gray-500' : 'text-gray-600'
                     }`}
                 >
                   {tab.label}
                   {activeTab === tab.id && (
                     <motion.div
-                      className={`absolute bottom-0 left-0 right-0 h-1 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                      className={`absolute bottom-0 left-0 right-0 h-1 rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
                       layoutId="activeTabIndicator"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
                 </button>
@@ -2200,10 +2206,10 @@ const ProfileScreen: React.FC = () => {
                           
                           return (
                             <div key={item.field} className={`flex items-center justify-between gap-3 rounded-xl px-3 py-3 ${theme === 'dark' ? 'bg-gray-950/50 border border-gray-900' : 'bg-gray-50 border border-gray-200'}`}>
-                              <div className="flex items-center gap-3 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
                                 <item.icon className={`w-7 h-7 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
                                 <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.label}</span>
-                              </div>
+                            </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 {!hasValue && (
                                   <AlertTriangle className={`w-4 h-4 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />
@@ -2214,8 +2220,8 @@ const ProfileScreen: React.FC = () => {
                                 }`}>
                                   {displayValue}
                                 </span>
-                              </div>
                             </div>
+                          </div>
                           );
                         })}
                       </div>
@@ -2234,15 +2240,15 @@ const ProfileScreen: React.FC = () => {
                                            f.fantasy?.translations?.[0];
                         const label = translation?.label || `Fantasy ${f.fantasy_id || f.id}`;
                         return (
-                          <span
+                        <span
                             key={f.id || f.fantasy_id}
-                            className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
-                                ? 'border-gray-800 bg-gray-900 text-gray-200'
-                                : 'border-gray-200 bg-gray-50 text-gray-800'
-                              }`}
-                          >
+                          className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
+                              ? 'border-gray-800 bg-gray-900 text-gray-200'
+                              : 'border-gray-200 bg-gray-50 text-gray-800'
+                            }`}
+                        >
                             {label}
-                          </span>
+                        </span>
                         );
                       })}
                     </div>
@@ -2278,19 +2284,19 @@ const ProfileScreen: React.FC = () => {
                         };
                       } else if (typeof interest === 'number') {
                         // Legacy format: number
-                        const interestNameById: Record<number, string> = {
-                          247: '3D printing',
-                          175: 'Acting',
-                          21: 'Action films',
-                          253: 'Adventure',
-                          125: 'Afrobeats',
-                          88: 'Animal lover',
-                          228: 'Badminton',
-                          229: 'Graduate degree or higher',
-                          221: 'Exercising',
-                          136: 'Sci-fi books',
-                          25: 'Sci-fi films',
-                        };
+                    const interestNameById: Record<number, string> = {
+                      247: '3D printing',
+                      175: 'Acting',
+                      21: 'Action films',
+                      253: 'Adventure',
+                      125: 'Afrobeats',
+                      88: 'Animal lover',
+                      228: 'Badminton',
+                      229: 'Graduate degree or higher',
+                      221: 'Exercising',
+                      136: 'Sci-fi books',
+                      25: 'Sci-fi films',
+                    };
                         return {
                           id: String(interest),
                           name: interestNameById[interest] || `Interest #${interest}`,
@@ -2356,7 +2362,7 @@ const ProfileScreen: React.FC = () => {
               )}
             </div>
           </div>
-          </main>
+        </main>
         )}
       </div>
 
