@@ -168,6 +168,8 @@ const ProfileScreen: React.FC = () => {
   const [uploadingCoverImage, setUploadingCoverImage] = useState(false);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
   const coverImageInputRef = useRef<HTMLInputElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(57);
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [attributeView, setAttributeView] = useState<'list' | 'detail'>('list');
   const [updatingAttributes, setUpdatingAttributes] = useState<Record<string, boolean>>({});
@@ -974,6 +976,22 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
+  // Measure header height for sticky tabs
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight;
+        setHeaderHeight(height);
+      }
+    };
+    
+    updateHeaderHeight();
+    
+    // Update on resize
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => window.removeEventListener('resize', updateHeaderHeight);
+  }, [user, isEditMode]);
+
   // Mock user data for now
   useEffect(() => {
     const fetchUserData = async () => {
@@ -1142,7 +1160,7 @@ const ProfileScreen: React.FC = () => {
   return (
     <div className={`scrollbar-hide max-h-[100dvh]  overflow-y-auto ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
       {/* Header */}
-      <div className={`sticky top-0 z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+      <div ref={headerRef} className={`sticky top-0 z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
         <div className="flex items-center px-4 py-3">
           {isEditMode ? (
             <>
@@ -2113,7 +2131,7 @@ const ProfileScreen: React.FC = () => {
           </div>
 
           {/* Tabs - Sticky */}
-          <div className={`sticky ${theme === 'dark' ? 'bg-black' : 'bg-white'}`} style={{ top: '73px', zIndex: 10 }}>
+          <div className={`sticky z-10 ${theme === 'dark' ? 'bg-black' : 'bg-white'}`} style={{ top: `${headerHeight}px` }}>
             <div className={`flex border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
               {[
                 { id: 'profile', label: 'Profile' },
