@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Languages, Ruler, PawPrint, Church, GraduationCap, VenusAndMars, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Edit2, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Edit2, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useApp } from '../contexts/AppContext';
@@ -33,8 +33,38 @@ interface User {
   default_language: string;
   languages: string[] | null;
   languages_display?: string;
-  fantasies: string[]; // labels of selected fantasies
-  interests?: number[] | string[]; // interest ids (from README) or labels
+  fantasies?: Array<{
+    id: string;
+    user_id: string;
+    fantasy_id: string;
+    notes?: string;
+    fantasy?: {
+      id: string;
+      category: string;
+      translations?: Array<{
+        id: string;
+        fantasy_id: string;
+        language: string;
+        label: string;
+        description?: string;
+      }>;
+    };
+  }>;
+  interests?: Array<{
+    id: string;
+    user_id: string;
+    interest_item_id: string;
+    interest_item?: {
+      id: string;
+      interest_id: string;
+      name: Record<string, string>;
+      emoji?: string;
+      interest?: {
+        id: string;
+        name: Record<string, string>;
+      };
+    };
+  }>;
   height_cm?: number;
   weight_kg?: number;
   hair_color?: string;
@@ -144,8 +174,49 @@ const ProfileScreen: React.FC = () => {
   const [editTab, setEditTab] = useState<'profile' | 'attributes' | 'interests' | 'fantasies'>('profile');
   const isEditModeRef = useRef(false);
   
+  // Interests state
+  const [interestView, setInterestView] = useState<'list' | 'detail'>('list');
+  const [selectedInterestCategory, setSelectedInterestCategory] = useState<string | null>(null);
+  const [updatingInterests, setUpdatingInterests] = useState(false);
+  
+  // Fantasies state
+  const [fantasyView, setFantasyView] = useState<'list' | 'detail'>('list');
+  const [selectedFantasyCategory, setSelectedFantasyCategory] = useState<string | null>(null);
+  const [updatingFantasies, setUpdatingFantasies] = useState(false);
+  
   // Check if viewing own profile
   const isOwnProfile = isAuthenticated && authUser && user && (authUser.username === user.username || authUser.id === user.id);
+  
+  // Helper functions to get image URLs - prefer authUser if viewing own profile
+  const getProfileImageUrl = () => {
+    // If viewing own profile and authUser has avatar, use it
+    if (isOwnProfile && authUser && (authUser as any).avatar?.file?.url) {
+      return (authUser as any).avatar.file.url;
+    }
+    // Fallback to user state or authUser's profile_image_url
+    if (user?.profile_image_url) {
+      return user.profile_image_url;
+    }
+    if (authUser && (authUser as any).profile_image_url) {
+      return (authUser as any).profile_image_url;
+    }
+    return undefined;
+  };
+  
+  const getCoverImageUrl = () => {
+    // If viewing own profile and authUser has cover, use it
+    if (isOwnProfile && authUser && (authUser as any).cover?.file?.url) {
+      return (authUser as any).cover.file.url;
+    }
+    // Fallback to user state or authUser's cover_image_url
+    if (user?.cover_image_url) {
+      return user.cover_image_url;
+    }
+    if (authUser && (authUser as any).cover_image_url) {
+      return (authUser as any).cover_image_url;
+    }
+    return undefined;
+  };
 
   // Build fieldOptions from API data
   const fieldOptions: Record<string, Array<{ id: string; name: string; display_order: number }>> = {};
@@ -160,6 +231,163 @@ const ProfileScreen: React.FC = () => {
       }));
     });
   }
+
+  // Build interestOptions from API data
+  const interestOptions: Record<string, Array<{ id: string; name: string; emoji?: string; interest_id: string }>> = {};
+  const interestCategories: Array<{ id: string; name: string }> = [];
+  
+  if (appData?.interests) {
+    appData.interests.forEach((interest) => {
+      const categoryName = interest.name[defaultLanguage] || interest.name.en || Object.values(interest.name)[0] || '';
+      interestCategories.push({
+        id: interest.id,
+        name: categoryName,
+      });
+      
+      interestOptions[interest.id] = (interest.items || []).map(item => ({
+        id: item.id,
+        name: item.name[defaultLanguage] || item.name.en || Object.values(item.name)[0] || '',
+        emoji: item.emoji,
+        interest_id: item.interest_id,
+      }));
+    });
+  }
+
+  // Get user's selected interests (as array of item IDs)
+  // Use authUser if viewing own profile, otherwise use user
+  const userSelectedInterestIds = React.useMemo(() => {
+    const interestsSource = (isEditMode && isAuthenticated && isOwnProfile && authUser) ? (authUser as any).interests : user?.interests;
+    if (!interestsSource) return [];
+    // Handle both formats: array of objects (from API) or array of strings/numbers (legacy)
+    return interestsSource.map((i: any) => {
+      if (typeof i === 'object' && i !== null) {
+        // New format: object with interest_item_id or interest_item.id
+        return String(i.interest_item_id || i.interest_item?.id || i.id);
+      }
+      // Legacy format: string or number
+      return String(i);
+    });
+  }, [user?.interests, authUser, isEditMode, isAuthenticated, isOwnProfile]);
+
+  // Get selected interest items grouped by category for display in category list
+  // Use authUser if viewing own profile, otherwise use user
+  const userSelectedInterestsByCategory = React.useMemo(() => {
+    const interestsSource = (isEditMode && isAuthenticated && isOwnProfile && authUser) ? (authUser as any).interests : user?.interests;
+    if (!interestsSource || !appData?.interests) return {};
+    const grouped: Record<string, Array<{ id: string; name: string; emoji?: string }>> = {};
+    
+    interestsSource.forEach((userInterest: any) => {
+      if (typeof userInterest === 'object' && userInterest !== null) {
+        const interestItem = userInterest.interest_item;
+        if (interestItem) {
+          const categoryId = interestItem.interest_id || interestItem.interest?.id;
+          if (categoryId) {
+            if (!grouped[categoryId]) {
+              grouped[categoryId] = [];
+            }
+            const itemName = interestItem.name[defaultLanguage] || 
+                           interestItem.name.en || 
+                           Object.values(interestItem.name)[0] || '';
+            grouped[categoryId].push({
+              id: interestItem.id || String(userInterest.interest_item_id),
+              name: itemName,
+              emoji: interestItem.emoji,
+            });
+          }
+        }
+      }
+    });
+    
+    return grouped;
+  }, [user?.interests, authUser, isEditMode, isAuthenticated, isOwnProfile, appData?.interests, defaultLanguage]);
+
+  // Build fantasyOptions and fantasyCategories from API data
+  const fantasyOptions: Record<string, Array<{ id: string; name: string; description: string }>> = {};
+  const fantasyCategories: Array<{ id: string; name: string }> = [];
+  
+  // Category name translations
+  const fantasyCategoryNames: Record<string, Record<string, string>> = {
+    joy_or_tabu: { en: 'Joy or Taboo', tr: 'Zevk veya Tabu' },
+    sexual_adventure: { en: 'Sexual Adventure', tr: 'Cinsel Macera' },
+    physical_pref: { en: 'Physical Preference', tr: 'Fiziksel Tercih' },
+    sexual_pref: { en: 'Sexual Preference', tr: 'Cinsel Tercih' },
+    amusement: { en: 'Amusement', tr: 'Eğlence' },
+  };
+  
+  if (appData?.fantasies) {
+    // Group fantasies by category
+    const fantasiesByCategory: Record<string, typeof appData.fantasies> = {};
+    appData.fantasies.forEach((fantasy) => {
+      if (!fantasiesByCategory[fantasy.category]) {
+        fantasiesByCategory[fantasy.category] = [];
+      }
+      fantasiesByCategory[fantasy.category].push(fantasy);
+    });
+    
+    // Build categories and options
+    Object.keys(fantasiesByCategory).forEach((categoryId) => {
+      const categoryName = fantasyCategoryNames[categoryId]?.[defaultLanguage] || 
+                          fantasyCategoryNames[categoryId]?.en || 
+                          categoryId;
+      fantasyCategories.push({
+        id: categoryId,
+        name: categoryName,
+      });
+      
+      fantasyOptions[categoryId] = fantasiesByCategory[categoryId].map((fantasy) => {
+        const translation = fantasy.translations?.find(t => t.language === defaultLanguage) ||
+                           fantasy.translations?.find(t => t.language === 'en') ||
+                           fantasy.translations?.[0];
+        return {
+          id: fantasy.id,
+          name: translation?.label || '',
+          description: translation?.description || '',
+        };
+      });
+    });
+  }
+
+  // Get user's selected fantasies (as array of fantasy IDs)
+  // Use authUser if viewing own profile in edit mode, otherwise use user
+  const userSelectedFantasyIds = React.useMemo(() => {
+    const fantasiesSource = (isEditMode && isAuthenticated && isOwnProfile && authUser) ? (authUser as any).fantasies : user?.fantasies;
+    if (!fantasiesSource) return [];
+    return fantasiesSource.map((f: any) => f.fantasy_id || f.id);
+  }, [user?.fantasies, authUser, isEditMode, isAuthenticated, isOwnProfile]);
+
+  // Get selected fantasy items grouped by category for display in category list
+  // Use authUser if viewing own profile in edit mode, otherwise use user
+  const userSelectedFantasiesByCategory = React.useMemo(() => {
+    const fantasiesSource = (isEditMode && isAuthenticated && isOwnProfile && authUser) ? (authUser as any).fantasies : user?.fantasies;
+    if (!fantasiesSource || !appData?.fantasies) return {};
+    const grouped: Record<string, Array<{ id: string; name: string }>> = {};
+    
+    fantasiesSource.forEach((userFantasy: any) => {
+      if (typeof userFantasy === 'object' && userFantasy !== null) {
+        const fantasyId = userFantasy.fantasy_id || userFantasy.id;
+        if (fantasyId) {
+          // Find the fantasy in appData to get its category
+          const fantasy = appData.fantasies.find(f => f.id === fantasyId);
+          if (fantasy) {
+            const categoryId = fantasy.category;
+            if (!grouped[categoryId]) {
+              grouped[categoryId] = [];
+            }
+            const translation = fantasy.translations?.find(t => t.language === defaultLanguage) ||
+                               fantasy.translations?.find(t => t.language === 'en') ||
+                               fantasy.translations?.[0];
+            const fantasyName = translation?.label || '';
+            grouped[categoryId].push({
+              id: fantasyId,
+              name: fantasyName,
+            });
+          }
+        }
+      }
+    });
+    
+    return grouped;
+  }, [user?.fantasies, authUser, isEditMode, isAuthenticated, isOwnProfile, appData?.fantasies, defaultLanguage]);
 
   // Field labels for display
   const fieldLabels: Record<string, string> = {
@@ -286,6 +514,276 @@ const ProfileScreen: React.FC = () => {
     setAttributeView('detail');
   };
 
+  const handleInterestCategoryClick = (categoryId: string) => {
+    setSelectedInterestCategory(categoryId);
+    setInterestView('detail');
+  };
+
+  const handleInterestItemToggle = async (itemId: string) => {
+    const currentSelected = userSelectedInterestIds || [];
+    const isSelected = currentSelected.includes(itemId);
+    
+    setUpdatingInterests(true);
+    setError(null); // Clear previous errors
+    
+    // Optimistically update UI
+    const newSelected = isSelected
+      ? currentSelected.filter((id: string) => id !== itemId)
+      : [...currentSelected, itemId];
+    
+    // Update local state immediately for better UX
+    if (user) {
+      // Update interests - maintain object structure if it exists, otherwise create new format
+      const currentInterests = user.interests || [];
+      let updatedInterests: typeof currentInterests;
+      
+      if (isSelected) {
+        // Remove interest
+        updatedInterests = currentInterests.filter((interest: any) => {
+          if (typeof interest === 'object' && interest !== null) {
+            return String(interest.interest_item_id || interest.interest_item?.id || interest.id) !== itemId;
+          }
+          return String(interest) !== itemId;
+        });
+      } else {
+        // Add interest - find the item from appData to create proper structure
+        const interestItem = Object.values(interestOptions).flat().find(item => item.id === itemId);
+        if (interestItem) {
+          // Find the category this item belongs to
+          const category = interestCategories.find(cat => 
+            interestOptions[cat.id]?.some(item => item.id === itemId)
+          );
+          
+          if (category) {
+            const newInterest = {
+              id: `temp-${Date.now()}`,
+              user_id: user.id,
+              interest_item_id: itemId,
+              interest_item: {
+                id: itemId,
+                interest_id: category.id,
+                name: { [defaultLanguage]: interestItem.name } as Record<string, string>,
+                emoji: interestItem.emoji,
+                interest: {
+                  id: category.id,
+                  name: { [defaultLanguage]: category.name } as Record<string, string>,
+                },
+              },
+            };
+            updatedInterests = [...currentInterests, newInterest as any];
+          } else {
+            updatedInterests = currentInterests;
+          }
+        } else {
+          updatedInterests = currentInterests;
+        }
+      }
+      
+      setUser({
+        ...user,
+        interests: updatedInterests,
+      });
+    }
+    
+    try {
+      // Update via API using CMD_USER_UPDATE_INTEREST
+      const response = await api.call(Actions.CMD_USER_UPDATE_INTEREST, {
+        method: "POST",
+        body: { interest_id: itemId },
+      });
+      
+      // Update auth context - use response if available, otherwise use local state
+      if (isAuthenticated && authUser) {
+        if (response?.user) {
+          updateUser(response.user);
+          // Update local user state from response
+          if (user && (authUser.id === user.id || authUser.username === user.username)) {
+            setUser(response.user as unknown as User);
+          }
+        } else if (user && (authUser.id === user.id || authUser.username === user.username)) {
+          // Fallback to local state update
+          updateUser({
+            ...authUser,
+            interests: newSelected,
+          } as any);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error updating interests:', err);
+      
+      // Revert optimistic update on error
+      if (user) {
+        // Revert to previous interests state (before the change)
+        // We need to restore the original interests array
+        // For now, just refresh from authUser if available
+        if (isAuthenticated && authUser && (authUser as any).interests) {
+          setUser({
+            ...user,
+            interests: (authUser as any).interests,
+          });
+        } else {
+          // Fallback: remove the last added item if we added, or re-add if we removed
+          const currentInterests = user.interests || [];
+          if (isSelected) {
+            // We removed it, so re-add it
+            const interestItem = Object.values(interestOptions).flat().find(item => item.id === itemId);
+            if (interestItem) {
+              const category = interestCategories.find(cat => 
+                interestOptions[cat.id]?.some(item => item.id === itemId)
+              );
+              if (category) {
+                const restoredInterest = {
+                  id: `temp-${Date.now()}`,
+                  user_id: user.id,
+                  interest_item_id: itemId,
+                  interest_item: {
+                    id: itemId,
+                    interest_id: category.id,
+                    name: { [defaultLanguage]: interestItem.name } as Record<string, string>,
+                    emoji: interestItem.emoji,
+                    interest: {
+                      id: category.id,
+                      name: { [defaultLanguage]: category.name } as Record<string, string>,
+                    },
+                  },
+                };
+                setUser({
+                  ...user,
+                  interests: [...currentInterests, restoredInterest as any],
+                });
+              }
+            }
+          } else {
+            // We added it, so remove it
+            setUser({
+              ...user,
+              interests: currentInterests.filter((interest: any) => {
+                if (typeof interest === 'object' && interest !== null) {
+                  return String(interest.interest_item_id || interest.interest_item?.id || interest.id) !== itemId;
+                }
+                return String(interest) !== itemId;
+              }),
+            });
+          }
+        }
+      }
+      
+      // Set error message - will be displayed in the error section (doesn't cause screen to disappear)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update interests';
+      setError(errorMessage);
+    } finally {
+      setUpdatingInterests(false);
+    }
+  };
+
+  const handleFantasyCategoryClick = (categoryId: string) => {
+    setSelectedFantasyCategory(categoryId);
+    setFantasyView('detail');
+  };
+
+  const handleFantasyItemToggle = async (fantasyId: string) => {
+    const currentSelected = userSelectedFantasyIds || [];
+    const isSelected = currentSelected.includes(fantasyId);
+    
+    setUpdatingFantasies(true);
+    setError(null); // Clear previous errors
+    
+    // Update local state immediately for better UX
+    if (user) {
+      const currentFantasies = user.fantasies || [];
+      if (isSelected) {
+        // Remove fantasy
+        setUser({
+          ...user,
+          fantasies: currentFantasies.filter(f => (f.fantasy_id || f.id) !== fantasyId),
+        });
+      } else {
+        // Add fantasy - create UserFantasy object
+        const fantasy = appData?.fantasies?.find(f => f.id === fantasyId);
+        if (fantasy) {
+          const newFantasy = {
+            id: `temp-${Date.now()}`,
+            user_id: user.id,
+            fantasy_id: fantasyId,
+            fantasy: {
+              id: fantasy.id,
+              category: fantasy.category,
+              translations: fantasy.translations,
+            },
+          };
+          setUser({
+            ...user,
+            fantasies: [...currentFantasies, newFantasy as any],
+          });
+        }
+      }
+    }
+    
+    try {
+      // Update via API using CMD_USER_UPDATE_FANTASY
+      const response = await api.call(Actions.CMD_USER_UPDATE_FANTASY, {
+        method: "POST",
+        body: { fantasy_id: fantasyId },
+      });
+      
+      // Update auth context - use response if available, otherwise use local state
+      if (isAuthenticated && authUser) {
+        if (response?.user) {
+          updateUser(response.user);
+          // Update local user state from response
+          if (user && (authUser.id === user.id || authUser.username === user.username)) {
+            setUser(response.user as unknown as User);
+          }
+        } else if (user && (authUser.id === user.id || authUser.username === user.username)) {
+          // Fallback to local state update
+          updateUser({
+            ...authUser,
+            fantasies: user.fantasies,
+          } as any);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error updating fantasies:', err);
+      
+      // Revert optimistic update on error
+      if (user) {
+        const currentFantasies = user.fantasies || [];
+        if (isSelected) {
+          // Re-add fantasy if we removed it
+          const fantasy = appData?.fantasies?.find(f => f.id === fantasyId);
+          if (fantasy) {
+            const restoredFantasy = {
+              id: `temp-${Date.now()}`,
+              user_id: user.id,
+              fantasy_id: fantasyId,
+              fantasy: {
+                id: fantasy.id,
+                category: fantasy.category,
+                translations: fantasy.translations,
+              },
+            };
+            setUser({
+              ...user,
+              fantasies: [...currentFantasies, restoredFantasy as any],
+            });
+          }
+        } else {
+          // Remove fantasy if we added it
+          setUser({
+            ...user,
+            fantasies: currentFantasies.filter(f => (f.fantasy_id || f.id) !== fantasyId),
+          });
+        }
+      }
+      
+      // Set error message - will be displayed in the error section (doesn't cause screen to disappear)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update fantasies';
+      setError(errorMessage);
+    } finally {
+      setUpdatingFantasies(false);
+    }
+  };
+
   // Initialize edit form when edit mode opens (only for non-attribute fields)
   useEffect(() => {
     if (isEditMode) {
@@ -304,6 +802,12 @@ const ProfileScreen: React.FC = () => {
       // Reset attribute view
       setAttributeView('list');
       setSelectedField(null);
+      // Reset interest view
+      setInterestView('list');
+      setSelectedInterestCategory(null);
+      // Reset fantasy view
+      setFantasyView('list');
+      setSelectedFantasyCategory(null);
       
       // Initialize form data if user is available
       if (user) {
@@ -344,24 +848,19 @@ const ProfileScreen: React.FC = () => {
       };
       reader.readAsDataURL(file);
 
-      // Immediately upload the image
+      // Immediately upload the image using CMD_USER_UPLOAD_AVATAR
       try {
-        const formData = new FormData();
-        formData.append('profile_image', file);
+        const response = await api.call(Actions.CMD_USER_UPLOAD_AVATAR, {
+          method: "POST",
+          body: { avatar: file },
+        });
         
-        const response = await api.updateProfile(formData as any);
-        
-        // Update local state with new image URL if returned
-        if (response?.user?.profile_image_url) {
-          setUser({ ...user!, profile_image_url: response.user.profile_image_url });
+        // Update local state with new image URL from API response
+        if (response?.user?.avatar?.file?.url) {
+          const imageUrl = response.user.avatar.file.url;
+          setUser({ ...user!, profile_image_url: imageUrl });
           if (isOwnProfile && authUser) {
-            updateUser({ profile_image_url: response.user.profile_image_url });
-          }
-        } else if (profileImagePreview) {
-          // Fallback to preview URL
-          setUser({ ...user!, profile_image_url: profileImagePreview });
-          if (isOwnProfile && authUser) {
-            updateUser({ profile_image_url: profileImagePreview });
+            updateUser({ profile_image_url: imageUrl });
           }
         }
       } catch (err: any) {
@@ -384,24 +883,19 @@ const ProfileScreen: React.FC = () => {
       };
       reader.readAsDataURL(file);
 
-      // Immediately upload the image
+      // Immediately upload the image using CMD_USER_UPLOAD_COVER
       try {
-        const formData = new FormData();
-        formData.append('cover_image', file);
+        const response = await api.call(Actions.CMD_USER_UPLOAD_COVER, {
+          method: "POST",
+          body: { cover: file },
+        });
         
-        const response = await api.updateProfile(formData as any);
-        
-        // Update local state with new image URL if returned
-        if (response?.user?.cover_image_url) {
-          setUser({ ...user!, cover_image_url: response.user.cover_image_url });
+        // Update local state with new image URL from API response
+        if (response?.user?.cover?.file?.url) {
+          const imageUrl = response.user.cover.file.url;
+          setUser({ ...user!, cover_image_url: imageUrl });
           if (isOwnProfile && authUser) {
-            updateUser({ cover_image_url: response.user.cover_image_url } as any);
-          }
-        } else if (coverImagePreview) {
-          // Fallback to preview URL
-          setUser({ ...user!, cover_image_url: coverImagePreview });
-          if (isOwnProfile && authUser) {
-            updateUser({ cover_image_url: coverImagePreview } as any);
+            updateUser({ cover_image_url: imageUrl } as any);
           }
         }
       } catch (err: any) {
@@ -486,26 +980,53 @@ const ProfileScreen: React.FC = () => {
       try {
         setLoading(true);
         // TODO: Replace with actual API call
+        // If viewing own profile and authUser exists, use authUser data, otherwise create mock
+        const isOwn = isAuthenticated && authUser && (authUser.username === username || authUser.id === username);
+        
+        let userInterests: any[] = [];
+        let userFantasies: any[] = [];
+        let userAttributes: any[] = [];
+        
+        if (isOwn && authUser) {
+          // Use real data from authUser
+          userInterests = (authUser as any).interests || [];
+          userFantasies = (authUser as any).fantasies || [];
+          userAttributes = authUser.user_attributes || [];
+        }
+        
+        // Get avatar and cover URLs from authUser if available
+        const profileImageUrl = (isOwn && authUser && (authUser as any).avatar?.file?.url) 
+          ? (authUser as any).avatar.file.url 
+          : (isOwn && authUser && (authUser as any).profile_image_url)
+          ? (authUser as any).profile_image_url
+          : `https://ui-avatars.com/api/?name=${username || 'user'}&background=random`;
+        
+        const coverImageUrl = (isOwn && authUser && (authUser as any).cover?.file?.url) 
+          ? (authUser as any).cover.file.url 
+          : (isOwn && authUser && (authUser as any).cover_image_url)
+          ? (authUser as any).cover_image_url
+          : undefined;
+
         const mockUser: User = {
-          id: '1',
-          public_id: 1,
+          id: isOwn && authUser ? authUser.id : '1',
+          public_id: isOwn && authUser ? authUser.public_id : 1,
           username: username || 'user',
-          displayname: username ? username.charAt(0).toUpperCase() + username.slice(1) : 'User',
-          email: `${username}@example.com`,
-          date_of_birth: '1990-01-01',
-          gender: 'male',
-          sexual_orientation: { id: '1', key: 'straight', order: 1 },
-          sex_role: 'top',
-          relationship_status: 'single',
-          user_role: 'user',
-          is_active: true,
-          created_at: '2023-01-01T00:00:00Z',
-          updated_at: '2023-01-01T00:00:00Z',
-          default_language: 'en',
-          languages: ['English'],
-          languages_display: 'English',
-          fantasies: ['Bondage', 'Role Play', 'Voyeurism'],
-          interests: [247, 175, 21, 253, 125, 88, 228, 229, 221, 136, 25],
+          displayname: isOwn && authUser ? authUser.displayname : (username ? username.charAt(0).toUpperCase() + username.slice(1) : 'User'),
+          email: isOwn && authUser ? (authUser.email || `${username}@example.com`) : `${username}@example.com`,
+          date_of_birth: isOwn && authUser ? (authUser.date_of_birth || '1990-01-01') : '1990-01-01',
+          gender: isOwn && authUser ? (authUser.gender || 'male') : 'male',
+          sexual_orientation: isOwn && authUser && (authUser as any).sexual_orientation ? (authUser as any).sexual_orientation : { id: '1', key: 'straight', order: 1 },
+          sex_role: isOwn && authUser ? ((authUser as any).sex_role || 'top') : 'top',
+          relationship_status: isOwn && authUser ? (authUser.relationship_status || 'single') : 'single',
+          user_role: isOwn && authUser ? (authUser.user_role || 'user') : 'user',
+          is_active: isOwn && authUser ? authUser.is_active : true,
+          created_at: isOwn && authUser ? authUser.created_at : '2023-01-01T00:00:00Z',
+          updated_at: isOwn && authUser ? authUser.updated_at : '2023-01-01T00:00:00Z',
+          default_language: isOwn && authUser ? ((authUser as any).default_language || 'en') : 'en',
+          languages: isOwn && authUser ? (authUser.languages || null) : ['English'],
+          languages_display: isOwn && authUser ? ((authUser as any).languages_display || 'English') : 'English',
+          fantasies: userFantasies,
+          interests: userInterests,
           height_cm: 178,
           weight_kg: 76,
           hair_color: 'Brown',
@@ -516,7 +1037,7 @@ const ProfileScreen: React.FC = () => {
           zodiac_sign: 'Aquarius',
           physical_disability: 'None',
           circumcision: 'Circumcised',
-          kids: 'I’d like them someday',
+          kids: "I'd like them someday",
           smoking: 'No',
           drinking: 'Socially',
           star_sign: 'Aquarius',
@@ -527,13 +1048,15 @@ const ProfileScreen: React.FC = () => {
           travel: null,
           social: null,
           deleted_at: null,
-          bio: `Welcome to my profile! I'm ${username} and I love connecting with amazing people.`,
-          location: 'New York, NY',
-          website: 'https://example.com',
-          profile_image_url: `https://ui-avatars.com/api/?name=${username}&background=random`,
+          bio: isOwn && authUser && authUser.bio ? authUser.bio : `Welcome to my profile! I'm ${username} and I love connecting with amazing people.`,
+          location: isOwn && authUser && (authUser as any).location ? (authUser as any).location : 'New York, NY',
+          website: isOwn && authUser && (authUser as any).website ? (authUser as any).website : 'https://example.com',
+          profile_image_url: profileImageUrl,
+          cover_image_url: coverImageUrl,
           followers_count: Math.floor(Math.random() * 1000) + 100,
           following_count: Math.floor(Math.random() * 500) + 50,
           posts_count: Math.floor(Math.random() * 200) + 20,
+          user_attributes: userAttributes,
         };
         setUser(mockUser);
       } catch (err) {
@@ -547,7 +1070,7 @@ const ProfileScreen: React.FC = () => {
     if (username) {
       fetchUserData();
     }
-  }, [username]);
+  }, [username, authUser, isAuthenticated]);
 
   // Mock posts data
   useEffect(() => {
@@ -606,11 +1129,11 @@ const ProfileScreen: React.FC = () => {
     );
   }
 
-  if (error || !user) {
+  if (!user) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
         <div className={`text-center ${theme === 'dark' ? 'text-red-400' : 'text-red-500'}`}>
-          {error || 'User not found'}
+          User not found
         </div>
       </div>
     );
@@ -682,9 +1205,9 @@ const ProfileScreen: React.FC = () => {
                     </label>
                     <div className="relative">
                       <div className={`w-full h-48 rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
-                        {(coverImagePreview || user.cover_image_url) ? (
+                        {(coverImagePreview || getCoverImageUrl()) ? (
                           <img
-                            src={coverImagePreview || user.cover_image_url || ''}
+                            src={coverImagePreview || getCoverImageUrl() || ''}
                             alt="Cover"
                             className="w-full h-full object-cover"
                           />
@@ -730,9 +1253,9 @@ const ProfileScreen: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <div className={`w-32 h-32 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
-                          {(profileImagePreview || user.profile_image_url) ? (
+                          {(profileImagePreview || getProfileImageUrl()) ? (
                             <img
-                              src={profileImagePreview || user.profile_image_url || ''}
+                              src={profileImagePreview || getProfileImageUrl() || ''}
                               alt="Profile"
                               className="w-full h-full object-cover"
                             />
@@ -777,13 +1300,13 @@ const ProfileScreen: React.FC = () => {
                   </div>
 
                   {/* Edit Tabs */}
-                  <div className={`sticky top-0 z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`}>
+                  <div className={`sticky z-20 ${theme === 'dark' ? 'bg-black' : 'bg-white'} border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: '57px' }}>
                     <div className={`flex px-4 sm:px-6`}>
                       {[
                         { id: 'profile', label: t('profile.profile_info') || 'Profile Info' },
                         { id: 'attributes', label: t('profile.attributes') },
-                        { id: 'interests', label: 'Interests' },
-                        { id: 'fantasies', label: 'Fantasies' },
+                        { id: 'interests', label: t('profile.interests') },
+                        { id: 'fantasies', label: t('profile.fantasies') },
                       ].map((tab) => (
                         <button
                           key={tab.id}
@@ -807,7 +1330,7 @@ const ProfileScreen: React.FC = () => {
                   </div>
 
                   {/* Tab Content */}
-                  <div className="relative min-h-[400px] px-4 sm:px-6">
+                  <div className="relative min-h-[400px] px-4 sm:px-6 w-full">
                     <AnimatePresence mode="wait" initial={false}>
                       {editTab === 'profile' && (
                         <motion.div
@@ -816,7 +1339,7 @@ const ProfileScreen: React.FC = () => {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="space-y-6"
+                          className="space-y-6 w-full"
                         >
                           {/* Display Name */}
                           <div>
@@ -899,7 +1422,7 @@ const ProfileScreen: React.FC = () => {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="space-y-6"
+                          className="space-y-6 w-full"
                         >
                           {/* Attributes List - iOS tableView style */}
                           <div className="relative">
@@ -1077,50 +1600,169 @@ const ProfileScreen: React.FC = () => {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="space-y-6"
+                          className="space-y-6 w-full"
                         >
-                          <div>
-                            <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Interests</h3>
-                            {(() => {
-                              const interestNameById: Record<number, string> = {
-                                247: '3D printing',
-                                175: 'Acting',
-                                21: 'Action films',
-                                253: 'Adventure',
-                                125: 'Afrobeats',
-                                88: 'Animal lover',
-                                228: 'Badminton',
-                                229: 'Graduate degree or higher',
-                                221: 'Exercising',
-                                136: 'Sci-fi books',
-                                25: 'Sci-fi films',
-                              };
-                              const asLabels = (user.interests || []).map((i) =>
-                                typeof i === 'number' ? (interestNameById[i] || `Interest #${i}`) : i
-                              );
-                              return asLabels.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {asLabels.map((label) => (
-                                    <span
-                                      key={label}
-                                      className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
-                                        ? 'border-gray-800 bg-gray-900 text-gray-200'
-                                        : 'border-gray-200 bg-gray-50 text-gray-800'
+                          {/* Interests List - iOS tableView style */}
+                          <div className="relative">
+                            {/* List View */}
+                            <motion.div
+                              animate={{ 
+                                x: interestView === 'list' ? 0 : '-100%',
+                                opacity: interestView === 'list' ? 1 : 0
+                              }}
+                              transition={{ 
+                                type: 'spring', 
+                                damping: 35, 
+                                stiffness: 400,
+                                mass: 0.8
+                              }}
+                              className={`relative ${theme === 'dark' ? 'bg-transparent' : 'bg-transparent'}`}
+                              style={{ 
+                                pointerEvents: interestView === 'list' ? 'auto' : 'none',
+                                willChange: 'transform, opacity'
+                              }}
+                            >
+                              {/* List Header */}
+                              <div className={`px-4 py-4 flex items-center ${theme === 'dark' ? 'bg-transparent' : 'bg-transparent'}`}>
+                                <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {t('profile.interests')}
+                                </h3>
+                              </div>
+                              
+                              {/* List Content */}
+                              <div className={`rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                {interestCategories.map((category, index) => {
+                                  const isLast = index === interestCategories.length - 1;
+                                  const categoryItems = interestOptions[category.id] || [];
+                                  const selectedCount = categoryItems.filter(item => userSelectedInterestIds.includes(item.id)).length;
+                                  const hasSelections = selectedCount > 0;
+                                  const selectedItems = userSelectedInterestsByCategory[category.id] || [];
+                                  
+                                  return (
+                                    <button
+                                      key={category.id}
+                                      type="button"
+                                      onClick={() => handleInterestCategoryClick(category.id)}
+                                      disabled={updatingInterests}
+                                      className={`w-full px-4 py-4 flex items-center justify-between transition-colors ${updatingInterests ? 'opacity-50 cursor-default' : ''} ${!isLast ? `border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}` : ''} ${theme === 'dark'
+                                        ? 'text-white hover:bg-gray-800/50 active:bg-gray-800'
+                                        : 'text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                                       }`}
                                     >
-                                      {label}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className={`p-4 rounded-xl border ${theme === 'dark'
-                                  ? 'bg-gray-900/50 border-gray-800 text-gray-400'
-                                  : 'bg-gray-50 border-gray-200 text-gray-500'
-                                }`}>
-                                  <p className="text-sm">No interests added</p>
-                                </div>
-                              );
-                            })()}
+                                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <span className="font-medium text-base flex-1 text-left">{category.name}</span>
+                                        {selectedItems.length > 0 && (
+                                          <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 ml-2">
+                                            {selectedItems.slice(0, 3).map((item) => (
+                                              <span
+                                                key={item.id}
+                                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${theme === 'dark'
+                                                  ? 'bg-gray-800 text-gray-200 border border-gray-700'
+                                                  : 'bg-gray-100 text-gray-700 border border-gray-200'
+                                                }`}
+                                              >
+                                                {item.emoji && <span>{item.emoji}</span>}
+                                                <span className="truncate max-w-[60px]">{item.name}</span>
+                                              </span>
+                                            ))}
+                                            {selectedItems.length > 3 && (
+                                              <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                +{selectedItems.length - 3}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                                        {hasSelections && selectedItems.length === 0 && (
+                                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {selectedCount}
+                                          </span>
+                                        )}
+                                        <ChevronRight className={`w-5 h-5 flex-shrink-0 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+
+                            {/* Detail View */}
+                            <motion.div
+                              animate={{ 
+                                x: interestView === 'detail' ? 0 : '100%',
+                                opacity: interestView === 'detail' ? 1 : 0
+                              }}
+                              transition={{ 
+                                type: 'spring', 
+                                damping: 35, 
+                                stiffness: 400,
+                                mass: 0.8
+                              }}
+                              className={`absolute inset-0 ${theme === 'dark' ? 'bg-transparent' : 'bg-transparent'} z-10`}
+                              style={{ 
+                                pointerEvents: interestView === 'detail' ? 'auto' : 'none',
+                                willChange: 'transform, opacity'
+                              }}
+                            >
+                              {/* Detail Header */}
+                              <div className={`sticky top-0 z-10 px-4 py-4 flex items-center ${theme === 'dark' ? 'bg-black/95 backdrop-blur-sm' : 'bg-white/95 backdrop-blur-sm'}`}>
+                                <button
+                                  onClick={() => {
+                                    setInterestView('list');
+                                    setSelectedInterestCategory(null);
+                                  }}
+                                  className={`p-2 rounded-full transition-colors ${theme === 'dark'
+                                    ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300'
+                                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+                                  }`}
+                                >
+                                  <ArrowLeft className="w-5 h-5" />
+                                </button>
+                                <h2 className={`text-lg font-bold flex-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {selectedInterestCategory ? (interestCategories.find(c => c.id === selectedInterestCategory)?.name || '') : ''}
+                                </h2>
+                              </div>
+
+                              {/* Options List */}
+                              <div className={`rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                {selectedInterestCategory && interestOptions[selectedInterestCategory] && interestOptions[selectedInterestCategory].length > 0 ? (
+                                  interestOptions[selectedInterestCategory].map((item, index) => {
+                                    const isSelected = userSelectedInterestIds.includes(item.id);
+                                    const isLast = index === interestOptions[selectedInterestCategory].length - 1;
+                                    return (
+                                      <button
+                                        key={item.id}
+                                        onClick={() => handleInterestItemToggle(item.id)}
+                                        disabled={updatingInterests}
+                                        className={`w-full px-4 py-4 text-left flex items-center justify-between transition-colors ${!isLast ? `border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}` : ''} ${isSelected
+                                            ? theme === 'dark'
+                                              ? 'bg-gray-800/50 text-white'
+                                              : 'bg-gray-50 text-gray-900'
+                                            : theme === 'dark'
+                                              ? 'border-gray-800 text-gray-300 hover:bg-gray-800/30 active:bg-gray-800'
+                                              : 'border-gray-100 text-gray-900 hover:bg-gray-50 active:bg-gray-100'
+                                          } ${updatingInterests ? 'opacity-50 cursor-wait' : ''}`}
+                                      >
+                                        <div className="flex items-center gap-3 flex-1">
+                                          {item.emoji && (
+                                            <span className="text-lg">{item.emoji}</span>
+                                          )}
+                                          <span className="text-base font-medium">{item.name}</span>
+                                        </div>
+                                        {isSelected && (
+                                          <Check className={`w-5 h-5 flex-shrink-0 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+                                        )}
+                                      </button>
+                                    );
+                                  })
+                                ) : (
+                                  <div className={`px-4 py-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    <p className="text-sm">{t('profile.no_options_available') || 'No options available for this category'}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
                           </div>
                         </motion.div>
                       )}
@@ -1131,32 +1773,172 @@ const ProfileScreen: React.FC = () => {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="space-y-6"
+                          className="space-y-6 w-full"
                         >
-                          <div>
-                            <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fantasies</h3>
-                            {user.fantasies && user.fantasies.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {user.fantasies.map((f) => (
-                                  <span
-                                    key={String(f)}
-                                    className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
-                                      ? 'border-gray-800 bg-gray-900 text-gray-200'
-                                      : 'border-gray-200 bg-gray-50 text-gray-800'
-                                    }`}
-                                  >
-                                    {String(f)}
-                                  </span>
-                                ))}
+                          {/* Fantasies List - iOS tableView style */}
+                          <div className="relative">
+                            {/* List View */}
+                            <motion.div
+                              animate={{ 
+                                x: fantasyView === 'list' ? 0 : '-100%',
+                                opacity: fantasyView === 'list' ? 1 : 0
+                              }}
+                              transition={{ 
+                                type: 'spring', 
+                                damping: 35, 
+                                stiffness: 400,
+                                mass: 0.8
+                              }}
+                              className={`relative ${theme === 'dark' ? 'bg-transparent' : 'bg-transparent'}`}
+                              style={{ 
+                                pointerEvents: fantasyView === 'list' ? 'auto' : 'none',
+                                willChange: 'transform, opacity'
+                              }}
+                            >
+                              {/* List Header */}
+                              <div className={`px-4 py-4 flex items-center ${theme === 'dark' ? 'bg-transparent' : 'bg-transparent'}`}>
+                                <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {t('profile.fantasies')}
+                                </h3>
                               </div>
-                            ) : (
-                              <div className={`p-4 rounded-xl border ${theme === 'dark'
-                                ? 'bg-gray-900/50 border-gray-800 text-gray-400'
-                                : 'bg-gray-50 border-gray-200 text-gray-500'
-                              }`}>
-                                <p className="text-sm">No fantasies added</p>
+                              
+                              {/* List Content */}
+                              <div className={`rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                {fantasyCategories.map((category, index) => {
+                                  const isLast = index === fantasyCategories.length - 1;
+                                  const categoryItems = fantasyOptions[category.id] || [];
+                                  const selectedCount = categoryItems.filter(item => userSelectedFantasyIds.includes(item.id)).length;
+                                  const hasSelections = selectedCount > 0;
+                                  const selectedItems = userSelectedFantasiesByCategory[category.id] || [];
+                                  
+                                  return (
+                                    <button
+                                      key={category.id}
+                                      type="button"
+                                      onClick={() => handleFantasyCategoryClick(category.id)}
+                                      disabled={updatingFantasies}
+                                      className={`w-full px-4 py-4 flex items-center justify-between transition-colors ${updatingFantasies ? 'opacity-50 cursor-default' : ''} ${!isLast ? `border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}` : ''} ${theme === 'dark'
+                                        ? 'text-white hover:bg-gray-800/50 active:bg-gray-800'
+                                        : 'text-gray-900 hover:bg-gray-50 active:bg-gray-100'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <span className="font-medium text-base flex-1 text-left">{category.name}</span>
+                                        {selectedItems.length > 0 && (
+                                          <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 ml-2">
+                                            {selectedItems.slice(0, 3).map((item) => (
+                                              <span
+                                                key={item.id}
+                                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${theme === 'dark'
+                                                  ? 'bg-gray-800 text-gray-200 border border-gray-700'
+                                                  : 'bg-gray-100 text-gray-700 border border-gray-200'
+                                                }`}
+                                              >
+                                                <span className="truncate max-w-[80px]">{item.name}</span>
+                                              </span>
+                                            ))}
+                                            {selectedItems.length > 3 && (
+                                              <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                +{selectedItems.length - 3}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                                        {hasSelections && selectedItems.length === 0 && (
+                                          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {selectedCount}
+                                          </span>
+                                        )}
+                                        <ChevronRight className={`w-5 h-5 flex-shrink-0 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                                      </div>
+                                    </button>
+                                  );
+                                })}
                               </div>
-                            )}
+                            </motion.div>
+
+                            {/* Detail View */}
+                            <motion.div
+                              animate={{ 
+                                x: fantasyView === 'detail' ? 0 : '100%',
+                                opacity: fantasyView === 'detail' ? 1 : 0
+                              }}
+                              transition={{ 
+                                type: 'spring', 
+                                damping: 35, 
+                                stiffness: 400,
+                                mass: 0.8
+                              }}
+                              className={`absolute inset-0 ${theme === 'dark' ? 'bg-transparent' : 'bg-transparent'} z-10`}
+                              style={{ 
+                                pointerEvents: fantasyView === 'detail' ? 'auto' : 'none',
+                                willChange: 'transform, opacity'
+                              }}
+                            >
+                              {/* Detail Header */}
+                              <div className={`sticky top-0 z-10 px-4 py-4 flex items-center ${theme === 'dark' ? 'bg-black/95 backdrop-blur-sm' : 'bg-white/95 backdrop-blur-sm'}`}>
+                                <button
+                                  onClick={() => {
+                                    setFantasyView('list');
+                                    setSelectedFantasyCategory(null);
+                                  }}
+                                  className={`p-2 rounded-full transition-colors ${theme === 'dark'
+                                    ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300'
+                                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+                                  }`}
+                                >
+                                  <ArrowLeft className="w-5 h-5" />
+                                </button>
+                                <h2 className={`text-lg font-bold flex-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  {selectedFantasyCategory ? (fantasyCategories.find(c => c.id === selectedFantasyCategory)?.name || '') : ''}
+                                </h2>
+                              </div>
+
+                              {/* Options List */}
+                              <div className={`rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                {selectedFantasyCategory && fantasyOptions[selectedFantasyCategory] && fantasyOptions[selectedFantasyCategory].length > 0 ? (
+                                  fantasyOptions[selectedFantasyCategory].map((item, index) => {
+                                    const isSelected = userSelectedFantasyIds.includes(item.id);
+                                    const isLast = index === fantasyOptions[selectedFantasyCategory].length - 1;
+                                    return (
+                                      <button
+                                        key={item.id}
+                                        onClick={() => handleFantasyItemToggle(item.id)}
+                                        disabled={updatingFantasies}
+                                        className={`w-full px-4 py-4 text-left flex items-center justify-between transition-colors ${!isLast ? `border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}` : ''} ${isSelected
+                                            ? theme === 'dark'
+                                              ? 'bg-gray-800/50 text-white'
+                                              : 'bg-gray-50 text-gray-900'
+                                            : theme === 'dark'
+                                              ? 'border-gray-800 text-gray-300 hover:bg-gray-800/30 active:bg-gray-800'
+                                              : 'border-gray-100 text-gray-900 hover:bg-gray-50 active:bg-gray-100'
+                                          } ${updatingFantasies ? 'opacity-50 cursor-wait' : ''}`}
+                                      >
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                          <div className="flex-1 min-w-0">
+                                            <div className="text-base font-medium mb-1">{item.name}</div>
+                                            {item.description && (
+                                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                {item.description}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {isSelected && (
+                                          <Check className={`w-5 h-5 flex-shrink-0 ml-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`} />
+                                        )}
+                                      </button>
+                                    );
+                                  })
+                                ) : (
+                                  <div className={`px-4 py-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    <p className="text-sm">{t('profile.no_options_available') || 'No options available for this category'}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
                           </div>
                         </motion.div>
                       )}
@@ -1220,9 +2002,9 @@ const ProfileScreen: React.FC = () => {
 
           {/* Cover Photo */}
           <div className={`h-48 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
-            {user.cover_image_url ? (
+            {getCoverImageUrl() ? (
               <img
-                src={user.cover_image_url}
+                src={getCoverImageUrl() || ''}
                 alt="Cover"
                 className="w-full h-full object-cover"
               />
@@ -1238,7 +2020,7 @@ const ProfileScreen: React.FC = () => {
               <div className="relative -mt-16">
                 <div className={`w-28 h-28 rounded-full border-4 ${theme === 'dark' ? 'border-black' : 'border-white'}`}>
                   <img
-                    src={user.profile_image_url || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
+                    src={getProfileImageUrl() || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
                     alt={user.displayname}
                     className="w-full h-full rounded-full object-cover"
                   />
@@ -1428,17 +2210,23 @@ const ProfileScreen: React.FC = () => {
                   <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Fantasies</h3>
                   {user.fantasies && user.fantasies.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {user.fantasies.map((f) => (
-                        <span
-                          key={String(f)}
-                          className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
-                              ? 'border-gray-800 bg-gray-900 text-gray-200'
-                              : 'border-gray-200 bg-gray-50 text-gray-800'
-                            }`}
-                        >
-                          {String(f)}
-                        </span>
-                      ))}
+                      {user.fantasies.map((f) => {
+                        const translation = f.fantasy?.translations?.find(t => t.language === defaultLanguage) ||
+                                           f.fantasy?.translations?.find(t => t.language === 'en') ||
+                                           f.fantasy?.translations?.[0];
+                        const label = translation?.label || `Fantasy ${f.fantasy_id || f.id}`;
+                        return (
+                          <span
+                            key={f.id || f.fantasy_id}
+                            className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
+                                ? 'border-gray-800 bg-gray-900 text-gray-200'
+                                : 'border-gray-200 bg-gray-50 text-gray-800'
+                              }`}
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No fantasies added</div>
@@ -1449,38 +2237,72 @@ const ProfileScreen: React.FC = () => {
                 <div>
                   <h3 className={`text-base font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Interests</h3>
                   {(() => {
-                    const interestNameById: Record<number, string> = {
-                      247: '3D printing',
-                      175: 'Acting',
-                      21: 'Action films',
-                      253: 'Adventure',
-                      125: 'Afrobeats',
-                      88: 'Animal lover',
-                      228: 'Badminton',
-                      229: 'Graduate degree or higher',
-                      221: 'Exercising',
-                      136: 'Sci-fi books',
-                      25: 'Sci-fi films',
-                    };
-                    const asLabels = (user.interests || []).map((i) =>
-                      typeof i === 'number' ? (interestNameById[i] || `Interest #${i}`) : i
-                    );
-                    return asLabels.length > 0 ? (
+                    // Use authUser.interests if viewing own profile, otherwise use user.interests
+                    const interestsSource = (isOwnProfile && isAuthenticated && authUser && (authUser as any).interests) 
+                      ? (authUser as any).interests 
+                      : user?.interests;
+                    
+                    if (!interestsSource || interestsSource.length === 0) {
+                      return <div className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No interests added</div>;
+                    }
+                    
+                    const interestItems = interestsSource.map((interest: any) => {
+                      if (typeof interest === 'object' && interest !== null && interest.interest_item) {
+                        // New format: object with interest_item
+                        const itemName = interest.interest_item.name[defaultLanguage] || 
+                                       interest.interest_item.name.en || 
+                                       Object.values(interest.interest_item.name)[0] || 
+                                       `Interest ${interest.interest_item.id}`;
+                        return {
+                          id: interest.interest_item.id || interest.id,
+                          name: itemName,
+                          emoji: interest.interest_item.emoji,
+                        };
+                      } else if (typeof interest === 'number') {
+                        // Legacy format: number
+                        const interestNameById: Record<number, string> = {
+                          247: '3D printing',
+                          175: 'Acting',
+                          21: 'Action films',
+                          253: 'Adventure',
+                          125: 'Afrobeats',
+                          88: 'Animal lover',
+                          228: 'Badminton',
+                          229: 'Graduate degree or higher',
+                          221: 'Exercising',
+                          136: 'Sci-fi books',
+                          25: 'Sci-fi films',
+                        };
+                        return {
+                          id: String(interest),
+                          name: interestNameById[interest] || `Interest #${interest}`,
+                          emoji: undefined,
+                        };
+                      } else {
+                        // Legacy format: string
+                        return {
+                          id: String(interest),
+                          name: String(interest),
+                          emoji: undefined,
+                        };
+                      }
+                    });
+                    
+                    return (
                       <div className="flex flex-wrap gap-2">
-                        {asLabels.map((label) => (
+                        {interestItems.map((item: { id: string; name: string; emoji?: string }) => (
                           <span
-                            key={label}
-                            className={`px-3 py-1 text-xs rounded-full border ${theme === 'dark'
+                            key={item.id}
+                            className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border ${theme === 'dark'
                                 ? 'border-gray-800 bg-gray-900 text-gray-200'
                                 : 'border-gray-200 bg-gray-50 text-gray-800'
                               }`}
                           >
-                            {label}
+                            {item.emoji && <span>{item.emoji}</span>}
+                            <span>{item.name}</span>
                           </span>
                         ))}
                       </div>
-                    ) : (
-                      <div className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No interests added</div>
                     );
                   })()}
                 </div>
