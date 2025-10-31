@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle, FileText, MessageCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useApp } from '../contexts/AppContext';
@@ -1090,39 +1090,83 @@ const ProfileScreen: React.FC = () => {
     }
   }, [username, authUser, isAuthenticated]);
 
-  // Mock posts data
+  // Fetch posts based on active tab
   useEffect(() => {
     const fetchUserPosts = async () => {
+      // Don't fetch if on profile tab
+      if (activeTab === 'profile') {
+        return;
+      }
+
       try {
         setPostsLoading(true);
-        // TODO: Replace with actual API call
-        const mockPosts: ProfilePost[] = Array.from({ length: 5 }, (_, i) => ({
-          id: `post-${i}`,
-          public_id: i + 1,
-          author_id: user?.id || '1',
-          type: 'text',
-          content: {
-            en: `This is post ${i + 1} from ${username}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`
-          },
-          published: true,
-          created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-          deleted_at: null,
-          author: user!,
-          attachments: [],
-        }));
-        setPosts(mockPosts);
-      } catch (err) {
+        setError(null);
+        
+        let response;
+        
+        if (activeTab === 'posts') {
+          // Fetch user posts
+          response = await api.call(Actions.CMD_USER_POSTS, {
+            method: "POST",
+            body: { 
+              username: username || user?.username,
+              limit: 20,
+              cursor: ""
+            },
+          });
+        } else if (activeTab === 'replies') {
+          // Fetch user replies
+          response = await api.call(Actions.CMD_USER_POST_REPLIES, {
+            method: "POST",
+            body: { 
+              username: username || user?.username,
+              limit: 20,
+              cursor: ""
+            },
+          });
+        } else if (activeTab === 'media') {
+          // Fetch user media posts
+          response = await api.call(Actions.CMD_USER_POST_MEDIA, {
+            method: "POST",
+            body: { 
+              username: username || user?.username,
+              limit: 20,
+              cursor: ""
+            },
+          });
+        } else if (activeTab === 'likes') {
+          // Fetch user liked posts
+          response = await api.call(Actions.CMD_USER_POST_LIKES, {
+            method: "POST",
+            body: { 
+              username: username || user?.username,
+              limit: 20,
+              cursor: ""
+            },
+          });
+        }
+        
+        // Set posts from API response
+        if (response && response.posts) {
+          setPosts(response.posts);
+        } else if (response && Array.isArray(response)) {
+          setPosts(response);
+        } else {
+          setPosts([]);
+        }
+      } catch (err: any) {
         console.error('Error fetching posts:', err);
+        setError(err.response?.data?.message || 'Failed to load posts');
+        setPosts([]);
       } finally {
         setPostsLoading(false);
       }
     };
 
-    if (user) {
+    if (user && username) {
       fetchUserPosts();
     }
-  }, [user, username]);
+  }, [user, username, activeTab]);
 
   const handleBackClick = () => {
     navigate(-1);
@@ -1134,14 +1178,15 @@ const ProfileScreen: React.FC = () => {
 
   const formatJoinDate = (dateString: string) => {
     const date = new Date(dateString);
-    return `Joined ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+    const locale = defaultLanguage === 'tr' ? 'tr-TR' : 'en-US';
+    return `${t('profile.joined')} ${date.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}`;
   };
 
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
         <div className={`text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-          Loading profile...
+          {t('profile.loading_profile')}
         </div>
       </div>
     );
@@ -1151,7 +1196,7 @@ const ProfileScreen: React.FC = () => {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
         <div className={`text-center ${theme === 'dark' ? 'text-red-400' : 'text-red-500'}`}>
-          User not found
+          {t('profile.user_not_found')}
         </div>
       </div>
     );
@@ -1192,7 +1237,7 @@ const ProfileScreen: React.FC = () => {
               {user.displayname}
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-              {user.posts_count} posts
+              {user.posts_count} {t('profile.posts')}
             </p>
           </div>
           <button className={`p-2 rounded-full transition-colors ${theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
@@ -2053,7 +2098,7 @@ const ProfileScreen: React.FC = () => {
                       : 'border-gray-300 hover:bg-gray-50'
                     }`}
                 >
-                  Edit profile
+                  {t('profile.edit_profile_button')}
                 </button>
               ) : (
                 <div className="flex gap-2 relative z-10">
@@ -2066,7 +2111,7 @@ const ProfileScreen: React.FC = () => {
                       : 'bg-black text-white hover:bg-gray-900'
                   }`}
               >
-                {isFollowing ? 'Following' : 'Follow'}
+                {isFollowing ? t('profile.following') : t('profile.follow')}
               </button>
                   <button
                     className={`px-2 py-1.5 rounded-full transition-colors border ${theme === 'dark'
@@ -2125,13 +2170,13 @@ const ProfileScreen: React.FC = () => {
                 <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                   {user.following_count?.toLocaleString()}
                 </span>
-                <span className="ml-1">Following</span>
+                <span className="ml-1">{t('profile.following')}</span>
               </button>
               <button className={`text-sm hover:underline ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
                 <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                   {user.followers_count?.toLocaleString()}
                 </span>
-                <span className="ml-1">Followers</span>
+                <span className="ml-1">{t('profile.followers')}</span>
               </button>
             </div>
           </div>
@@ -2140,11 +2185,11 @@ const ProfileScreen: React.FC = () => {
           <div className={`sticky z-20 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: `${headerHeight}px` }}>
             <div className={`flex`}>
               {[
-                { id: 'profile', label: 'Profile' },
-                { id: 'posts', label: 'Posts' },
-                { id: 'replies', label: 'Replies' },
-                { id: 'media', label: 'Media' },
-                { id: 'likes', label: 'Likes' },
+                { id: 'profile', label: t('profile.profile_tab') },
+                { id: 'posts', label: t('profile.posts_tab') },
+                { id: 'replies', label: t('profile.replies_tab') },
+                { id: 'media', label: t('profile.media_tab') },
+                { id: 'likes', label: t('profile.likes_tab') },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2175,7 +2220,7 @@ const ProfileScreen: React.FC = () => {
                 <div className="w-full">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className={`text-[22px] font-bold tracking-[-0.022em] leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                      Attributes
+                      {t('profile.attributes')}
                     </h2>
                     <span className={`text-[13px] font-semibold ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                       {USER_ATTRIBUTES.filter(attr => {
@@ -2255,7 +2300,7 @@ const ProfileScreen: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h2 className={`text-[22px] font-bold tracking-[-0.022em] leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                      Fantasies
+                      {t('profile.fantasies')}
                     </h2>
                     {user.fantasies && user.fantasies.length > 0 && (
                       <span className={`text-[13px] font-semibold ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
@@ -2327,7 +2372,7 @@ const ProfileScreen: React.FC = () => {
                       <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${theme === 'dark' ? 'bg-white/[0.08]' : 'bg-black/[0.04]'}`}>
                         <Sparkles className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
                       </div>
-                      <p className={`text-[15px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No fantasies added</p>
+                      <p className={`text-[15px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>{t('profile.no_fantasies_added')}</p>
                     </div>
                   )}
                 </div>
@@ -2336,7 +2381,7 @@ const ProfileScreen: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h2 className={`text-[22px] font-bold tracking-[-0.022em] leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                      Interests
+                      {t('profile.interests')}
                     </h2>
                   {(() => {
                       const interestsSource = (isOwnProfile && isAuthenticated && authUser && (authUser as any).interests) 
@@ -2367,7 +2412,7 @@ const ProfileScreen: React.FC = () => {
                           <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${theme === 'dark' ? 'bg-white/[0.08]' : 'bg-black/[0.04]'}`}>
                             <Heart className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
                           </div>
-                          <p className={`text-[15px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No interests added</p>
+                          <p className={`text-[15px] font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>{t('profile.no_interests_added')}</p>
                         </div>
                       );
                     }
@@ -2473,13 +2518,62 @@ const ProfileScreen: React.FC = () => {
             {/* Posts */}
             <div className={activeTab === 'profile' ? 'hidden' : ''}>
               {postsLoading ? (
-                <div className={`p-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Loading posts...
+                <div className="flex items-center justify-center py-16">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className={`w-12 h-12 border-4 ${theme === 'dark' ? 'border-gray-800 border-t-white' : 'border-gray-200 border-t-black'} rounded-full animate-spin`} />
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {activeTab === 'posts' && t('profile.loading_posts')}
+                      {activeTab === 'replies' && t('profile.loading_replies')}
+                      {activeTab === 'media' && t('profile.loading_media')}
+                      {activeTab === 'likes' && t('profile.loading_likes')}
+                    </p>
+                  </div>
                 </div>
               ) : posts.length === 0 ? (
-                <div className={`p-8 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  No posts yet
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center justify-center py-20"
+                >
+                  <div className="flex flex-col items-center gap-4 max-w-sm mx-auto px-4">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${theme === 'dark' 
+                      ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 border border-white/[0.06]' 
+                      : 'bg-gradient-to-br from-gray-50 to-white border border-black/[0.06]'
+                    }`}>
+                      {activeTab === 'posts' && (
+                        <FileText className={`w-10 h-10 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                      )}
+                      {activeTab === 'replies' && (
+                        <MessageCircle className={`w-10 h-10 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                      )}
+                      {activeTab === 'media' && (
+                        <ImageIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                      )}
+                      {activeTab === 'likes' && (
+                        <Heart className={`w-10 h-10 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                        {activeTab === 'posts' && t('profile.no_posts_yet')}
+                        {activeTab === 'replies' && t('profile.no_replies_yet')}
+                        {activeTab === 'media' && t('profile.no_media_yet')}
+                        {activeTab === 'likes' && t('profile.no_likes_yet')}
+                      </h3>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                        {activeTab === 'posts' && isOwnProfile && t('profile.share_thoughts')}
+                        {activeTab === 'posts' && !isOwnProfile && `@${user.username} ${t('profile.no_posts_from_user')}`}
+                        {activeTab === 'replies' && isOwnProfile && t('profile.replies_appear_here')}
+                        {activeTab === 'replies' && !isOwnProfile && `@${user.username} ${t('profile.no_replies_from_user')}`}
+                        {activeTab === 'media' && isOwnProfile && t('profile.media_appear_here')}
+                        {activeTab === 'media' && !isOwnProfile && `@${user.username} ${t('profile.no_media_from_user')}`}
+                        {activeTab === 'likes' && isOwnProfile && t('profile.likes_appear_here')}
+                        {activeTab === 'likes' && !isOwnProfile && `@${user.username} ${t('profile.no_likes_from_user')}`}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
               ) : (
                 posts.map((post, index) => (
                   <motion.div

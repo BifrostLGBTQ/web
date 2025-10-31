@@ -2538,3 +2538,15 @@ INTERESTS
         "hp_element_id": 0
     }
 ]
+
+
+OVERLAY
+opacity: 1;
+    background-image: radial-gradient(transparent 1px, #ffffff 1px);
+    transform: none;
+    mask: linear-gradient(#ffffff calc(100% - 20px), #0000);
+    width: 100%;
+    background-color: transparent;
+    backdrop-filter: blur(3px);
+    height: 100%;
+    background-size: 2px 2px;

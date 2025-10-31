@@ -18,6 +18,7 @@ import HomeScreen from './components/HomeScreen';
 import LanguageSelector from './components/LanguageSelector.tsx';
 import ClassifiedsScreen from './components/ClassifiedsScreen';
 import './i18n';
+import { useTranslation } from 'react-i18next';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -30,6 +31,7 @@ function App() {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
 
   // Update activeScreen based on current URL
   React.useEffect(() => {
@@ -57,15 +59,15 @@ function App() {
   }, [location.pathname]);
 
   const mobileNavItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'search', label: 'Search', icon: Search },
-    { id: 'nearby', label: 'Nearby', icon: MapPin },
-    { id: 'match', label: 'Match', icon: Heart },
-    { id: 'places', label: 'Places', icon: Building2 },
-    { id: 'messages', label: 'Messages', icon: MessageCircle },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'classifieds', label: 'Classifieds', icon: FileText },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'home', label: t('app.nav.home'), icon: Home },
+    { id: 'search', label: t('app.nav.search'), icon: Search },
+    { id: 'nearby', label: t('app.nav.nearby'), icon: MapPin },
+    { id: 'match', label: t('app.nav.match'), icon: Heart },
+    { id: 'places', label: t('app.nav.places'), icon: Building2 },
+    { id: 'messages', label: t('app.nav.messages'), icon: MessageCircle },
+    { id: 'notifications', label: t('app.nav.notifications'), icon: Bell },
+    { id: 'classifieds', label: t('app.nav.classifieds'), icon: FileText },
+    { id: 'profile', label: t('app.nav.profile'), icon: User },
   ];
 
 
@@ -100,7 +102,7 @@ function App() {
                 <span className="text-sm font-bold">P</span>
               </div>
               <h1 className={`text-lg font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                SOCIAL
+                {t('app.social')}
               </h1>
             </div>
             <button
@@ -127,7 +129,7 @@ function App() {
                   <span className="text-xl font-bold">P</span>
                 </div>
                 <h1 className={`text-2xl font-extrabold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  SOCIAL
+                  {t('app.social')}
                 </h1>
               </button>
             </div>
@@ -135,15 +137,15 @@ function App() {
             {/* Navigation */}
             <nav className="space-y-1 flex-1">
               {[
-                { id: 'home', label: 'Home', icon: Home },
-                { id: 'nearby', label: 'NearBy', icon: MapPin },
-                { id: 'search', label: 'Explore', icon: Search },
-                { id: 'match', label: 'Matches', icon: Heart },
-                { id: 'messages', label: 'Messages', icon: MessageCircle },
-                { id: 'notifications', label: 'Notifications', icon: Bell },
-                { id: 'places', label: 'Places', icon: Building2 },
-                { id: 'classifieds', label: 'Classifieds', icon: FileText },
-                { id: 'profile', label: 'Profile', icon: User },
+                { id: 'home', label: t('app.nav.home'), icon: Home },
+                { id: 'nearby', label: t('app.nav.nearby'), icon: MapPin },
+                { id: 'search', label: t('app.nav.explore'), icon: Search },
+                { id: 'match', label: t('app.nav.matches'), icon: Heart },
+                { id: 'messages', label: t('app.nav.messages'), icon: MessageCircle },
+                { id: 'notifications', label: t('app.nav.notifications'), icon: Bell },
+                { id: 'places', label: t('app.nav.places'), icon: Building2 },
+                { id: 'classifieds', label: t('app.nav.classifieds'), icon: FileText },
+                { id: 'profile', label: t('app.nav.profile'), icon: User },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = activeScreen === item.id;
@@ -192,7 +194,11 @@ function App() {
                     <div className="relative">
                       <div className={`w-11 h-11 rounded-full ring-2 ${theme === 'dark' ? 'ring-white/20' : 'ring-black/20'}`}>
                         <img
-                          src={user?.profile_image_url || "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2"}
+                          src={
+                            (user as any)?.avatar?.file?.url || 
+                            user?.profile_image_url || 
+                            `https://ui-avatars.com/api/?name=${user?.username || 'User'}&background=random`
+                          }
                           alt="Profile"
                           className="w-full h-full rounded-full object-cover"
                         />
@@ -219,7 +225,7 @@ function App() {
                       : 'bg-gradient-to-r from-black to-gray-800 text-white hover:shadow-black/20'
                   }`}
                 >
-                  Join Now
+                  {t('app.join_now')}
                 </button>
               )}
 
@@ -232,7 +238,7 @@ function App() {
                       ? 'text-gray-400 hover:text-white hover:bg-white/10'
                       : 'text-gray-600 hover:text-black hover:bg-gray-100'
                   }`}
-                  title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  title={theme === 'dark' ? t('app.light_mode') : t('app.dark_mode')}
                 >
                   {theme === 'dark' ? <Sun className="w-5 h-5 mx-auto" /> : <Moon className="w-5 h-5 mx-auto" />}
                 </button>
@@ -243,7 +249,7 @@ function App() {
                       ? 'text-gray-400 hover:text-white hover:bg-white/10'
                       : 'text-gray-600 hover:text-black hover:bg-gray-100'
                   }`}
-                  title="Language"
+                  title={t('app.language')}
                 >
                   <Languages className="w-5 h-5 mx-auto" />
                 </button>
@@ -299,7 +305,7 @@ function App() {
                   <div className="flex items-center gap-2">
                     <Flame className="w-5 h-5 text-red-500" />
                     <h2 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      New Matches
+                      {t('app.new_matches')}
                     </h2>
                   </div>
                   <span className={`text-xs font-bold px-3 py-1 rounded-full ${theme === 'dark' ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'}`}>
@@ -333,7 +339,7 @@ function App() {
                         )}
                         <div className="absolute bottom-1 left-1 right-1">
                           <div className="backdrop-blur-sm bg-black/70 rounded-lg px-2 py-1">
-                            <p className="text-white text-[10px] font-bold">New</p>
+                            <p className="text-white text-[10px] font-bold">{t('app.new')}</p>
                           </div>
                         </div>
                       </div>
@@ -358,10 +364,10 @@ function App() {
               <div className="p-4">
                 <div className="mb-3">
                   <h2 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    Suggested Matches
+                    {t('app.suggested_matches')}
                   </h2>
                   <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Based on your preferences
+                    {t('app.based_on_preferences')}
                   </p>
                 </div>
                 
@@ -423,7 +429,7 @@ function App() {
                               : 'bg-black text-white hover:bg-gray-900'
                           }`}
                         >
-                          Connect
+                          {t('app.connect')}
                         </button>
                       </div>
                     </div>
@@ -444,11 +450,11 @@ function App() {
       } backdrop-blur-xl safe-area-inset-bottom`}>
         <div className="flex items-center justify-around px-4 py-3">
           {[
-            { id: 'home', icon: Home, label: 'Home' },
-            { id: 'search', icon: Search, label: 'Search' },
-            { id: 'match', icon: Heart, label: 'Match' },
-            { id: 'messages', icon: MessageCircle, label: 'Messages' },
-            { id: 'profile', icon: User, label: 'Profile' },
+            { id: 'home', icon: Home, label: t('app.nav.home') },
+            { id: 'search', icon: Search, label: t('app.nav.search') },
+            { id: 'match', icon: Heart, label: t('app.nav.match') },
+            { id: 'messages', icon: MessageCircle, label: t('app.nav.messages') },
+            { id: 'profile', icon: User, label: t('app.nav.profile') },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeScreen === item.id;
@@ -613,7 +619,7 @@ function App() {
                     <h3 className={`text-[15px] font-bold tracking-[-0.011em] truncate ${
                       theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
-                      {user?.displayname || user?.username || 'Guest User'}
+                      {user?.displayname || user?.username || t('app.guest_user')}
                     </h3>
                     <p className={`text-[13px] truncate ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -625,12 +631,12 @@ function App() {
                       <span className={`text-[11px] font-medium ${
                         theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
                       }`}>
-                        <span className={theme === 'dark' ? 'text-white' : 'text-black'}>234</span> Following
+                        <span className={theme === 'dark' ? 'text-white' : 'text-black'}>234</span> {t('app.following')}
                       </span>
                       <span className={`text-[11px] font-medium ${
                         theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
                       }`}>
-                        <span className={theme === 'dark' ? 'text-white' : 'text-black'}>1.2K</span> Followers
+                        <span className={theme === 'dark' ? 'text-white' : 'text-black'}>1.2K</span> {t('app.followers')}
                       </span>
                     </div>
                   </div>
@@ -737,7 +743,7 @@ function App() {
                       ) : (
                         <Moon className="w-5 h-5" />
                       )}
-                      <span>{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
+                      <span>{theme === 'dark' ? t('app.light_mode') : t('app.dark_mode')}</span>
                     </div>
                     <div className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${
                       theme === 'dark' ? 'bg-white/20' : 'bg-black/20'
@@ -769,7 +775,7 @@ function App() {
                   >
                     <div className="flex items-center space-x-3">
                       <Languages className="w-5 h-5" />
-                      <span>Language</span>
+                      <span>{t('app.language')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4" />
                   </motion.button>

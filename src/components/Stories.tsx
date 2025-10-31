@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, ChevronLeft, ChevronRight, Heart, MessageCircle, Share } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 
 const Stories: React.FC = () => {
   const { theme } = useTheme();
   const [selectedStory, setSelectedStory] = useState<number | null>(null);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const x = useMotionValue(0);
+  const [itemWidth, setItemWidth] = useState(0);
 
   const stories = [
     { id: 1, name: 'Your Story', avatar: null, cover: null, isOwn: true },
@@ -25,6 +29,36 @@ const Stories: React.FC = () => {
 
   const selectedStoryData = selectedStory ? stories.find(s => s.id === selectedStory) : null;
   const availableStories = stories.filter(s => s.hasStory && !s.isOwn);
+
+  // Separate own story from others
+  const ownStory = stories.find(s => s.isOwn);
+  const otherStories = stories.filter(s => !s.isOwn);
+
+  // Calculate drag constraints for scrollable stories
+  useEffect(() => {
+    const calculateConstraints = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const cardWidth = 120;
+        const gap = 12;
+        const totalWidth = (cardWidth + gap) * otherStories.length;
+        const maxDrag = totalWidth - containerWidth + 120; // 120px for "Your Story" width
+        
+        if (maxDrag > 0) {
+          setItemWidth(maxDrag);
+        } else {
+          setItemWidth(0);
+        }
+      }
+    };
+
+    calculateConstraints();
+    window.addEventListener('resize', calculateConstraints);
+    
+    return () => {
+      window.removeEventListener('resize', calculateConstraints);
+    };
+  }, [otherStories.length]);
 
   const nextStory = () => {
     if (!selectedStory) return;
@@ -74,96 +108,138 @@ const Stories: React.FC = () => {
         className="hidden"
       />
 
-      {/* Stories List - Premium Design */}
-      <div className="py-1">
-        <div className="flex space-x-3 overflow-x-auto scrollbar-hide px-1">
-          {stories.map((story) => (
-            <motion.div 
+      {/* Stories List - Fixed Own Story + Infinite Scrollable Others */}
+      <div className="py-1 relative flex px-1" ref={containerRef}>
+        {/* Fixed "Your Story" */}
+        {ownStory && (
+          <div className="flex-shrink-0 z-20 relative">
+            <div className="relative group">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative w-[120px] h-[180px] rounded-[14px] overflow-hidden ${
+                  theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
+                } transition-all duration-300 cursor-pointer shadow-lg`}
+                style={{ transformOrigin: 'center' }}
+              >
+                {ownStory.cover ? (
+                  <>
+                    <img
+                      src={ownStory.cover}
+                      alt={ownStory.name}
+                      className="w-full h-full object-cover absolute inset-0 transition-all duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+                  </>
+                ) : (
+                  <div className={`absolute inset-0 w-full h-full flex items-center justify-center ${
+                    theme === 'dark' ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-50 to-gray-100'
+                  }`}>
+                    <div className={`w-16 h-16 rounded-full ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                    } flex items-center justify-center`}>
+                      <Plus className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+                  <div className={`backdrop-blur-xl ${
+                    theme === 'dark' ? 'bg-black/60' : 'bg-white/80'
+                  } rounded-lg px-2.5 py-1.5`}>
+                    <p className={`text-[13px] font-semibold tracking-[-0.006em] truncate ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      {ownStory.name}
+                    </p>
+                  </div>
+                </div>
+
+                {!ownStory.cover && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <div className={`w-11 h-11 rounded-full ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                    } flex items-center justify-center`}>
+                      <Plus className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
+                    </div>
+                  </div>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable Other Stories Container */}
+        <div className="flex-1 overflow-hidden relative ml-3">
+          <motion.div 
+            className="flex space-x-3 cursor-grab active:cursor-grabbing"
+            drag="x"
+            dragConstraints={{ left: -itemWidth, right: 0 }}
+            dragElastic={0.1}
+            dragTransition={{ bounceStiffness: 600, bounceDamping: 40 }}
+            style={{ x }}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={() => setTimeout(() => setIsDragging(false), 50)}
+          >
+          {otherStories.map((story) => (
+            <div 
               key={story.id} 
               className="flex-shrink-0"
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
             >
               <div className="relative group">
-                {/* Story Card Container - Flat Design */}
                 <button
-                  onClick={() => {
-                    if (story.isOwn) {
-                      fileInputRef.current?.click();
-                    } else if (story.hasStory) {
+                  onClick={(e) => {
+                    if (isDragging) {
+                      e.preventDefault();
+                      return;
+                    }
+                    if (story.hasStory) {
                       setSelectedStory(story.id);
                     }
                   }}
                   className={`relative w-[120px] h-[180px] rounded-[14px] overflow-hidden ${
                     theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
-                  } transition-all duration-300 group-hover:scale-[1.02] cursor-pointer`}
+                  } transition-all duration-300 cursor-pointer shadow-lg pointer-events-auto`}
                   style={{ transformOrigin: 'center' }}
                 >
-                    {/* Story Cover Image */}
-                    {story.cover ? (
-                      <>
+                  {story.cover && (
+                    <>
+                      <img
+                        src={story.cover}
+                        alt={story.name}
+                        className="w-full h-full object-cover absolute inset-0 transition-all duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+                    </>
+                  )}
+
+                  {story.avatar && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <div className="w-11 h-11 rounded-full ring-2 ring-white/20">
                         <img
-                          src={story.cover}
+                          src={story.avatar}
                           alt={story.name}
-                          className="w-full h-full object-cover absolute inset-0 transition-all duration-300"
+                          className="w-full h-full rounded-full object-cover"
                         />
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
-                      </>
-                    ) : (
-                      <div className={`absolute inset-0 w-full h-full flex items-center justify-center ${
-                        theme === 'dark' ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-50 to-gray-100'
-                      }`}>
-                        {story.isOwn && (
-                          <div className={`w-16 h-16 rounded-full ${
-                            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                          } flex items-center justify-center`}>
-                            <Plus className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Avatar - Flat Style */}
-                    {!story.isOwn && story.avatar && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <div className="w-11 h-11 rounded-full">
-                          <img
-                            src={story.avatar}
-                            alt={story.name}
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Name Label - Flat Design */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                      <div className={`backdrop-blur-xl ${
-                        theme === 'dark' ? 'bg-black/60' : 'bg-white/80'
-                      } rounded-lg px-2.5 py-1.5`}>
-                        <p className={`text-[13px] font-semibold tracking-[-0.006em] truncate ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}>
-                          {story.name}
-                        </p>
                       </div>
                     </div>
+                  )}
 
-                    {/* Add Story Icon for Own Story */}
-                    {story.isOwn && !story.cover && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <div className={`w-11 h-11 rounded-full ${
-                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
-                        } flex items-center justify-center`}>
-                          <Plus className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
-                        </div>
-                      </div>
-                    )}
+                  <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+                    <div className={`backdrop-blur-xl ${
+                      theme === 'dark' ? 'bg-black/60' : 'bg-white/80'
+                    } rounded-lg px-2.5 py-1.5`}>
+                      <p className={`text-[13px] font-semibold tracking-[-0.006em] truncate ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {story.name}
+                      </p>
+                    </div>
+                  </div>
                 </button>
               </div>
-            </motion.div>
+            </div>
           ))}
+          </motion.div>
         </div>
       </div>
 
@@ -203,9 +279,9 @@ const Stories: React.FC = () => {
                   exit={{ opacity: 0, x: -20 }}
                   whileHover={{ scale: 1.05, x: -5 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={prevStory}
+                onClick={prevStory}
                   className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 z-20"
-                >
+              >
                   <ChevronLeft className="w-7 h-7" />
                 </motion.button>
               )}
@@ -217,9 +293,9 @@ const Stories: React.FC = () => {
                   exit={{ opacity: 0, x: 20 }}
                   whileHover={{ scale: 1.05, x: 5 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={nextStory}
+                onClick={nextStory}
                   className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 z-20"
-                >
+              >
                   <ChevronRight className="w-7 h-7" />
                 </motion.button>
               )}
@@ -277,17 +353,17 @@ const Stories: React.FC = () => {
                     className="absolute top-12 left-0 right-0 px-4 z-10"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        {selectedStoryData.avatar && (
+                    <div className="flex items-center space-x-3">
+                      {selectedStoryData.avatar && (
                           <div className="w-11 h-11 rounded-full">
-                            <img
-                              src={selectedStoryData.avatar}
-                              alt={selectedStoryData.name}
+                        <img
+                          src={selectedStoryData.avatar}
+                          alt={selectedStoryData.name}
                               className="w-full h-full rounded-full object-cover"
-                            />
+                        />
                           </div>
-                        )}
-                        <div>
+                      )}
+                      <div>
                           <p className="text-white font-bold text-[15px] tracking-[-0.011em] drop-shadow-lg">
                             {selectedStoryData.name}
                           </p>
@@ -311,8 +387,8 @@ const Stories: React.FC = () => {
                         className="flex flex-col items-center gap-2"
                       >
                         <div className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white/25">
-                          <Heart className="w-6 h-6" />
-                        </div>
+                        <Heart className="w-6 h-6" />
+                      </div>
                         <span className="text-white text-[13px] font-semibold drop-shadow-lg">Like</span>
                       </motion.button>
                       
@@ -322,8 +398,8 @@ const Stories: React.FC = () => {
                         className="flex flex-col items-center gap-2"
                       >
                         <div className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white/25">
-                          <MessageCircle className="w-6 h-6" />
-                        </div>
+                        <MessageCircle className="w-6 h-6" />
+                      </div>
                         <span className="text-white text-[13px] font-semibold drop-shadow-lg">Reply</span>
                       </motion.button>
                       
@@ -333,11 +409,11 @@ const Stories: React.FC = () => {
                         className="flex flex-col items-center gap-2"
                       >
                         <div className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white/25">
-                          <Share className="w-6 h-6" />
-                        </div>
+                        <Share className="w-6 h-6" />
+                      </div>
                         <span className="text-white text-[13px] font-semibold drop-shadow-lg">Share</span>
                       </motion.button>
-                    </div>
+                  </div>
                   </motion.div>
                 </div>
               </motion.div>
