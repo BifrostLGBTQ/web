@@ -1364,30 +1364,37 @@ const ProfileScreen: React.FC = () => {
 
                   {/* Edit Tabs */}
                   <div className={`sticky z-20 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: `${headerHeight}px` }}>
-                    <div className={`flex px-4 sm:px-6`}>
+                    <div className="flex px-4 sm:px-6 relative">
                       {[
                         { id: 'profile', label: t('profile.profile_info') || 'Profile Info' },
                         { id: 'attributes', label: t('profile.attributes') },
                         { id: 'interests', label: t('profile.interests') },
                         { id: 'fantasies', label: t('profile.fantasies') },
                       ].map((tab) => (
-                        <button
+                        <motion.button
                           key={tab.id}
                           onClick={() => setEditTab(tab.id as any)}
-                          className={`flex-1 py-3 font-semibold text-sm relative transition-all duration-200 ${editTab === tab.id
+                          className={`flex-1 py-3 font-semibold text-sm relative transition-colors ${editTab === tab.id
                               ? theme === 'dark' ? 'text-white' : 'text-black'
                               : theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
                             }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
-                          {tab.label}
+                          <span className="relative z-10">{tab.label}</span>
                           {editTab === tab.id && (
                             <motion.div
-                              className={`absolute bottom-0 left-0 right-0 h-1 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
-                              layoutId="activeEditTabIndicator"
-                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                              className={`absolute bottom-0 left-0 right-0 h-1 rounded-t-full ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                              layoutId="editModeTabIndicator"
+                              transition={{ 
+                                type: "spring", 
+                                stiffness: 380, 
+                                damping: 30,
+                                mass: 0.8
+                              }}
                             />
                           )}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -2183,7 +2190,7 @@ const ProfileScreen: React.FC = () => {
 
           {/* Tabs - Sticky */}
           <div className={`sticky z-20 border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-sm ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95'}`} style={{ top: `${headerHeight}px` }}>
-            <div className={`flex`}>
+            <div className="flex relative">
               {[
                 { id: 'profile', label: t('profile.profile_tab') },
                 { id: 'posts', label: t('profile.posts_tab') },
@@ -2191,23 +2198,30 @@ const ProfileScreen: React.FC = () => {
                 { id: 'media', label: t('profile.media_tab') },
                 { id: 'likes', label: t('profile.likes_tab') },
               ].map((tab) => (
-                <button
+                <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex-1 py-4 font-bold text-sm relative transition-colors ${activeTab === tab.id
                       ? theme === 'dark' ? 'text-white' : 'text-black'
-                      : theme === 'dark' ? 'text-gray-500' : 'text-gray-600'
+                      : theme === 'dark' ? 'text-gray-500 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
                     }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {tab.label}
+                  <span className="relative z-10">{tab.label}</span>
                   {activeTab === tab.id && (
                     <motion.div
-                      className={`absolute bottom-0 left-0 right-0 h-1 rounded-full ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
-                      layoutId="activeTabIndicator"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      className={`absolute bottom-0 left-0 right-0 h-1 rounded-t-full ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                      layoutId="profileViewTabIndicator"
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 380, 
+                        damping: 30,
+                        mass: 0.8
+                      }}
                     />
                   )}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
