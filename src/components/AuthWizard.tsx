@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, User, Calendar, Heart, Rabbit, X, ChevronLeft, ChevronRight, ChevronDown, LocateFixed, MapPin, Bell } from 'lucide-react';
+import { ArrowRight, ArrowLeft, User, Calendar, Heart, X, ChevronLeft, ChevronRight, ChevronDown, LocateFixed, MapPin, Bell } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useApp } from '../contexts/AppContext';
@@ -19,7 +19,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
   const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { data, defaultLanguage } = useApp();
+  const { data: _data, defaultLanguage: _defaultLanguage } = useApp();
   const { t } = useTranslation('common');
 
   // Track notification permission
@@ -47,7 +47,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     day: string;
     month: string;
     year: string;
-    orientation: string;
     location: {
       country_code: string;
       country_name: string;
@@ -58,7 +57,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       timezone?: string;
       display: string;
     } | null;
-    fantasies: string[];
   }>({
     name: '',
     nickname: '',
@@ -68,9 +66,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     day: '',
     month: '',
     year: '',
-    orientation: '',
-    location: null,
-    fantasies: []
+    location: null
   });
 
   // Date picker state
@@ -153,24 +149,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       field: 'birthDate',
       placeholder: '',
       type: 'date-picker'
-    },
-    {
-      id: 'orientation',
-      title: t('auth.orientation_title'),
-      subtitle: t('auth.orientation_subtitle'),
-      icon: Heart,
-      field: 'orientation',
-      placeholder: '',
-      type: 'select'
-    },
-    {
-      id: 'preferences',
-      title: t('auth.preferences_title'),
-      subtitle: t('auth.preferences_subtitle'),
-      icon: Rabbit,
-      field: 'preferences',
-      placeholder: '',
-      type: 'multi-select'
     }
   ];
 
@@ -282,9 +260,9 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         .finally(() => {
           setIsLoading(false);
         });
-    } else if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
+    } else if (currentStep === 4 && authMode === 'register') {
+      setCurrentStep(5); // birthdate
+    } else if (currentStep === 5 && authMode === 'register') {
       const birthDate = selectedDate.day && selectedDate.month && selectedDate.year
         ? `${selectedDate.year}-${selectedDate.month.toString().padStart(2, '0')}-${selectedDate.day.toString().padStart(2, '0')}`
         : '';
@@ -294,9 +272,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         nickname: formData.nickname,
         password: formData.password,
         birthDate: birthDate,
-        location: formData.location,
-        orientation: formData.orientation,
-        fantasies: formData.fantasies
+        location: formData.location
       };
 
       setIsLoading(true);
@@ -315,14 +291,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSkip = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleNext();
-    }
-  };
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -333,15 +301,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const togglePreference = (fantasy: string) => {
-    const current = formData.fantasies;
-    if (current.includes(fantasy)) {
-      updateFormData('fantasies', current.filter(p => p !== fantasy));
-    } else {
-      updateFormData('fantasies', [...current, fantasy]);
-    }
-  };
-
   const currentStepData = steps[currentStep];
 
   // Progress bar mapping
@@ -349,7 +308,7 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
     if (authMode === 'login') {
       return 4; // auth-mode, location, notifications, login-form
     } else if (authMode === 'register') {
-      return 8; // auth-mode, location, notifications, nickname, birthdate, orientation, preferences
+      return 6; // auth-mode, location, notifications, nickname, birthdate
     }
     return steps.length;
   };
@@ -364,21 +323,10 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
       if (currentStep === 0) return 0; // auth-mode
       if (currentStep === 1) return 1; // location
       if (currentStep === 2) return 2; // notifications
-      if (currentStep === 3) return 3; // nickname
-      if (currentStep === 4) return 4; // birthdate
-      if (currentStep === 5) return 5; // orientation
-      if (currentStep === 6) return 6; // preferences
+      if (currentStep === 4) return 3; // nickname
+      if (currentStep === 5) return 4; // birthdate
     }
     return currentStep;
-  };
-
-  const isLastStep = () => {
-    if (authMode === 'login') {
-      return currentStep === 3; // login-form
-    } else if (authMode === 'register') {
-      return currentStep === 6; // preferences
-    }
-    return currentStep === steps.length - 1;
   };
 
   const canProceed = () => {
@@ -398,10 +346,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
           formData.password === formData.confirmPassword;
       case 'birthDate':
         return selectedDate.day && selectedDate.month && selectedDate.year;
-      case 'orientation':
-        return formData.orientation !== '';
-      case 'preferences':
-        return true;
       default:
         return false;
     }
@@ -995,84 +939,6 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
         );
       }
 
-      case 'select':
-        return (
-          <div className="space-y-3 ">
-            <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-              }`}>
-              {t('auth.select_orientation')}
-            </label>
-
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto scrollbar-hide p-2">
-              {data &&
-                data.sexual_orientations.map((sexual_orientation: any) => {
-
-                  const label = sexual_orientation.translations.find(
-                    (t: any) => t.language === defaultLanguage
-                  )?.label || sexual_orientation.translations.find(
-                    (t: any) => t.language === "en"
-                  )?.label || "";
-                  const isSelected = formData.orientation === sexual_orientation.id;
-
-                  return (
-                    <motion.button
-                      key={sexual_orientation.id}
-                      onClick={() => updateFormData("orientation", sexual_orientation.id)}
-                      className={`p-4 rounded-2xl border-2 text-sm font-medium transition-all text-center ${isSelected
-                        ? theme === "dark"
-                          ? "bg-white text-gray-900 border-white shadow-md"
-                          : "bg-gray-900 text-white border-gray-900 shadow-md"
-                        : theme === "dark"
-                          ? "bg-gray-800 border-gray-700 text-white hover:border-gray-600"
-                          : "bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300"
-                        }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {label}
-                    </motion.button>
-                  );
-                })}
-            </div>
-          </div>
-        );
-
-      case 'multi-select':
-        return (
-          <div className="max-h-64 overflow-y-auto  scrollbar-hide p-2">
-            <div className="grid grid-cols-2 gap-2">
-              {data &&
-                data.fantasies.map((fantasy: any) => {
-                  // Öncelikle defaultLanguage'i bul, yoksa İngilizce
-                  const translation =
-                    fantasy.translations.find((t: any) => t.language === defaultLanguage) ||
-                    fantasy.translations.find((t: any) => t.language === "en");
-
-                  const label = translation?.label || fantasy.category;
-
-                  return (
-                    <motion.button
-                      key={fantasy.id}
-                      onClick={() => togglePreference(fantasy.id)}
-                      className={`p-3 rounded-xl border transition-all text-left text-sm ${formData.fantasies.includes(fantasy.id)
-                          ? theme === 'dark'
-                            ? 'bg-white text-gray-900 border-white'
-                            : 'bg-gray-900 text-white border-gray-900'
-                          : theme === 'dark'
-                            ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-600'
-                            : 'bg-gray-50 border-gray-200 text-gray-900 hover:border-gray-300'
-                        }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {label}
-                    </motion.button>
-                  );
-                })}
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
@@ -1197,25 +1063,12 @@ const AuthWizard: React.FC<AuthWizardProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm sm:text-base whitespace-nowrap">{currentStep === (authMode === 'login' ? 3 : 7) ? (authMode === 'login' ? t('auth.sign_in') : t('auth.complete_registration')) : t('auth.continue')}</span>
+                    <span className="text-sm sm:text-base whitespace-nowrap">{currentStep === (authMode === 'login' ? 3 : 5) ? (authMode === 'login' ? t('auth.sign_in') : t('auth.complete_registration')) : t('auth.continue')}</span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                   </>
                 )}
               </motion.button>
 
-              {currentStepData.field === 'preferences' && !isLastStep() && (
-                <motion.button
-                  onClick={handleSkip}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 ${theme === 'dark'
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
-                    }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {t('auth.skip')}
-                </motion.button>
-              )}
             </div>
           </div>
         </motion.div>

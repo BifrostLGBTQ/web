@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle, FileText, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Link, MoreHorizontal, Heart, Baby, Cigarette, Wine, Ruler, PawPrint, Church, GraduationCap, Eye, Palette, Users, Accessibility, Paintbrush, RulerDimensionLine, Vegan, PersonStanding, Sparkles, Drama, Banana, Save, Camera, Image as ImageIcon, ChevronRight, Check, HeartHandshake, AlertTriangle, FileText, MessageCircle, Panda, Ghost, Frown, Rainbow, Transgender, Rabbit } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useApp } from '../contexts/AppContext';
@@ -9,6 +9,50 @@ import Post from './Post';
 import { api } from '../services/api';
 import { Actions } from '../services/actions';
 import { useTranslation } from 'react-i18next';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { HashtagPlugin } from '@lexical/react/LexicalHashtagPlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
+import { HashtagNode } from '@lexical/hashtag';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { ListNode, ListItemNode } from '@lexical/list';
+import { LinkNode, AutoLinkNode } from '@lexical/link';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import ToolbarPlugin from './Lexical/plugins/ToolbarPlugin';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
+import { $getRoot, $createParagraphNode, $createTextNode } from 'lexical';
+import { ToolbarContext } from '../contexts/ToolbarContext';
+
+// ToolbarPlugin wrapper component
+const ToolbarPluginWrapper = ({ setEditorInstance }: { setEditorInstance: (editor: any) => void }) => {
+  const [editor] = useLexicalComposerContext();
+  const [activeEditor, setActiveEditor] = useState(editor);
+  const [isLinkEditMode, setIsLinkEditMode] = useState(false);
+
+  // Set editor instance when available
+  React.useEffect(() => {
+    if (editor && setEditorInstance) {
+      setEditorInstance(editor);
+    }
+  }, [editor, setEditorInstance]);
+
+  return (
+    <ToolbarContext>
+      <ToolbarPlugin
+        editor={editor}
+        activeEditor={activeEditor}
+        setActiveEditor={setActiveEditor}
+        setIsLinkEditMode={setIsLinkEditMode}
+      />
+    </ToolbarContext>
+  );
+};
 
 // User interface
 interface User {
@@ -40,14 +84,10 @@ interface User {
     notes?: string;
     fantasy?: {
       id: string;
-      category: string;
-      translations?: Array<{
-        id: string;
-        fantasy_id: string;
-        language: string;
-        label: string;
-        description?: string;
-      }>;
+      slug: string;
+      category: Record<string, string>;
+      label: Record<string, string>;
+      description: Record<string, string>;
     };
   }>;
   interests?: Array<{
@@ -155,7 +195,7 @@ const ProfileScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'posts' | 'replies' | 'media' | 'likes'>('posts');
+  const [activeTab, setActiveTab] = useState<'profile' | 'posts' | 'replies' | 'media' | 'likes'>('profile');
   const [isFollowing, setIsFollowing] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -185,6 +225,91 @@ const ProfileScreen: React.FC = () => {
   const [fantasyView, setFantasyView] = useState<'list' | 'detail'>('list');
   const [selectedFantasyCategory, setSelectedFantasyCategory] = useState<string | null>(null);
   const [updatingFantasies, setUpdatingFantasies] = useState(false);
+  
+  // Bio editor state
+  const [bioEditorInstance, setBioEditorInstance] = useState<any>(null);
+  
+  // Editor config for bio
+  const bioEditorConfig = React.useMemo(() => ({
+    namespace: "ProfileBioEditor",
+    editable: true,
+    nodes: [HashtagNode, HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, AutoLinkNode],
+    theme: {
+      paragraph: `mb-2 text-base ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+      heading: {
+        h1: `text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        h2: `text-2xl font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        h3: `text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+      },
+      list: {
+        nested: {
+          listitem: `list-none`,
+        },
+        ol: `list-decimal list-inside mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        ul: `list-disc list-inside mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+        listitem: `mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`,
+      },
+      quote: `border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-2 my-2 italic ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`,
+      link: `${theme === 'dark' ? 'text-white underline' : 'text-gray-900 underline'}`,
+      text: {
+        bold: "font-semibold",
+        italic: "italic",
+        underline: "underline",
+        strikethrough: "line-through",
+      },
+    },
+    onError(error: Error) {
+      console.error("Lexical Error:", error);
+    },
+  }), [theme]);
+  
+  // Bio editor onChange handler
+  const handleBioChange = (editorState: any) => {
+    if (!bioEditorInstance) return;
+    
+    editorState.read(() => {
+      const htmlString = $generateHtmlFromNodes(bioEditorInstance, null);
+      
+      // Update editFormData with HTML content
+      setEditFormData({
+        ...editFormData,
+        bio: htmlString,
+      });
+    });
+  };
+  
+  // Initialize bio editor content when user data loads or edit mode opens
+  const bioInitializedRef = useRef(false);
+  useEffect(() => {
+    if (isEditMode && bioEditorInstance && !bioInitializedRef.current) {
+      const initialBio = user?.bio || '';
+      if (initialBio) {
+        try {
+          // Try to parse as HTML
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(initialBio, 'text/html');
+          bioEditorInstance.update(() => {
+            const root = $getRoot();
+            root.clear();
+            const nodes = $generateNodesFromDOM(bioEditorInstance, doc);
+            root.append(...nodes);
+          }, { discrete: true });
+        } catch (error) {
+          // If parsing fails, treat as plain text
+          bioEditorInstance.update(() => {
+            const root = $getRoot();
+            root.clear();
+            const paragraph = $createParagraphNode();
+            paragraph.append($createTextNode(initialBio));
+            root.append(paragraph);
+          }, { discrete: true });
+        }
+      }
+      bioInitializedRef.current = true;
+    } else if (!isEditMode) {
+      bioInitializedRef.current = false;
+    }
+  }, [isEditMode, user?.bio, bioEditorInstance]);
   
   // Check if viewing own profile
   const isOwnProfile = isAuthenticated && authUser && user && (authUser.username === user.username || authUser.id === user.id);
@@ -232,6 +357,36 @@ const ProfileScreen: React.FC = () => {
         display_order: attr.display_order,
       }));
     });
+  }
+  
+  // Add gender_identities to fieldOptions
+  if (appData?.gender_identities) {
+    const sortedGenderIdentities = [...appData.gender_identities].sort((a, b) => a.display_order - b.display_order);
+    fieldOptions['gender_identity'] = sortedGenderIdentities.map(item => ({
+      id: item.id,
+      name: item.name?.[defaultLanguage] || item.name?.en || (item.name ? Object.values(item.name)[0] : '') || '',
+      display_order: item.display_order,
+    }));
+  }
+  
+  // Add sexual_orientations to fieldOptions
+  if (appData?.sexual_orientations) {
+    const sortedSexualOrientations = [...appData.sexual_orientations].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    fieldOptions['sexual_orientation'] = sortedSexualOrientations.map(item => ({
+      id: item.id,
+      name: (item.name?.[defaultLanguage] || item.name?.en || (item.name ? Object.values(item.name)[0] : '') || ''),
+      display_order: item.display_order || 0,
+    }));
+  }
+  
+  // Add sexual_roles to fieldOptions
+  if (appData?.sexual_roles) {
+    const sortedSexualRoles = [...appData.sexual_roles].sort((a, b) => a.display_order - b.display_order);
+    fieldOptions['sex_role'] = sortedSexualRoles.map(item => ({
+      id: item.id,
+      name: item.name?.[defaultLanguage] || item.name?.en || (item.name ? Object.values(item.name)[0] : '') || '',
+      display_order: item.display_order,
+    }));
   }
 
   // Build interestOptions from API data
@@ -308,42 +463,44 @@ const ProfileScreen: React.FC = () => {
   const fantasyCategories: Array<{ id: string; name: string }> = [];
   
   // Category name translations
-  const fantasyCategoryNames: Record<string, Record<string, string>> = {
-    joy_or_tabu: { en: 'Joy or Taboo', tr: 'Zevk veya Tabu' },
-    sexual_adventure: { en: 'Sexual Adventure', tr: 'Cinsel Macera' },
-    physical_pref: { en: 'Physical Preference', tr: 'Fiziksel Tercih' },
-    sexual_pref: { en: 'Sexual Preference', tr: 'Cinsel Tercih' },
-    amusement: { en: 'Amusement', tr: 'Eğlence' },
-  };
-  
   if (appData?.fantasies) {
-    // Group fantasies by category
+    // Group fantasies by slug (category identifier)
     const fantasiesByCategory: Record<string, typeof appData.fantasies> = {};
     appData.fantasies.forEach((fantasy) => {
-      if (!fantasiesByCategory[fantasy.category]) {
-        fantasiesByCategory[fantasy.category] = [];
+      const categorySlug = fantasy.slug;
+      if (!fantasiesByCategory[categorySlug]) {
+        fantasiesByCategory[categorySlug] = [];
       }
-      fantasiesByCategory[fantasy.category].push(fantasy);
+      fantasiesByCategory[categorySlug].push(fantasy);
     });
     
     // Build categories and options
-    Object.keys(fantasiesByCategory).forEach((categoryId) => {
-      const categoryName = fantasyCategoryNames[categoryId]?.[defaultLanguage] || 
-                          fantasyCategoryNames[categoryId]?.en || 
-                          categoryId;
+    Object.keys(fantasiesByCategory).forEach((categorySlug) => {
+      // Get category name from the first fantasy in this category
+      const firstFantasy = fantasiesByCategory[categorySlug][0];
+      const categoryName = firstFantasy.category[defaultLanguage] || 
+                          firstFantasy.category.en || 
+                          Object.values(firstFantasy.category)[0] || 
+                          categorySlug;
+      
       fantasyCategories.push({
-        id: categoryId,
+        id: categorySlug,
         name: categoryName,
       });
       
-      fantasyOptions[categoryId] = fantasiesByCategory[categoryId].map((fantasy) => {
-        const translation = fantasy.translations?.find(t => t.language === defaultLanguage) ||
-                           fantasy.translations?.find(t => t.language === 'en') ||
-                           fantasy.translations?.[0];
+      fantasyOptions[categorySlug] = fantasiesByCategory[categorySlug].map((fantasy) => {
+        const label = fantasy.label[defaultLanguage] || 
+                     fantasy.label.en || 
+                     Object.values(fantasy.label)[0] || 
+                     `Fantasy ${fantasy.id}`;
+        const description = fantasy.description[defaultLanguage] || 
+                           fantasy.description.en || 
+                           Object.values(fantasy.description)[0] || 
+                           '';
         return {
           id: fantasy.id,
-          name: translation?.label || '',
-          description: translation?.description || '',
+          name: label,
+          description: description,
         };
       });
     });
@@ -371,15 +528,15 @@ const ProfileScreen: React.FC = () => {
           // Find the fantasy in appData to get its category
           const fantasy = appData.fantasies.find(f => f.id === fantasyId);
           if (fantasy) {
-            const categoryId = fantasy.category;
-            if (!grouped[categoryId]) {
-              grouped[categoryId] = [];
+            const categorySlug = fantasy.slug;
+            if (!grouped[categorySlug]) {
+              grouped[categorySlug] = [];
             }
-            const translation = fantasy.translations?.find(t => t.language === defaultLanguage) ||
-                               fantasy.translations?.find(t => t.language === 'en') ||
-                               fantasy.translations?.[0];
-            const fantasyName = translation?.label || '';
-            grouped[categoryId].push({
+            const fantasyName = fantasy.label[defaultLanguage] || 
+                               fantasy.label.en || 
+                               Object.values(fantasy.label)[0] || 
+                               '';
+            grouped[categorySlug].push({
               id: fantasyId,
               name: fantasyName,
             });
@@ -413,9 +570,18 @@ const ProfileScreen: React.FC = () => {
     kids_preference: t('profile.kids'),
     dietary: t('profile.dietary'),
     hiv_aids_status: t('profile.hiv_aids_status'),
+    bdsm_interest: t('profile.bdsm_interest'),
+    bdsm_plays: t('profile.bdsm_plays'),
+    bdsm_roles: t('profile.bdsm_roles'),
+    gender_identity: t('profile.gender_identity'),
+    sexual_orientation: t('profile.sexual_orientation'),
+    sex_role: t('profile.sex_role'),
   };
 
   const USER_ATTRIBUTES = [
+    { field: 'gender_identity', label: t('profile.gender_identity'), icon: Transgender },
+    { field: 'sexual_orientation', label: t('profile.sexual_orientation'), icon: Rainbow },
+    { field: 'sex_role', label: t('profile.sex_role'), icon: Rabbit },
     { field: 'height', label: t('profile.height'), icon: Ruler },
     { field: 'weight', label: t('profile.weight'), icon: RulerDimensionLine },
     { field: 'hair_color', label: t('profile.hair_color'), icon: Paintbrush },
@@ -436,6 +602,9 @@ const ProfileScreen: React.FC = () => {
     { field: 'kids_preference', label: t('profile.kids'), icon: Baby },
     { field: 'dietary', label: t('profile.dietary'), icon: Vegan },
     { field: 'hiv_aids_status', label: t('profile.hiv_aids_status'), icon: HeartHandshake },
+    { field: 'bdsm_interest', label: t('profile.bdsm_interest'), icon: Panda },
+    { field: 'bdsm_plays', label: t('profile.bdsm_plays'), icon: Ghost },
+    { field: 'bdsm_roles', label: t('profile.bdsm_roles'), icon: Frown },
   ];
 
   const handleFieldOptionSelect = async (field: string, value: string) => {
@@ -452,49 +621,112 @@ const ProfileScreen: React.FC = () => {
     // Set loading state for this field
     setUpdatingAttributes({ ...updatingAttributes, [field]: true });
     
-    // Immediately save to backend using CMD_USER_UPDATE_ATTRIBUTE
+    // Check if this is a sexual identity field (gender_identity, sexual_orientation, sex_role)
+    const isSexualIdentityField = ['gender_identity', 'sexual_orientation', 'sex_role'].includes(field);
+    
+    // Immediately save to backend
     try {
-      const response = await api.call(Actions.CMD_USER_UPDATE_ATTRIBUTE, {
-        method: "POST",
-        body: { attribute_id: attributeId },
-      });
+      let response;
       
-      // Update auth context - always update if authenticated (removed isOwnProfile restriction)
+      if (isSexualIdentityField) {
+        // Use CMD_USER_UPDATE_IDENTIFY for sexual identity fields
+        const bodyKey = field === 'gender_identity' ? 'gender_identity_id' 
+                      : field === 'sexual_orientation' ? 'sexual_orientation_id' 
+                      : 'sexual_role_id';
+        
+        response = await api.call(Actions.CMD_USER_UPDATE_IDENTIFY, {
+          method: "POST",
+          body: { [bodyKey]: attributeId },
+        });
+      } else {
+        // Use CMD_USER_UPDATE_ATTRIBUTE for regular attributes
+        response = await api.call(Actions.CMD_USER_UPDATE_ATTRIBUTE, {
+          method: "POST",
+          body: { attribute_id: attributeId },
+        });
+      }
+      
+      // Update auth context - always update if authenticated
       if (isAuthenticated && authUser) {
         // If response contains updated user, use that
         if (response?.user) {
           updateUser(response.user);
+          // Also update local user state if viewing own profile
+          if (user && (authUser.id === user.id || authUser.username === user.username)) {
+            setUser(response.user as unknown as User);
+          }
         } else {
-          // Otherwise, update user_attributes manually
-          const existingAttributes = authUser.user_attributes || [];
-          const otherAttributes = existingAttributes.filter(ua => ua.category_type !== field);
-          const attributeData = options.find(opt => opt.id === attributeId);
-          
-          if (attributeData) {
-            const newAttribute = {
-              id: `temp-${Date.now()}`,
-              user_id: authUser.id,
-              category_type: field,
-              attribute_id: attributeId,
-              attribute: {
-                id: attributeId,
-                category: field,
-                display_order: attributeData.display_order,
-                name: { [defaultLanguage]: attributeData.name } as Record<string, string>,
-              },
-            };
+          // Otherwise, update manually
+          if (isSexualIdentityField) {
+            // Update sexual identity fields as arrays (matching API structure)
+            const attributeData = options.find(opt => opt.id === attributeId);
+            if (attributeData) {
+              const updatedUserData: any = { ...authUser };
+              
+              if (field === 'gender_identity') {
+                // Store as array to match API structure
+                updatedUserData.gender_identities = [{
+                  id: attributeId,
+                  name: { [defaultLanguage]: attributeData.name } as Record<string, string>,
+                  display_order: attributeData.display_order,
+                }];
+              } else if (field === 'sexual_orientation') {
+                // Store as array to match API structure
+                updatedUserData.sexual_orientations = [{
+                  id: attributeId,
+                  name: { [defaultLanguage]: attributeData.name } as Record<string, string>,
+                  display_order: attributeData.display_order,
+                }];
+              } else if (field === 'sex_role') {
+                // Store as object (not array) - use sexual_role to match API
+                updatedUserData.sexual_role = {
+                  id: attributeId,
+                  name: { [defaultLanguage]: attributeData.name } as Record<string, string>,
+                  display_order: attributeData.display_order,
+                };
+                // Also set sexual_role_id for API compatibility
+                updatedUserData.sexual_role_id = attributeId;
+              }
+              
+              updateUser(updatedUserData);
+              // Also update local user state if viewing own profile
+              if (user && (authUser.id === user.id || authUser.username === user.username)) {
+                setUser(updatedUserData as unknown as User);
+              }
+            }
+          } else {
+            // Update user_attributes for regular attributes
+            const existingAttributes = authUser.user_attributes || [];
+            const otherAttributes = existingAttributes.filter(ua => ua.category_type !== field);
+            const attributeData = options.find(opt => opt.id === attributeId);
             
-            updateUser({
-              ...authUser,
-              user_attributes: [...otherAttributes, newAttribute],
-            } as any);
+            if (attributeData) {
+              const newAttribute = {
+                id: `temp-${Date.now()}`,
+                user_id: authUser.id,
+                category_type: field,
+                attribute_id: attributeId,
+                attribute: {
+                  id: attributeId,
+                  category: field,
+                  display_order: attributeData.display_order,
+                  name: { [defaultLanguage]: attributeData.name } as Record<string, string>,
+                },
+              };
+              
+              const updatedUserData = {
+                ...authUser,
+                user_attributes: [...otherAttributes, newAttribute],
+              } as any;
+              
+              updateUser(updatedUserData);
+              // Also update local user state if viewing own profile
+              if (user && (authUser.id === user.id || authUser.username === user.username)) {
+                setUser(updatedUserData as unknown as User);
+              }
+            }
           }
         }
-      }
-      
-      // Update local user state - always update if authenticated user matches
-      if (isAuthenticated && authUser && user && (authUser.id === user.id || authUser.username === user.username)) {
-        setUser(authUser as unknown as User);
       }
     } catch (err: any) {
       console.error(`Error updating ${field}:`, err);
@@ -709,8 +941,10 @@ const ProfileScreen: React.FC = () => {
             fantasy_id: fantasyId,
             fantasy: {
               id: fantasy.id,
+              slug: fantasy.slug,
               category: fantasy.category,
-              translations: fantasy.translations,
+              label: fantasy.label,
+              description: fantasy.description,
             },
           };
           setUser({
@@ -760,8 +994,10 @@ const ProfileScreen: React.FC = () => {
               fantasy_id: fantasyId,
               fantasy: {
                 id: fantasy.id,
+                slug: fantasy.slug,
                 category: fantasy.category,
-                translations: fantasy.translations,
+                label: fantasy.label,
+                description: fantasy.description,
               },
             };
             setUser({
@@ -1109,7 +1345,7 @@ const ProfileScreen: React.FC = () => {
           response = await api.call(Actions.CMD_USER_POSTS, {
             method: "POST",
             body: { 
-              username: username || user?.username,
+              user_id: user?.id,
               limit: 20,
               cursor: ""
             },
@@ -1119,7 +1355,7 @@ const ProfileScreen: React.FC = () => {
           response = await api.call(Actions.CMD_USER_POST_REPLIES, {
             method: "POST",
             body: { 
-              username: username || user?.username,
+              user_id: user?.id,
               limit: 20,
               cursor: ""
             },
@@ -1129,7 +1365,7 @@ const ProfileScreen: React.FC = () => {
           response = await api.call(Actions.CMD_USER_POST_MEDIA, {
             method: "POST",
             body: { 
-              username: username || user?.username,
+              user_id: user?.id,
               limit: 20,
               cursor: ""
             },
@@ -1139,7 +1375,7 @@ const ProfileScreen: React.FC = () => {
           response = await api.call(Actions.CMD_USER_POST_LIKES, {
             method: "POST",
             body: { 
-              username: username || user?.username,
+              user_id: user?.id,
               limit: 20,
               cursor: ""
             },
@@ -1166,7 +1402,7 @@ const ProfileScreen: React.FC = () => {
     if (user && username) {
       fetchUserPosts();
     }
-  }, [user, username, activeTab]);
+  }, [user?.id, username, activeTab]);
 
   const handleBackClick = () => {
     navigate(-1);
@@ -1432,16 +1668,47 @@ const ProfileScreen: React.FC = () => {
                             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                               {t('profile.bio')}
                             </label>
-                            <textarea
-                              value={editFormData.bio || ''}
-                              onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
-                              rows={4}
-                              className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-100 transition-all resize-none ${theme === 'dark'
-                                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-white'
-                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-gray-900'
-                                }`}
-                              placeholder={t('profile.bio_placeholder')}
-                            />
+                            <div className={`w-full px-2 rounded-xl border-2 focus-within:border-opacity-100 transition-all ${theme === 'dark'
+                              ? 'bg-gray-800 border-gray-700 focus-within:border-white'
+                              : 'bg-gray-50 border-gray-200 focus-within:border-gray-900'
+                            }`}>
+                              <LexicalComposer initialConfig={bioEditorConfig}>
+                                <div className="relative">
+                                  <HashtagPlugin />
+                                  <ListPlugin />
+                                  <LinkPlugin />
+                                  
+                                  <div className="-mx-2 mt-1">
+                                    <ToolbarPluginWrapper setEditorInstance={setBioEditorInstance} />
+                                  </div>
+
+                                  <RichTextPlugin
+                                    contentEditable={
+                                      <ContentEditable 
+                                        className="editor-input lexical-editor px-4 py-3"
+                                        style={{
+                                          minHeight: '120px',
+                                          maxHeight: '100%',
+                                          wordWrap: 'break-word',
+                                          overflowWrap: 'break-word'
+                                        }}
+                                      />
+                                    }
+                                    placeholder={
+                                      <div className="absolute top-[60px] left-[14px] text-sm pointer-events-none">
+                                        <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>
+                                          {t('profile.bio_placeholder')}
+                                        </span>
+                                      </div>
+                                    }
+                                    ErrorBoundary={LexicalErrorBoundary}
+                                  />
+                                  <OnChangePlugin onChange={handleBioChange} />
+                                  <AutoFocusPlugin />
+                                  <HistoryPlugin />
+                                </div>
+                              </LexicalComposer>
+                            </div>
                           </div>
 
                           {/* Location */}
@@ -1528,24 +1795,77 @@ const ProfileScreen: React.FC = () => {
                           const isLoading = updatingAttributes[item.field] || false;
                           const options = fieldOptions[item.field] || [];
                           
-                          // Get current attribute from authUser's user_attributes (if edit mode) or user's user_attributes
+                          // Get current value
                           const userToCheck = isEditMode && isAuthenticated ? authUser : user;
-                          const currentUserAttribute = userToCheck?.user_attributes?.find(
-                            (ua: any) => ua.category_type === item.field
-                          );
+                          let currentAttributeId = '';
+                          let selectedOption = null;
+                          let hasValue = false;
+                          let displayValue = t('profile.select_option');
                           
-                          const currentAttributeId = currentUserAttribute?.attribute_id;
-                          const selectedOption = currentAttributeId 
-                            ? options.find((opt: any) => opt.id === currentAttributeId)
-                            : null;
-                          
-                          // If option found, use its name, otherwise try to use attribute.name from user_attributes
-                          const hasValue = !!(selectedOption || (currentUserAttribute?.attribute?.name));
-                          const displayValue = selectedOption 
-                            ? selectedOption.name
-                            : currentUserAttribute?.attribute?.name
-                            ? (currentUserAttribute.attribute.name[defaultLanguage] || currentUserAttribute.attribute.name.en || Object.values(currentUserAttribute.attribute.name)[0] || t('profile.select_option'))
-                            : t('profile.select_option');
+                          // Check if this is a sexual identity field
+                          if (item.field === 'gender_identity') {
+                            // Check both structures: direct array or nested in sexual_identities
+                            const genderIdentities = (userToCheck as any)?.gender_identities || (userToCheck as any)?.sexual_identities?.gender_identities;
+                            const genderIdentity = genderIdentities?.[0] || (userToCheck as any)?.gender_identity;
+                            if (genderIdentity?.id) {
+                              currentAttributeId = genderIdentity.id;
+                              selectedOption = options.find((opt: any) => opt.id === currentAttributeId);
+                              if (selectedOption) {
+                                displayValue = selectedOption.name;
+                                hasValue = true;
+                              } else if (genderIdentity.name) {
+                                displayValue = genderIdentity.name[defaultLanguage] || genderIdentity.name.en || Object.values(genderIdentity.name)[0] || t('profile.select_option');
+                                hasValue = !!displayValue && displayValue !== t('profile.select_option');
+                              }
+                            }
+                          } else if (item.field === 'sexual_orientation') {
+                            // Check both structures: direct array or nested in sexual_identities
+                            const sexualOrientations = (userToCheck as any)?.sexual_orientations || (userToCheck as any)?.sexual_identities?.sexual_orientations;
+                            const sexualOrientation = sexualOrientations?.[0] || (userToCheck as any)?.sexual_orientation;
+                            if (sexualOrientation?.id) {
+                              currentAttributeId = sexualOrientation.id;
+                              selectedOption = options.find((opt: any) => opt.id === currentAttributeId);
+                              if (selectedOption) {
+                                displayValue = selectedOption.name;
+                                hasValue = true;
+                              } else if (sexualOrientation.name) {
+                                displayValue = sexualOrientation.name[defaultLanguage] || sexualOrientation.name.en || Object.values(sexualOrientation.name)[0] || t('profile.select_option');
+                                hasValue = !!displayValue && displayValue !== t('profile.select_option');
+                              }
+                            }
+                          } else if (item.field === 'sex_role') {
+                            // Check multiple structures: sexual_role, sex_role, or nested in sexual_identities
+                            const sexRole = (userToCheck as any)?.sexual_role || (userToCheck as any)?.sex_role || (userToCheck as any)?.sexual_identities?.sex_role;
+                            if (sexRole?.id) {
+                              currentAttributeId = sexRole.id;
+                              selectedOption = options.find((opt: any) => opt.id === currentAttributeId);
+                              if (selectedOption) {
+                                displayValue = selectedOption.name;
+                                hasValue = true;
+                              } else if (sexRole.name) {
+                                displayValue = sexRole.name[defaultLanguage] || sexRole.name.en || Object.values(sexRole.name)[0] || t('profile.select_option');
+                                hasValue = !!displayValue && displayValue !== t('profile.select_option');
+                              }
+                            }
+                          } else {
+                            // Regular attribute from user_attributes
+                            const currentUserAttribute = userToCheck?.user_attributes?.find(
+                              (ua: any) => ua.category_type === item.field
+                            );
+                            
+                            currentAttributeId = currentUserAttribute?.attribute_id || '';
+                            selectedOption = currentAttributeId 
+                              ? options.find((opt: any) => opt.id === currentAttributeId)
+                              : null;
+                            
+                            // If option found, use its name, otherwise try to use attribute.name from user_attributes
+                            hasValue = !!(selectedOption || (currentUserAttribute?.attribute?.name));
+                            displayValue = selectedOption 
+                              ? selectedOption.name
+                              : currentUserAttribute?.attribute?.name
+                              ? (currentUserAttribute.attribute.name[defaultLanguage] || currentUserAttribute.attribute.name.en || Object.values(currentUserAttribute.attribute.name)[0] || t('profile.select_option'))
+                              : t('profile.select_option');
+                          }
                           
                           return (
                             <button
@@ -1625,13 +1945,35 @@ const ProfileScreen: React.FC = () => {
                       <div className={`rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
                         {selectedField && fieldOptions[selectedField] && fieldOptions[selectedField].length > 0 ? (
                           fieldOptions[selectedField].map((option, index) => {
-                            // Get current attribute from authUser's user_attributes (if edit mode) or user's user_attributes
+                            // Get current value
                             const userToCheck = isEditMode && isAuthenticated ? authUser : user;
-                            const currentUserAttribute = userToCheck?.user_attributes?.find(
-                              (ua: any) => ua.category_type === selectedField
-                            );
-                            const currentAttributeId = currentUserAttribute?.attribute_id;
-                            const isSelected = currentAttributeId === option.id;
+                            let currentAttributeId = '';
+                            let isSelected = false;
+                            
+                            // Check if this is a sexual identity field
+                            if (selectedField === 'gender_identity') {
+                              const genderIdentities = (userToCheck as any)?.gender_identities || (userToCheck as any)?.sexual_identities?.gender_identities;
+                              const genderIdentity = genderIdentities?.[0] || (userToCheck as any)?.gender_identity;
+                              currentAttributeId = genderIdentity?.id || '';
+                              isSelected = currentAttributeId === option.id;
+                            } else if (selectedField === 'sexual_orientation') {
+                              const sexualOrientations = (userToCheck as any)?.sexual_orientations || (userToCheck as any)?.sexual_identities?.sexual_orientations;
+                              const sexualOrientation = sexualOrientations?.[0] || (userToCheck as any)?.sexual_orientation;
+                              currentAttributeId = sexualOrientation?.id || '';
+                              isSelected = currentAttributeId === option.id;
+                            } else if (selectedField === 'sex_role') {
+                              const sexRole = (userToCheck as any)?.sexual_role || (userToCheck as any)?.sex_role || (userToCheck as any)?.sexual_identities?.sex_role;
+                              currentAttributeId = sexRole?.id || '';
+                              isSelected = currentAttributeId === option.id;
+                            } else {
+                              // Regular attribute from user_attributes
+                              const currentUserAttribute = userToCheck?.user_attributes?.find(
+                                (ua: any) => ua.category_type === selectedField
+                              );
+                              currentAttributeId = currentUserAttribute?.attribute_id || '';
+                              isSelected = currentAttributeId === option.id;
+                            }
+                            
                             const isLast = index === fieldOptions[selectedField].length - 1;
                             return (
                               <button
@@ -2248,25 +2590,58 @@ const ProfileScreen: React.FC = () => {
                     : 'bg-white backdrop-blur-xl border border-black/[0.06]'
                   }`}>
                     {USER_ATTRIBUTES.map((item, index) => {
-                      // Find attribute from user_attributes
-                      const currentUserAttribute = user?.user_attributes?.find(
-                        (ua: any) => ua.category_type === item.field
-                      );
-                      
-                      // Get display value
+                      // Get display value - use authUser if viewing own profile in edit context, otherwise use user
+                      const userToCheck = (isOwnProfile && isAuthenticated && authUser) ? authUser : user;
                       let displayValue = '';
                       let hasValue = false;
                       
-                      if (currentUserAttribute?.attribute?.name) {
-                        displayValue = currentUserAttribute.attribute.name[defaultLanguage] || 
-                                      currentUserAttribute.attribute.name.en || 
-                                      Object.values(currentUserAttribute.attribute.name)[0] || '';
-                        hasValue = !!displayValue;
-                      }
-                      
-                      if (item.field === 'relationship_status' && !hasValue) {
-                        displayValue = user?.relationship_status || '';
-                        hasValue = !!displayValue;
+                      // Check if this is a sexual identity field
+                      if (item.field === 'gender_identity') {
+                        // Check both structures: direct array or nested in sexual_identities
+                        const genderIdentities = (userToCheck as any)?.gender_identities || (userToCheck as any)?.sexual_identities?.gender_identities;
+                        const genderIdentity = genderIdentities?.[0] || (userToCheck as any)?.gender_identity;
+                        if (genderIdentity?.name) {
+                          displayValue = genderIdentity.name[defaultLanguage] || 
+                                        genderIdentity.name.en || 
+                                        Object.values(genderIdentity.name)[0] || '';
+                          hasValue = !!displayValue;
+                        }
+                      } else if (item.field === 'sexual_orientation') {
+                        // Check both structures: direct array or nested in sexual_identities
+                        const sexualOrientations = (userToCheck as any)?.sexual_orientations || (userToCheck as any)?.sexual_identities?.sexual_orientations;
+                        const sexualOrientation = sexualOrientations?.[0] || (userToCheck as any)?.sexual_orientation;
+                        if (sexualOrientation?.name) {
+                          displayValue = sexualOrientation.name[defaultLanguage] || 
+                                        sexualOrientation.name.en || 
+                                        Object.values(sexualOrientation.name)[0] || '';
+                          hasValue = !!displayValue;
+                        }
+                      } else if (item.field === 'sex_role') {
+                        // Check multiple structures: sexual_role, sex_role, or nested in sexual_identities
+                        const sexRole = (userToCheck as any)?.sexual_role || (userToCheck as any)?.sex_role || (userToCheck as any)?.sexual_identities?.sex_role;
+                        if (sexRole?.name) {
+                          displayValue = sexRole.name[defaultLanguage] || 
+                                        sexRole.name.en || 
+                                        Object.values(sexRole.name)[0] || '';
+                          hasValue = !!displayValue;
+                        }
+                      } else {
+                        // Regular attribute from user_attributes
+                        const currentUserAttribute = userToCheck?.user_attributes?.find(
+                          (ua: any) => ua.category_type === item.field
+                        );
+                        
+                        if (currentUserAttribute?.attribute?.name) {
+                          displayValue = currentUserAttribute.attribute.name[defaultLanguage] || 
+                                        currentUserAttribute.attribute.name.en || 
+                                        Object.values(currentUserAttribute.attribute.name)[0] || '';
+                          hasValue = !!displayValue;
+                        }
+                        
+                        if (item.field === 'relationship_status' && !hasValue) {
+                          displayValue = userToCheck?.relationship_status || '';
+                          hasValue = !!displayValue;
+                        }
                       }
                       
                       if (!hasValue) {
@@ -2324,25 +2699,28 @@ const ProfileScreen: React.FC = () => {
                   </div>
                   {user.fantasies && user.fantasies.length > 0 ? (
                     (() => {
-                      // Group fantasies by category
+                      // Group fantasies by category slug
                       const fantasiesByCategory: Record<string, typeof user.fantasies> = {};
                       user.fantasies.forEach((f) => {
-                        const categoryId = f.fantasy?.category || 'other';
-                        if (!fantasiesByCategory[categoryId]) {
-                          fantasiesByCategory[categoryId] = [];
+                        const categorySlug = f.fantasy?.slug || 'other';
+                        if (!fantasiesByCategory[categorySlug]) {
+                          fantasiesByCategory[categorySlug] = [];
                         }
-                        fantasiesByCategory[categoryId].push(f);
+                        fantasiesByCategory[categorySlug].push(f);
                       });
 
                       return (
                         <div className="space-y-3">
-                          {Object.entries(fantasiesByCategory).map(([categoryId, categoryFantasies]) => {
-                            const categoryName = fantasyCategoryNames[categoryId]?.[defaultLanguage] || 
-                                               fantasyCategoryNames[categoryId]?.en || 
-                                               categoryId;
+                          {Object.entries(fantasiesByCategory).map(([categorySlug, categoryFantasies]) => {
+                            // Get category name from the first fantasy in this group
+                            const firstFantasy = categoryFantasies[0]?.fantasy;
+                            const categoryName = firstFantasy?.category?.[defaultLanguage] || 
+                                               firstFantasy?.category?.en || 
+                                               (firstFantasy?.category ? Object.values(firstFantasy.category)[0] : null) ||
+                                               categorySlug;
                             return (
                               <div 
-                                key={categoryId} 
+                                key={categorySlug} 
                                 className={`rounded-[18px] overflow-hidden ${theme === 'dark' 
                                   ? 'bg-gradient-to-br from-gray-900/95 to-gray-900/60 backdrop-blur-xl border border-white/[0.06]' 
                                   : 'bg-white backdrop-blur-xl border border-black/[0.06]'
@@ -2355,10 +2733,10 @@ const ProfileScreen: React.FC = () => {
                                 </div>
                                 <div className="p-3.5 flex flex-wrap gap-2">
                                   {categoryFantasies.map((f) => {
-                                    const translation = f.fantasy?.translations?.find(t => t.language === defaultLanguage) ||
-                                                       f.fantasy?.translations?.find(t => t.language === 'en') ||
-                                                       f.fantasy?.translations?.[0];
-                                    const label = translation?.label || `Fantasy ${f.fantasy_id || f.id}`;
+                                    const label = f.fantasy?.label?.[defaultLanguage] || 
+                                                 f.fantasy?.label?.en || 
+                                                 Object.values(f.fantasy?.label || {})[0] || 
+                                                 `Fantasy ${f.fantasy_id || f.id}`;
                                     return (
                         <span
                                         key={f.id || f.fantasy_id}

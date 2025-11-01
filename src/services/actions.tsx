@@ -17,6 +17,7 @@ export const Actions = {
 
   // USER
   USER_UPDATE_PROFILE: "user.update_profile",
+  CMD_USER_UPDATE_IDENTIFY : "user.update_identify",
   CMD_USER_UPDATE_ATTRIBUTE : "user.update_attribute",
 	CMD_USER_UPDATE_INTEREST  : "user.update_interest",
 	CMD_USER_UPDATE_FANTASY   : "user.update_fantasy",

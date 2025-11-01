@@ -4,18 +4,12 @@ import { api } from "../services/api";
 import i18n from "../i18n";
 
 
-interface FantasyTranslation {
-  id: string;
-  fantasy_id: string;
-  language: string;
-  label: string;
-  description: string;
-}
-
 interface Fantasy {
   id: string;
-  category: string;
-  translations: FantasyTranslation[];
+  slug: string;
+  category: Record<string, string>;
+  label: Record<string, string>;
+  description: Record<string, string>;
 }
 
 interface OrientationTranslation {
@@ -27,9 +21,23 @@ interface OrientationTranslation {
 
 interface SexualOrientation {
   id: string;
-  key: string;
-  order: number;
-  translations: OrientationTranslation[];
+  key?: string;
+  order?: number;
+  name?: Record<string, string>;
+  display_order?: number;
+  translations?: OrientationTranslation[];
+}
+
+interface GenderIdentity {
+  id: string;
+  name: Record<string, string>;
+  display_order: number;
+}
+
+interface SexualRole {
+  id: string;
+  name: Record<string, string>;
+  display_order: number;
 }
 
 interface InterestItem {
@@ -65,6 +73,8 @@ interface InitialData {
   countries: Record<string, any>;
   interests: Interest[];
   sexual_orientations: SexualOrientation[];
+  gender_identities: GenderIdentity[];
+  sexual_roles: SexualRole[];
   languages: Record<string, any>;
   attributes: GroupedAttribute[];
   status: string;

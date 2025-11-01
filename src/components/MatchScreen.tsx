@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { Heart, X, Star, MapPin, Briefcase, GraduationCap, MessageCircle, Info, Camera, Shield, Sparkles, ChevronLeft, ChevronRight, Wine, Cigarette, Baby, PawPrint, Church, Eye, Paintbrush, Ruler, RulerDimensionLine, Palette, Users, Accessibility, PersonStanding, Drama, Vegan, HeartHandshake } from 'lucide-react';
+import { Heart, X, Star, MapPin, Briefcase, GraduationCap, MessageCircle, Info, Camera, Shield, Sparkles, ChevronLeft, ChevronRight, Wine, Cigarette, Baby, PawPrint, Church, Eye, Paintbrush, Ruler, RulerDimensionLine, Palette, Users, Accessibility, PersonStanding, Drama, Vegan, HeartHandshake, Panda, Ghost, Frown, UserCircle, Rainbow, Smile, Banana } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useApp } from '../contexts/AppContext';
 import { useTranslation } from 'react-i18next';
@@ -408,6 +408,9 @@ const MatchScreen: React.FC = () => {
 
   // USER_ATTRIBUTES definition (same as ProfileScreen)
   const USER_ATTRIBUTES = [
+    { field: 'gender_identity', label: t('profile.gender_identity'), icon: UserCircle },
+    { field: 'sexual_orientation', label: t('profile.sexual_orientation'), icon: Rainbow },
+    { field: 'sex_role', label: t('profile.sex_role'), icon: Smile },
     { field: 'height', label: t('profile.height'), icon: Ruler },
     { field: 'weight', label: t('profile.weight'), icon: RulerDimensionLine },
     { field: 'hair_color', label: t('profile.hair_color'), icon: Paintbrush },
@@ -416,7 +419,7 @@ const MatchScreen: React.FC = () => {
     { field: 'body_type', label: t('profile.body_type'), icon: PersonStanding },
     { field: 'ethnicity', label: t('profile.ethnicity'), icon: Users },
     { field: 'zodiac_sign', label: t('profile.zodiac_sign'), icon: Sparkles },
-    { field: 'circumcision', label: t('profile.circumcision'), icon: Info },
+    { field: 'circumcision', label: t('profile.circumcision'), icon: Banana },
     { field: 'physical_disability', label: t('profile.physical_disability'), icon: Accessibility },
     { field: 'smoking', label: t('profile.smoking'), icon: Cigarette },
     { field: 'drinking', label: t('profile.drinking'), icon: Wine },
@@ -428,6 +431,9 @@ const MatchScreen: React.FC = () => {
     { field: 'kids_preference', label: t('profile.kids'), icon: Baby },
     { field: 'dietary', label: t('profile.dietary'), icon: Vegan },
     { field: 'hiv_aids_status', label: t('profile.hiv_aids_status'), icon: HeartHandshake },
+    { field: 'bdsm_interest', label: t('profile.bdsm_interest'), icon: Panda },
+    { field: 'bdsm_plays', label: t('profile.bdsm_plays'), icon: Ghost },
+    { field: 'bdsm_roles', label: t('profile.bdsm_roles'), icon: Frown },
   ];
 
   // Fantasy category names (same as ProfileScreen)
